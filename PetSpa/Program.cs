@@ -1,4 +1,9 @@
 
+using Microsoft.EntityFrameworkCore;
+using PetSpa.Data;
+using PetSpa.Mappings;
+using PetSpa.Repositories;
+
 namespace PetSpa
 {
     public class Program
@@ -13,6 +18,11 @@ namespace PetSpa
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddScoped<IAccountRepository, SQLAccountRepository>();
+
+            builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
             var app = builder.Build();
 
