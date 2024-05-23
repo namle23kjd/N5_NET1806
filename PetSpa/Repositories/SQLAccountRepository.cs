@@ -28,5 +28,33 @@ namespace PetSpa.Repositories
         {
             return await dbContext.Accounts.FirstOrDefaultAsync(x => x.AccId == AccId);
         }
+
+        public async Task<Account> UpdateAsync(Guid AccId, Account account)
+        {
+            var existingAccount = await dbContext.Accounts.FirstOrDefaultAsync( x => x.AccId == AccId);
+
+            if (existingAccount == null)
+            {
+                return null;
+            }
+            existingAccount.UserName = account.UserName;
+            existingAccount.PassWord= account.PassWord;
+            existingAccount.Role = account.Role;
+
+            await dbContext.SaveChangesAsync();
+            return existingAccount;
+        }
+
+        public async Task<Account> DeleteAsync(Guid AccId)
+        {
+            var existingAccount = await dbContext.Accounts.FirstOrDefaultAsync(x => x.AccId == AccId);
+            if (existingAccount == null)
+            {
+                return null;
+            }
+            dbContext.Accounts.Remove(existingAccount);
+            await dbContext.SaveChangesAsync();
+            return existingAccount;
+        }
     }
 }

@@ -47,11 +47,7 @@ namespace PetSpa.Controllers
                 return CreatedAtAction(nameof(GetByID), new { AccId = accountDTO.AccId }, accountDTO);
         }
  
-            
-            
-        
-      
-      
+               
         [HttpGet]
         [Route("{AccId:guid}")]
 
@@ -66,5 +62,33 @@ namespace PetSpa.Controllers
             return Ok(mapper.Map<AccountDTO>(accountDomain));
         }
 
+        //Update
+        [HttpPut]
+        [Route("{AccId:guid}")]
+        public async Task<IActionResult> Update([FromRoute] Guid AccId, [FromBody] UpdateAccountRequestDTO updateAccountRequestDTO)
+        {
+            var accountDomainModels = mapper.Map<Account>(updateAccountRequestDTO);
+            accountDomainModels = await accountRepository.UpdateAsync(AccId, accountDomainModels);
+
+            if (accountDomainModels == null)
+            {
+                return NotFound();
+            }
+            var accountDTO = mapper.Map<AccountDTO>(accountDomainModels);
+
+            return Ok(accountDTO);
+        }
+
+        [HttpDelete]
+        [Route("{AccId:guid}")]
+         public async Task<IActionResult> Delete([FromRoute] Guid AccId)
+        {
+            var accountDomainModels = await accountRepository.DeleteAsync(AccId);
+            if (accountDomainModels == null)
+            {
+                return NotFound();
+            }
+            return Ok(mapper.Map<AccountDTO>(accountDomainModels));
+        }
     }
 }
