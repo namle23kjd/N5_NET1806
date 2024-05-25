@@ -1,8 +1,11 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using PetSpa.Data;
 using PetSpa.Mappings;
 using PetSpa.Repositories;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace PetSpa
 {
@@ -21,6 +24,7 @@ namespace PetSpa
 
             builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddScoped<IAccountRepository, SQLAccountRepository>();
+            builder.Services.AddScoped<IStaffRepository, SQLStaffRepository>();
 
             builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
@@ -34,6 +38,9 @@ namespace PetSpa
             }
 
             app.UseHttpsRedirection();
+
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
