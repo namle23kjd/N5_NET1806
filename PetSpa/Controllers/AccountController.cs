@@ -16,10 +16,12 @@ namespace PetSpa.Controllers
         private readonly PetSpaContext petSpaContext;
         private readonly IAccountRepository accountRepository;
         private readonly IMapper mapper;
+        private readonly ILogger<AccountController> logger;
 
-        public AccountController(PetSpaContext petSpaContext, IAccountRepository accountRepository, IMapper mapper)
+        public AccountController(PetSpaContext petSpaContext, IAccountRepository accountRepository, IMapper mapper, ILogger<AccountController> logger)
         {
             this.mapper = mapper;
+            this.logger = logger;
             this.petSpaContext = petSpaContext;
             this.accountRepository = accountRepository;
         }

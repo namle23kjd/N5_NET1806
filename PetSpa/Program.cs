@@ -7,6 +7,8 @@ using PetSpa.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.FileProviders;
+using Serilog;
+using PetSpa.Middlewares;
 
 namespace PetSpa
 {
@@ -17,6 +19,11 @@ namespace PetSpa
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            var logger = new LoggerConfiguration().WriteTo.Console().WriteTo.File("Logs/Pet_Spa.txt", rollingInterval: RollingInterval.Minute).MinimumLevel.Information()
+                .CreateLogger();
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddSerilog(logger);
 
             builder.Services.AddControllers();
             builder.Services.AddHttpContextAccessor();
@@ -33,6 +40,7 @@ namespace PetSpa
 
             builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -42,12 +50,16 @@ namespace PetSpa
                 app.UseSwaggerUI();
             }
 
+            app.UseMiddleware<ExceptionHandlerMiddleware>();
+
             app.UseHttpsRedirection();
 
 
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+            
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Images")),
