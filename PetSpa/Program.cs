@@ -6,6 +6,7 @@ using PetSpa.Mappings;
 using PetSpa.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.Extensions.FileProviders;
 
 namespace PetSpa
 {
@@ -18,13 +19,17 @@ namespace PetSpa
             // Add services to the container.
 
             builder.Services.AddControllers();
+            builder.Services.AddHttpContextAccessor();
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+
             builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddScoped<IAccountRepository, SQLAccountRepository>();
             builder.Services.AddScoped<IStaffRepository, SQLStaffRepository>();
+            builder.Services.AddScoped<IImagesRepository, LocalImageRepository>();  
 
             builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
@@ -43,7 +48,11 @@ namespace PetSpa
             app.UseAuthentication();
 
             app.UseAuthorization();
-
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Images")),
+                RequestPath = "/Images"
+            });
 
             app.MapControllers();
 
