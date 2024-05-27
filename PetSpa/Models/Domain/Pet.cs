@@ -13,7 +13,7 @@ public partial class Pet
 
     public string PetName { get; set; } = null!;
 
-    public byte[]? Image { get; set; }
+    public string? Image { get; set; } = null;
 
     public bool Status { get; set; }
 

@@ -15,7 +15,7 @@ public partial class Customer
 
     public string PhoneNumber { get; set; } = null!;
 
-    public string CusRank { get; set; } = null!;
+    public string? CusRank { get; set; } = null;
 
     public virtual Account Acc { get; set; } = null!;
 
