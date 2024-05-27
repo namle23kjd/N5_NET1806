@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
 using PetSpa.Data;
@@ -13,6 +14,7 @@ namespace PetSpa.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[Authorize]aa
     public class CustomerController  : ControllerBase
     {
         private readonly PetSpaContext petSpaContext;
