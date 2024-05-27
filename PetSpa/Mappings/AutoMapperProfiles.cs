@@ -14,6 +14,9 @@ namespace PetSpa.Mappings
             CreateMap<Staff, StaffDTO>().ReverseMap();
             CreateMap<AddStaffRequestDTO, Staff>().ReverseMap();
             CreateMap<UpdateStaffRequestDTO, Staff>().ReverseMap();
+            CreateMap<Manager, ManagerDTO>().ReverseMap();
+            CreateMap<AddManagerRequestDTO, Manager>().ReverseMap();
+            CreateMap<UpdateManagerRequestDTO, Manager>().ReverseMap();
         }
     }
 }

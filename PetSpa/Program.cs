@@ -36,7 +36,8 @@ namespace PetSpa
             builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddScoped<IAccountRepository, SQLAccountRepository>();
             builder.Services.AddScoped<IStaffRepository, SQLStaffRepository>();
-            builder.Services.AddScoped<IImagesRepository, LocalImageRepository>();  
+            builder.Services.AddScoped<IImagesRepository, LocalImageRepository>();
+            builder.Services.AddScoped<IManagerRepository, SQLManagerRepositorycs>();
 
             builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
