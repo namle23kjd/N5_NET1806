@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using PetSpa.CustomActionFilter;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO;
@@ -17,11 +18,13 @@ namespace PetSpa.Controllers
         private readonly IAccountRepository accountRepository;
         private readonly IMapper mapper;
         private readonly ILogger<AccountController> logger;
+        private readonly ApiResponseService _apiResponseService;
 
-        public AccountController(PetSpaContext petSpaContext, IAccountRepository accountRepository, IMapper mapper, ILogger<AccountController> logger)
+        public AccountController(PetSpaContext petSpaContext, IAccountRepository accountRepository, IMapper mapper, ILogger<AccountController> logger, ApiResponseService apiResponseService)
         {
             this.mapper = mapper;
             this.logger = logger;
+            this._apiResponseService = apiResponseService;
             this.petSpaContext = petSpaContext;
             this.accountRepository = accountRepository;
         }
@@ -39,29 +42,41 @@ namespace PetSpa.Controllers
         public async Task<IActionResult> CreateAccount([FromBody] AddAccountRequestDTO
             addAccountRequestDTO)
         {
-            
-                var acccountDomainModels = mapper.Map<Account>(addAccountRequestDTO);
+            var acccountDomainModels = mapper.Map<Account>(addAccountRequestDTO);
 
-                acccountDomainModels = await accountRepository.CreateAsync(acccountDomainModels);
+            acccountDomainModels = await accountRepository.CreateAsync(acccountDomainModels);
+            switch (addAccountRequestDTO.Role)
+            {
+                case "Staff":
+                    await accountRepository.AddStaffAsync(acccountDomainModels.AccId);
+                    break;
+                case "Manager":
+                    await accountRepository.AddManagerAsync(acccountDomainModels.AccId);
+                    break;
+                case "Customer":
+                    await accountRepository.AddCustomerAsync(acccountDomainModels.AccId);
+                    break;
+            }
 
-                var accountDTO = mapper.Map<AccountDTO>(acccountDomainModels);
+            var accountDTO = mapper.Map<AccountDTO>(acccountDomainModels);
 
-                return CreatedAtAction(nameof(GetByID), new { AccId = accountDTO.AccId }, accountDTO);
+            return _apiResponseService.CreateCreatedResponse(nameof(GetByID), new { AccId = accountDTO.AccId }, accountDTO);
         }
  
                
         [HttpGet]
         [Route("{AccId:guid}")]
-
         public async Task<IActionResult> GetByID([FromRoute] Guid AccId)
         {
             var accountDomain = await accountRepository.GetByIDAsybc(AccId);
 
-            if( accountDomain == null)
+            if (accountDomain == null)
             {
-                return NotFound();  
+                return _apiResponseService.CreateUnauthorizedResponse();
             }
-            return Ok(mapper.Map<AccountDTO>(accountDomain));
+
+            var accountDTO = mapper.Map<AccountDTO>(accountDomain);
+            return Ok(_apiResponseService.CreateSuccessResponse(accountDTO));
         }
 
         //Update
@@ -74,11 +89,11 @@ namespace PetSpa.Controllers
 
             if (accountDomainModels == null)
             {
-                return NotFound();
+                return _apiResponseService.CreateUnauthorizedResponse();
             }
             var accountDTO = mapper.Map<AccountDTO>(accountDomainModels);
 
-            return Ok(accountDTO);
+            return Ok(_apiResponseService.CreateSuccessResponse(accountDTO));
         }
 
         [HttpDelete]
@@ -88,7 +103,8 @@ namespace PetSpa.Controllers
             var accountDomainModels = await accountRepository.DeleteAsync(AccId);
             if (accountDomainModels == null)
             {
-                return NotFound();
+                return _apiResponseService.CreateUnauthorizedResponse();
+                
             }
             return Ok(mapper.Map<AccountDTO>(accountDomainModels));
         }
