@@ -14,7 +14,7 @@ namespace PetSpa.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]aa
+    [Authorize]
     public class CustomerController  : ControllerBase
     {
         private readonly PetSpaContext petSpaContext;

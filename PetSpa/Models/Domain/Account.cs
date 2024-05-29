@@ -9,6 +9,7 @@ public partial class Account
 
     public string UserName { get; set; } = null!;
 
+
     public string PassWord { get; set; } = null!;
 
     public bool Status { get; set; }
