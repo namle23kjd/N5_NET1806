@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PetSpa.Models.DTO;
+using PetSpa.Models.DTO.Respone;
 
 namespace PetSpa.CustomActionFilter
 {
@@ -44,6 +44,11 @@ namespace PetSpa.CustomActionFilter
         public IActionResult CreatePaymentRequiredResponse()
         {
             return CreateResponse(false, (object?)null, "Payment required", 402);
+        }
+
+        public IActionResult CreatePaymentNotFound()
+        {
+            return CreateResponse(false, (object?)null, "Payment required", 404);
         }
 
         public IActionResult CreateCreatedResponse<T>(string actionName, object routeValues, T data)
