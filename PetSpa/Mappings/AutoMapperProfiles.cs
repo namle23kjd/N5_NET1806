@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Account;
+using PetSpa.Models.DTO.Booking;
 using PetSpa.Models.DTO.BookingDetail;
 using PetSpa.Models.DTO.Combo;
+using PetSpa.Models.DTO.Customer;
+using PetSpa.Models.DTO.Invoice;
 using PetSpa.Models.DTO.Job;
 using PetSpa.Models.DTO.Manager;
 using PetSpa.Models.DTO.Service;
@@ -32,6 +35,11 @@ namespace PetSpa.Mappings
             CreateMap<Combo, ComboDTO>().ReverseMap();
             CreateMap<BookingDetail, BookingDetailDTO>().ReverseMap();
             CreateMap<UpdateComboRequestDTO, Combo>().ReverseMap();
+            CreateMap<AddBookingRequestDTO, Booking>().ReverseMap();
+            CreateMap<Booking, BookingDTO>().ReverseMap();
+            CreateMap<Customer, CustomerDTO>().ReverseMap();
+            CreateMap<Invoice, InvoiceDTO>().ReverseMap();
+            CreateMap<UpdateBookingRequestDTO, Booking>().ReverseMap();
         }
     }
 }

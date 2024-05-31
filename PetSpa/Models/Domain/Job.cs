@@ -5,11 +5,11 @@ namespace PetSpa.Models.Domain;
 
 public partial class Job
 {
-    public int JobId { get; set; }
+    public Guid JobId { get; set; }
 
     public Guid StaffId { get; set; }
 
-    public int? ManaId { get; set; }
+    public Guid? ManaId { get; set; }
 
     public Guid BookingDetailId { get; set; }
 

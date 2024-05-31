@@ -7,7 +7,7 @@ public partial class Invoice
 {
     public Guid BookingId { get; set; }
 
-    public int InvoiceId { get; set; }
+    public Guid InvoiceId { get; set; }
 
     public decimal Price { get; set; }
 

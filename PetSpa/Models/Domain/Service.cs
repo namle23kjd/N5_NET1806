@@ -7,7 +7,7 @@ public partial class Service
 {
     public Guid ServiceId { get; set; }
 
-    public string ServiceName { get; set; } = null!;
+    public string? ServiceName { get; set; }
 
     public bool Status { get; set; }
 

@@ -16,6 +16,7 @@ using PetSpa.Repositories.JobRepository;
 using PetSpa.Repositories.ManagerRepository;
 using PetSpa.Repositories.ServiceRepository;
 using PetSpa.Repositories.StaffRepository;
+using PetSpa.Repositories.BookingRepository;
 
 namespace PetSpa
 {
@@ -52,6 +53,7 @@ namespace PetSpa
             builder.Services.AddScoped<ApiResponseService>();
             builder.Services.AddScoped<IServiceRepository, SQLServiceRepository>();
             builder.Services.AddScoped<IComboRespository, SQLComboRepository>();
+            builder.Services.AddScoped<IBookingRepository, SQLBookingRepository>();
             builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 

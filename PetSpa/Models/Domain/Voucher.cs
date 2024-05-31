@@ -5,7 +5,7 @@ namespace PetSpa.Models.Domain;
 
 public partial class Voucher
 {
-    public int VoucherId { get; set; }
+    public Guid VoucherId { get; set; }
 
     public string Code { get; set; } = null!;
 
@@ -17,7 +17,7 @@ public partial class Voucher
 
     public Guid CusId { get; set; }
 
-    public int ManaId { get; set; }
+    public Guid ManaId { get; set; }
 
     public Guid BookingId { get; set; }
 
