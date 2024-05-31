@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
-using PetSpa.Models.DTO;
-using PetSpa.Repositories;
+using PetSpa.Models.DTO.Image;
+using PetSpa.Repositories.ImageRepository;
 
 namespace PetSpa.Controllers
 {
@@ -11,10 +12,12 @@ namespace PetSpa.Controllers
     public class ImagesController : ControllerBase
     {
         private readonly IImagesRepository imagesRepository;
+        private readonly ApiResponseService apiResponseService;
 
-        public ImagesController(IImagesRepository imagesRepository) 
+        public ImagesController(IImagesRepository imagesRepository, ApiResponseService apiResponseService) 
         {
             this.imagesRepository = imagesRepository;
+            this.apiResponseService = apiResponseService;
         }
 
         //Post : /api/Images/Upload
@@ -38,7 +41,7 @@ namespace PetSpa.Controllers
 
                 //User repository to upload image
                 await imagesRepository.Upload(imageDomainModel);
-                return Ok(imageDomainModel);
+                return Ok(apiResponseService.CreateSuccessResponse(imageDomainModel));
             }
 
             return BadRequest(ModelState);
