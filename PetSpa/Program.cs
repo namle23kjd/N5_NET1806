@@ -3,12 +3,19 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using PetSpa.Data;
 using PetSpa.Mappings;
-using PetSpa.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using PetSpa.Middlewares;
+using PetSpa.CustomActionFilter;
+using PetSpa.Repositories.AccountRepository;
+using PetSpa.Repositories.ComboRepository;
+using PetSpa.Repositories.ImageRepository;
+using PetSpa.Repositories.JobRepository;
+using PetSpa.Repositories.ManagerRepository;
+using PetSpa.Repositories.ServiceRepository;
+using PetSpa.Repositories.StaffRepository;
 
 namespace PetSpa
 {
@@ -25,7 +32,10 @@ namespace PetSpa
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(logger);
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+            });
             builder.Services.AddHttpContextAccessor();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -33,17 +43,22 @@ namespace PetSpa
             builder.Services.AddSwaggerGen();
 
 
-            builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+           
             builder.Services.AddScoped<IAccountRepository, SQLAccountRepository>();
             builder.Services.AddScoped<IStaffRepository, SQLStaffRepository>();
             builder.Services.AddScoped<IImagesRepository, LocalImageRepository>();
             builder.Services.AddScoped<IManagerRepository, SQLManagerRepositorycs>();
+            builder.Services.AddScoped<IJobRepository, SQLJobRepository>();
+            builder.Services.AddScoped<ApiResponseService>();
+            builder.Services.AddScoped<IServiceRepository, SQLServiceRepository>();
+            builder.Services.AddScoped<IComboRespository, SQLComboRepository>();
+            builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
 
             builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
-
             var app = builder.Build();
-
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

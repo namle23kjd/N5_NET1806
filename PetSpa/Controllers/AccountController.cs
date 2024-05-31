@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
-using PetSpa.Models.DTO;
-using PetSpa.Repositories;
+using PetSpa.Models.DTO.Account;
+using PetSpa.Repositories.AccountRepository;
 
 namespace PetSpa.Controllers
 {
@@ -33,7 +33,8 @@ namespace PetSpa.Controllers
         public async Task<IActionResult> GetAll()
         {
             var accountDomainModel = await accountRepository.GetALLAsync();
-            return Ok(mapper.Map<List<AccountDTO>>(accountDomainModel));
+            var accountDTO = mapper.Map<List<AccountDTO>>(accountDomainModel);
+            return Ok(_apiResponseService.CreateSuccessResponse(accountDomainModel));
         }
 
 
