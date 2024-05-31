@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
-using PetSpa.Models.DTO;
-using PetSpa.Repositories;
+using PetSpa.Models.DTO.Staff;
+using PetSpa.Repositories.StaffRepository;
 
 namespace PetSpa.Controllers
 {
@@ -13,11 +14,13 @@ namespace PetSpa.Controllers
     {
         private readonly IMapper mapper;
         private readonly IStaffRepository staffRepository;
+        private readonly ApiResponseService _apiResponseService;
 
-        public StaffController(IMapper mapper, IStaffRepository staffRepository)
+        public StaffController(IMapper mapper, IStaffRepository staffRepository, ApiResponseService apiResponseService)
         {
             this.mapper = mapper;
             this.staffRepository = staffRepository;
+            this._apiResponseService = apiResponseService;
         }
         //Create Staff 
         //Post: /api/Staff
@@ -25,11 +28,10 @@ namespace PetSpa.Controllers
         public async Task<IActionResult> Create([FromBody] AddStaffRequestDTO addStaffRequestDTO)
         {
             // Map DTO to DomainModel
-            var staffDomainModel =  mapper.Map<Staff>(addStaffRequestDTO);
+            var staffDomainModel = mapper.Map<Staff>(addStaffRequestDTO);
             await staffRepository.CreateAsync(staffDomainModel);
             //Map Domail model to DTO
             return Ok(mapper.Map<StaffDTO>(staffDomainModel));
-
         }
 
         //Get Staff
@@ -37,10 +39,10 @@ namespace PetSpa.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var staffDomainModels = await staffRepository.GetAllAsync();
+           var staffDomainModel =  await staffRepository.GetALlAsync();
 
-            //Map Domain Model To DTO
-            return Ok(mapper.Map<List<StaffDTO>>(staffDomainModels));
+            //Map domainModelt to DTO
+            return Ok(mapper.Map<List<StaffDTO>>(staffDomainModel));
         }
 
         //Get Saff By ID
@@ -49,13 +51,23 @@ namespace PetSpa.Controllers
         [Route("{StaffId:guid}")]
         public async Task<IActionResult> GetById([FromRoute] Guid StaffId)
         {
-            var staffDomainModels = await staffRepository.GetByIdAsync(StaffId);
-            if( staffDomainModels == null)
+            //var staffDomainModels = await staffRepository.GetByIdAsync(StaffId);
+            //if( staffDomainModels == null)
+            //{
+            //    return NotFound();
+            //}
+            ////Map Domain Models DTO
+            //return Ok(mapper.Map<StaffDTO>(staffDomainModels));
+
+            var staffDomainModel = await staffRepository.GetByIdAsync(StaffId);
+
+            if (staffDomainModel == null)
             {
-                return NotFound();
+                return _apiResponseService.CreateUnauthorizedResponse();
             }
-            //Map Domain Models DTO
-            return Ok(mapper.Map<StaffDTO>(staffDomainModels));
+
+            var staffDTO = mapper.Map<StaffDTO>(staffDomainModel);
+            return Ok(_apiResponseService.CreateSuccessResponse(staffDTO));
         }
 
         //Update Staff
@@ -75,6 +87,7 @@ namespace PetSpa.Controllers
             //Map Domain Models to DTO
             return Ok(mapper.Map<StaffDTO>(staffDomainModels));
         }
+
 
     }
 }
