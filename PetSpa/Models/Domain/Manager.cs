@@ -7,7 +7,7 @@ public partial class Manager
 {
     public Guid AccId { get; set; }
 
-    public int ManaId { get; set; }
+    public Guid ManaId { get; set; }
 
     public string FullName { get; set; } 
 

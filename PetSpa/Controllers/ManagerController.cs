@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
-using PetSpa.Models.DTO;
-using PetSpa.Repositories;
+using PetSpa.Models.DTO.Manager;
+using PetSpa.Repositories.ManagerRepository;
 
 namespace PetSpa.Controllers
 {
@@ -13,59 +14,46 @@ namespace PetSpa.Controllers
     {
         private readonly IMapper mapper;
         private readonly IManagerRepository managerRepository;
+        private readonly ApiResponseService apiResponseService;
 
-        public ManagerController(IMapper mapper, IManagerRepository managerRepository)
+        public ManagerController(IMapper mapper, IManagerRepository managerRepository, ApiResponseService apiResponseService)
         {
             this.mapper = mapper;
             this.managerRepository = managerRepository;
-        }
-
-
-        //Create Manager
-        //Post: /api/Manager
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] AddManagerRequestDTO addManagerRequestDTO)
-        {
-            // Map DTO to DomainModel
-            var managerDomainModel = mapper.Map<Manager>(addManagerRequestDTO);
-            await managerRepository.CreateAsync(managerDomainModel);
-
-            //Map Domainl model to DTO
-            return Ok(mapper.Map<ManagerDTO>(managerDomainModel));
-
+            this.apiResponseService = apiResponseService;
         }
 
         //Get ALl Manager
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var managerDomainModels = await managerRepository.GetAllAsync();
-
-            //Map Domain Model to DTO
-            return Ok(mapper.Map<List<ManagerDTO>>(managerDomainModels));
+               var manaDomainModels =  await managerRepository.GetAllAsync();
+            return Ok(mapper.Map<List<ManagerDTO>>(manaDomainModels));
         }
 
 
         //Get Manager By ID
         //Get /api/Manager/{id}
         [HttpGet]
-        [Route("{ManaId:int}")]
-        public async Task<IActionResult> GetById([FromRoute] int ManaId)
+        [Route("{ManaId:guid}")]
+        public async Task<IActionResult> GetById([FromRoute] Guid ManaId)
         {
-            var managerDomainModels = await managerRepository.GetByIDAsync(ManaId);
-            if (managerDomainModels == null)
+            var manaDomailModels = await managerRepository.GetByIDAsync(ManaId);
+            if (manaDomailModels == null) 
             {
-                return NotFound();
+                return apiResponseService.CreateUnauthorizedResponse();
             }
-            //Map Domain Models DTO
-            return Ok(mapper.Map<ManagerDTO>(managerDomainModels));
+
+            //Map Domain Model to DTo
+             var managerDTO = mapper.Map<ManagerDTO>(manaDomailModels);
+            return Ok(apiResponseService.CreateSuccessResponse(managerDTO));
         }
 
         //Update Manager
         // PUT: /api/Manager/{id}
         [HttpPut]
-        [Route("{ManaId:int}")]
-        public async Task<IActionResult> Update([FromRoute] int ManaId, UpdateManagerRequestDTO updateManagerRequestDTO)
+        [Route("{ManaId:guid}")]
+        public async Task<IActionResult> Update([FromRoute] Guid ManaId, UpdateManagerRequestDTO updateManagerRequestDTO)
         {
             //Map DTO to Domain Model
             var managerDomainModels = mapper.Map<Manager>(updateManagerRequestDTO);
@@ -76,7 +64,8 @@ namespace PetSpa.Controllers
                 return NotFound();
             }
             //Map Domain Models to DTO
-            return Ok(mapper.Map<ManagerDTO>(managerDomainModels));
+             var manaDTO =  mapper.Map<ManagerDTO>(managerDomainModels);
+            return Ok(apiResponseService.CreateSuccessResponse(manaDTO));
         }
     }
 }
