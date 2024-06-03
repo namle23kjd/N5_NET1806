@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PetSpa.Models.Domain;
 
 namespace PetSpa.Data;
 
-public partial class PetSpaContext : DbContext
+public partial class PetSpaContext : IdentityDbContext<IdentityUser>
 {
-    public PetSpaContext()
-    {
-    }
+    
 
     public PetSpaContext(DbContextOptions<PetSpaContext> options)
         : base(options)
@@ -50,6 +50,36 @@ public partial class PetSpaContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
+
+
+        base.OnModelCreating(modelBuilder);
+        var StaffRoleId = "f6920e9c-eefe-4e77-bef2-19faa11fdec4";
+        var CustomerRoleId = "caa3f555-e45f-480d-a8cb-0560a8c51b7d";
+
+        var roles = new List<IdentityRole> {
+
+
+
+
+                new IdentityRole
+                {
+                    Id = StaffRoleId,
+                    ConcurrencyStamp = StaffRoleId,
+                    Name = "Reader",
+                    NormalizedName = "Reader".ToUpper()
+                },
+                 new IdentityRole
+                {
+                    Id = CustomerRoleId,
+                    ConcurrencyStamp = CustomerRoleId,
+                    Name = "Writer",
+                    NormalizedName = "Writer".ToUpper()
+                }
+            };
+        modelBuilder.Entity<IdentityRole>().HasData(roles);
+
+
         modelBuilder.Entity<Account>(entity =>
         {
             entity.HasKey(e => e.AccId).HasName("PK__Account__A471AFFAB1118508");

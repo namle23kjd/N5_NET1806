@@ -1,4 +1,4 @@
-
+﻿
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +16,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Configuration;
 using PetSpa.Models.Domain;
 using PetSpa.Repositories.SendingEmail;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using FluentAssertions.Common;
 namespace PetSpa
 {
@@ -37,12 +38,14 @@ namespace PetSpa
             builder.Services.Configure<IdentityOptions>(options => options.SignIn.RequireConfirmedEmail = true);
 
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Smtp"));
-           
 
+            builder.Services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; });
+            builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
 
             builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            builder.Services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultAuthConnectionString")));
+            //builder.Services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultAuthConnectionString")));
+            builder.Services.AddScoped<ApiResponseService>();
             builder.Services.AddScoped<IPetRepository, PetRepository>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddScoped<ICusRepository, CusRepository>();
@@ -96,10 +99,18 @@ namespace PetSpa
             builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 
-            builder.Services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; }); 
-            builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+           
 
-            builder.Services.AddIdentityCore<IdentityUser>().AddRoles<IdentityRole>().AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("Default").AddEntityFrameworkStores<AuthDbContext>().AddDefaultTokenProviders();
+
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = true;
+                // Thêm các tùy chọn khác nếu cần thiết
+            }).AddEntityFrameworkStores<PetSpaContext>().AddDefaultTokenProviders();
+            
+
+            builder.Services.AddIdentityCore<IdentityUser>().AddRoles<IdentityRole>().AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("Default").AddEntityFrameworkStores<PetSpaContext>().AddDefaultTokenProviders();
+
             builder.Services.Configure<IdentityOptions>(options =>
             {
                 options.Password.RequireDigit = false;
@@ -129,7 +140,7 @@ namespace PetSpa
             }
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseCors("AllowAllOrigins");
 

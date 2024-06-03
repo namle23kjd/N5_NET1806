@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
+using PetSpa.CustomActionFilter;
 using PetSpa.Data;
 using PetSpa.Helper;
 using PetSpa.Models.Domain;
+using PetSpa.Models.DTO.ApiResponseDTO;
 using PetSpa.Models.DTO.ForgotPasswoDDTO;
 using PetSpa.Models.DTO.LoginDTO;
 using PetSpa.Models.DTO.RegisterDTO;
@@ -23,12 +26,17 @@ namespace PetSpa.Controllers
         private readonly ITokenRepository tokenRepository;
         private readonly PetSpaContext petSpaContext;
         private readonly IEmailSender _emailSender;
-        public AuthController(UserManager<IdentityUser> userManager, ITokenRepository tokenRepository, PetSpaContext petSpaContext, IEmailSender _emailSender)
+       private readonly ApiResponseService _apiResponse;
+
+
+        public AuthController(UserManager<IdentityUser> userManager, ITokenRepository tokenRepository, PetSpaContext petSpaContext, IEmailSender _emailSender,  ApiResponseService apiResponse)
         {
             this._userManager = userManager;
             this.tokenRepository = tokenRepository;
             this.petSpaContext = petSpaContext;
             this._emailSender = _emailSender;
+            _apiResponse = apiResponse;
+            
         }
         //Post : /api/Auth/Register
         [HttpPost]
@@ -51,28 +59,35 @@ namespace PetSpa.Controllers
 
                         //Add Account new
                         var user = await _userManager.FindByEmailAsync(registerRequestDto.Email);
-                   
+                    if(user != null) { 
                     var account = new Account()
-                        {
-                            AccId = new Guid(),
-                            Role = "Customer",
-                            UserName = user.Id,
-                            PassWord = user.PasswordHash,
-                        };
+                    {
+                        AccId = new Guid(),
+                        Role = "Customer",
+                        UserName = user.Id,
+                        PassWord = user.PasswordHash,
+                    };
+                    petSpaContext.Accounts.Add(account);
+                    await petSpaContext.SaveChangesAsync();
                     var customer = new Customer()
                     {
                         CusId = Guid.NewGuid(),
                         FullName = registerRequestDto.FullName,
                         Gender = registerRequestDto.Gender,
                         PhoneNumber = registerRequestDto.PhoneNumber,
-                        CusRank = registerRequestDto.CusRank,
+                        CusRank = "bronze",
                         AccId = account.AccId
                     };
-
-
-                        petSpaContext.Accounts.Add(account);
                         petSpaContext.Customers.Add(customer);
-                        if (await petSpaContext.SaveChangesAsync() > 0)  return Ok("User was registered? Please login");
+                        if (await petSpaContext.SaveChangesAsync() > 0)
+                            return Ok("User was registered? Please login");
+
+                    }
+
+
+
+                
+
                     }
                 }
             
@@ -89,7 +104,7 @@ namespace PetSpa.Controllers
             if (user != null)
             {
                 var checkPassworkResult = await _userManager.CheckPasswordAsync(user, loginRequestDto.Password);
-              
+
                 if (checkPassworkResult)
                 {
                     //Get Roles for this user
@@ -97,11 +112,19 @@ namespace PetSpa.Controllers
                     if (roles != null && roles.Any())
                     {
                         //Create Token
-                        var jwtToken = tokenRepository.CreateJWTToken(user, roles[0], 15);
-                        var response = new LoginResponseDto
+                      
+                        var data = new  PetSpa.Models.DTO.ApiResponseDTO.Data
                         {
-                            JwtToken = jwtToken
-                        };
+                            User = new User
+                            {
+                                Id = user.Id,
+                                Email = user.Email,
+                                Name = user.UserName,
+                            },
+                            Token = tokenRepository.CreateJWTToken(user, roles[0], 15)
+                    };
+
+                        var response = _apiResponse.LoginSuccessResponse(data, "Login Successed");
                         return Ok(response);
                     }
 
