@@ -5,29 +5,31 @@ namespace PetSpa.Models.Domain;
 
 public partial class BookingDetail
 {
-    public Guid? ServiceId { get; set; }
+    public Guid BookingDetailId { get; set; } // ID của BookingDetail
 
-    public Guid? StaffId { get; set; }
+    public Guid BookingId { get; set; } // ID của Booking
 
-    public Guid? ComboId { get; set; }
+    public Guid PetId { get; set; } // ID của Pet
 
-    public Guid BookingDetailId { get; set; } 
+    public Guid? ServiceId { get; set; } // ID của Service (có thể null)
 
-    public Guid BookingId { get; set; } 
+    public Guid? StaffId { get; set; } // ID của Staff (có thể null)
 
-    public Guid PetId { get; set; } 
+    public Guid? ComboId { get; set; } // ID của Combo (có thể null)
 
-    public string ComboType { get; set; } = null!;
+    public DateTime StartDate { get; set; } // Ngày bắt đầu
 
-    public virtual Booking Booking { get; set; } = null!;
+    public DateTime EndDate { get; set; } // Ngày kết thúc
 
-    public virtual Combo? Combo { get; set; }
+    public string ComboType { get; set; } = null!; // Loại Combo
 
-    public virtual Job? Job { get; set; }
+    public virtual Booking Booking { get; set; } = null!; // Quan hệ với bảng Booking
 
-    public virtual Pet Pet { get; set; } = null!;
+    public virtual Combo? Combo { get; set; } // Quan hệ với bảng Combo (có thể null)
 
-    public virtual Service? Service { get; set; }
+    public virtual Pet Pet { get; set; } = null!; // Quan hệ với bảng Pet
 
-    public virtual Staff? Staff { get; set; }
+    public virtual Service? Service { get; set; } // Quan hệ với bảng Service (có thể null)
+
+    public virtual Staff? Staff { get; set; } // Quan hệ với bảng Staff (có thể null)
 }

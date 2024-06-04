@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
 
@@ -20,7 +21,7 @@ namespace PetSpa.Repositories.ManagerRepository
 
         public async Task<Manager?> GetByIDAsync(Guid ManaId)
         {
-            return await dbContext.Managers.FirstOrDefaultAsync(x => x.ManaId == ManaId);
+            return await dbContext.Managers.Include("Staffs").Include("Vouchers").Include("Bookings").FirstOrDefaultAsync(x => x.ManaId == ManaId);
         }
 
         public async Task<Manager?> UpdateAsync(Guid ManaId, Manager manager)
@@ -33,10 +34,6 @@ namespace PetSpa.Repositories.ManagerRepository
             exsitingManager.FullName = manager.FullName;
             exsitingManager.PhoneNumber = manager.PhoneNumber;
             exsitingManager.Gender = manager.Gender;
-            exsitingManager.Acc = manager.Acc;
-            exsitingManager.Jobs = manager.Jobs;
-            exsitingManager.Vouchers = manager.Vouchers;
-
             await dbContext.SaveChangesAsync();
             return exsitingManager;
         }

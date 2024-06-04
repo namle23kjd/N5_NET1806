@@ -4,7 +4,6 @@
     {
         public Guid CusId { get; set; }
 
-
         public Guid StaffId { get; set; }
 
         public bool Status { get; set; }

@@ -35,10 +35,7 @@ namespace PetSpa.Repositories.BookingRepository
             if (existBoooking != null) return null;
 
             existBoooking.CusId = booking.CusId;
-            existBoooking.StaffId = booking.StaffId;
             existBoooking.Status = booking.Status;
-            existBoooking.StartDate = booking.StartDate;
-            existBoooking.EndDate = booking.EndDate;
             existBoooking.BookingSchedule = booking.BookingSchedule;
             existBoooking.TotalAmount = booking.TotalAmount;
             existBoooking.Feedback = booking.Feedback;

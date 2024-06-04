@@ -1,22 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PetSpa.Models.Domain;
 
 namespace PetSpa.Data;
 
-public partial class PetSpaContext : DbContext
+public partial class PetSpaContext : IdentityDbContext<IdentityUser>
 {
-    public PetSpaContext()
-    {
-    }
 
     public PetSpaContext(DbContextOptions<PetSpaContext> options)
         : base(options)
     {
     }
-
-    public virtual DbSet<Account> Accounts { get; set; }
 
     public virtual DbSet<Admin> Admins { get; set; }
 
@@ -30,7 +27,6 @@ public partial class PetSpaContext : DbContext
 
     public virtual DbSet<Invoice> Invoices { get; set; }
 
-    public virtual DbSet<Job> Jobs { get; set; }
 
     public virtual DbSet<Manager> Managers { get; set; }
 
@@ -52,34 +48,26 @@ public partial class PetSpaContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Account>(entity =>
-        {
-            entity.HasKey(e => e.AccId).HasName("PK__Account__A471AFFAB1118508");
+        base.OnModelCreating(modelBuilder);
+        var StaffRoleId = "f6920e9c-eefe-4e77-bef2-19faa11fdec4";
+        var CustomerRoleId = "caa3f555-e45f-480d-a8cb-0560a8c51b7d";
 
-            entity.ToTable("Account");
-
-            entity.Property(e => e.AccId)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("accID");
-            entity.Property(e => e.ForgotPasswordToken)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("forgot_password_token");
-            entity.Property(e => e.PassWord)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("passWord");
-            entity.Property(e => e.Role)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("role");
-            entity.Property(e => e.Status).HasColumnName("status");
-            entity.Property(e => e.UserName)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("userName");
-        });
+        var roles = new List<IdentityRole> {
+             new IdentityRole{
+             Id = StaffRoleId,
+             ConcurrencyStamp = StaffRoleId,
+             Name = "Reader",
+             NormalizedName = "Reader".ToUpper()
+             },
+            new IdentityRole
+            {
+             Id = CustomerRoleId,
+             ConcurrencyStamp = CustomerRoleId,
+             Name = "Writer",
+             NormalizedName = "Writer".ToUpper()
+            }
+        };
+        modelBuilder.Entity<IdentityRole>().HasData(roles);
 
         modelBuilder.Entity<Admin>(entity =>
         {
@@ -87,21 +75,26 @@ public partial class PetSpaContext : DbContext
 
             entity.ToTable("Admin");
 
-            entity.HasIndex(e => e.AccId, "UQ__Admin__A471AFFBB3371801").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Admin__A471AFFBB3371801").IsUnique();
 
             entity.Property(e => e.AdminId)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("adminID");
-            entity.Property(e => e.AccId)
+            entity.Property(e => e.Id)
                 .HasMaxLength(100)
                 .IsUnicode(false)
-                .HasColumnName("accID");
+                .HasColumnName("Id");
 
-            entity.HasOne(d => d.Acc).WithOne(p => p.Admin)
-                .HasForeignKey<Admin>(d => d.AccId)
+            entity.HasOne(d => d.User).WithOne()
+                .HasForeignKey<Admin>(d => d.Id)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Admin__accID__398D8EEE");
+            entity.HasMany(d => d.Managers) // Quan hệ với bảng Manager
+                .WithOne(p => p.Admins)
+                .HasForeignKey(d => d.AdminId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Manager_Admin");
         });
 
         modelBuilder.Entity<Booking>(entity =>
@@ -114,36 +107,40 @@ public partial class PetSpaContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("bookingID");
+
             entity.Property(e => e.BookingSchedule)
                 .HasColumnType("datetime")
                 .HasColumnName("bookingSchedule");
+
             entity.Property(e => e.CusId)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("cusID");
-            entity.Property(e => e.EndDate).HasColumnName("endDate");
+
+            entity.Property(e => e.ManaId)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("manaID"); // Thêm cột ManaId
+
             entity.Property(e => e.Feedback)
                 .HasColumnType("text")
                 .HasColumnName("feedback");
-            entity.Property(e => e.StaffId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("staffID");
-            entity.Property(e => e.StartDate).HasColumnName("startDate");
+
             entity.Property(e => e.Status).HasColumnName("status");
+
             entity.Property(e => e.TotalAmount)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("totalAmount");
 
-            entity.HasOne(d => d.Cus).WithMany(p => p.Bookings)
+            entity.HasOne(d => d.Customer).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.CusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Booking__cusID__4AB81AF0");
 
-            entity.HasOne(d => d.Staff).WithMany(p => p.Bookings)
-                .HasForeignKey(d => d.StaffId)
+            entity.HasOne(d => d.Manager).WithMany(p => p.Bookings) // Quan hệ với bảng Manager
+                .HasForeignKey(d => d.ManaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Booking__staffID__4BAC3F29");
+                .HasConstraintName("FK_Booking_Manager");
         });
 
         modelBuilder.Entity<BookingDetail>(entity =>
@@ -153,53 +150,61 @@ public partial class PetSpaContext : DbContext
             entity.ToTable("Booking_Detail");
 
             entity.Property(e => e.BookingDetailId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
+                .ValueGeneratedNever()
                 .HasColumnName("bookingDetailID");
+
             entity.Property(e => e.BookingId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("bookingID");
+
+            entity.Property(e => e.PetId)
+                .HasColumnName("petID");
+
+            entity.Property(e => e.ServiceId)
+                .HasColumnName("serviceID");
+
+            entity.Property(e => e.StaffId)
+                .HasColumnName("staffID");
+
             entity.Property(e => e.ComboId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("comboID");
+
+            entity.Property(e => e.StartDate)
+                .HasColumnType("datetime2")
+                .HasColumnName("StartDate");
+
+            entity.Property(e => e.EndDate)
+                .HasColumnType("datetime2")
+                .HasColumnName("EndDate");
+
             entity.Property(e => e.ComboType)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("comboType");
-            entity.Property(e => e.PetId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("petID");
-            entity.Property(e => e.ServiceId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("serviceID");
-            entity.Property(e => e.StaffId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("staffID");
 
-            entity.HasOne(d => d.Booking).WithMany(p => p.BookingDetails)
+            entity.HasOne(d => d.Booking) // Quan hệ với bảng Booking
+                .WithMany(p => p.BookingDetails)
                 .HasForeignKey(d => d.BookingId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Booking_D__booki__571DF1D5");
 
-            entity.HasOne(d => d.Combo).WithMany(p => p.BookingDetails)
+            entity.HasOne(d => d.Combo) // Quan hệ với bảng Combo
+                .WithMany(p => p.BookingDetails)
                 .HasForeignKey(d => d.ComboId)
                 .HasConstraintName("FK__Booking_D__combo__5535A963");
 
-            entity.HasOne(d => d.Pet).WithMany(p => p.BookingDetails)
+            entity.HasOne(d => d.Pet) // Quan hệ với bảng Pet
+                .WithMany(p => p.BookingDetails)
                 .HasForeignKey(d => d.PetId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Booking_D__petID__5441852A");
 
-            entity.HasOne(d => d.Service).WithMany(p => p.BookingDetails)
+            entity.HasOne(d => d.Service) // Quan hệ với bảng Service
+                .WithMany(p => p.BookingDetails)
                 .HasForeignKey(d => d.ServiceId)
                 .HasConstraintName("FK__Booking_D__servi__534D60F1");
 
-            entity.HasOne(d => d.Staff).WithMany(p => p.BookingDetails)
+            entity.HasOne(d => d.Staff) // Quan hệ với bảng Staff
+                .WithMany(p => p.BookingDetails)
                 .HasForeignKey(d => d.StaffId)
                 .HasConstraintName("FK__Booking_D__staff__5629CD9C");
         });
@@ -230,37 +235,52 @@ public partial class PetSpaContext : DbContext
 
             entity.ToTable("Customer");
 
-            entity.HasIndex(e => e.AccId, "UQ__Customer__A471AFFBD525B8F4").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Customer__A471AFFBD525B8F4").IsUnique();
 
             entity.Property(e => e.CusId)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("cusID");
-            entity.Property(e => e.AccId)
+
+            entity.Property(e => e.Id)
                 .HasMaxLength(100)
                 .IsUnicode(false)
-                .HasColumnName("accID");
-            entity.Property(e => e.CusRank)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("cusRank");
+                .HasColumnName("Id");
+
             entity.Property(e => e.FullName)
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("fullName");
+
             entity.Property(e => e.Gender)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("gender");
+
             entity.Property(e => e.PhoneNumber)
                 .HasMaxLength(15)
                 .IsUnicode(false)
                 .HasColumnName("phoneNumber");
 
-            entity.HasOne(d => d.Acc).WithOne(p => p.Customer)
-                .HasForeignKey<Customer>(d => d.AccId)
+            entity.Property(e => e.CusRank)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("cusRank");
+
+            entity.Property(e => e.AdminId)
+                .HasColumnName("adminID");
+
+            entity.HasOne(d => d.User) // Quan hệ với bảng AspNetUsers
+                .WithOne()
+                .HasForeignKey<Customer>(d => d.Id)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Customer__accID__44FF419A");
+                .HasConstraintName("FK_Customer_AspNetUsers");
+
+            entity.HasOne(d => d.Admins) // Quan hệ với bảng Admin
+                .WithMany()
+                .HasForeignKey(d => d.AdminId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Customer_Admin");
         });
 
         modelBuilder.Entity<Invoice>(entity =>
@@ -288,74 +308,70 @@ public partial class PetSpaContext : DbContext
                 .HasConstraintName("FK__Invoice__booking__5AEE82B9");
         });
 
-        modelBuilder.Entity<Job>(entity =>
-        {
-            entity.HasKey(e => e.JobId).HasName("PK__Job__164AA1884F5D3624");
-
-            entity.ToTable("Job");
-
-            entity.HasIndex(e => e.BookingDetailId, "UQ__Job__942CA05F6B2E2507").IsUnique();
-
-            entity.Property(e => e.JobId)
-                .ValueGeneratedNever()
-                .HasColumnName("jobID");
-            entity.Property(e => e.BookingDetailId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("bookingDetailID");
-            entity.Property(e => e.ManaId).HasColumnName("manaID");
-            entity.Property(e => e.StaffId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("staffID");
-
-            entity.HasOne(d => d.BookingDetail).WithOne(p => p.Job)
-                .HasForeignKey<Job>(d => d.BookingDetailId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Job__bookingDeta__6383C8BA");
-
-            entity.HasOne(d => d.Mana).WithMany(p => p.Jobs)
-                .HasForeignKey(d => d.ManaId)
-                .HasConstraintName("FK__Job__manaID__6477ECF3");
-
-            entity.HasOne(d => d.Staff).WithMany(p => p.Jobs)
-                .HasForeignKey(d => d.StaffId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Job__staffID__628FA481");
-        });
-
         modelBuilder.Entity<Manager>(entity =>
         {
             entity.HasKey(e => e.ManaId).HasName("PK__Manager__22DAE4264DC65004");
 
             entity.ToTable("Manager");
 
-            entity.HasIndex(e => e.AccId, "UQ__Manager__A471AFFBEADB9F39").IsUnique();
+            entity.HasIndex(e => e.Id, "UQ__Manager__A471AFFBEADB9F39").IsUnique();
 
             entity.Property(e => e.ManaId)
                 .ValueGeneratedNever()
                 .HasColumnName("manaID");
-            entity.Property(e => e.AccId)
+
+            entity.Property(e => e.Id)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("accID");
+
+            entity.Property(e => e.AdminId) // Thêm cột AdminId
+                .HasColumnName("adminID");
+
             entity.Property(e => e.FullName)
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("fullName");
+
             entity.Property(e => e.Gender)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("gender");
+
             entity.Property(e => e.PhoneNumber)
                 .HasMaxLength(15)
                 .IsUnicode(false)
                 .HasColumnName("phoneNumber");
 
-            entity.HasOne(d => d.Acc).WithOne(p => p.Manager)
-                .HasForeignKey<Manager>(d => d.AccId)
+            entity.HasOne(d => d.User) // Quan hệ với bảng AspNetUsers
+           .WithOne()
+           .HasForeignKey<Manager>(d => d.Id)
+           .OnDelete(DeleteBehavior.ClientSetNull)
+           .HasConstraintName("FK_Manager_AspNetUsers");
+
+            entity.HasOne(d => d.Admins) // Quan hệ với bảng Admin
+                .WithMany(p => p.Managers)
+                .HasForeignKey(d => d.AdminId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Manager__accID__3D5E1FD2");
+                .HasConstraintName("FK_Manager_Admin");
+
+            entity.HasMany(d => d.Staffs) // Quan hệ với bảng Staff
+                .WithOne(p => p.Manager)
+                .HasForeignKey(d => d.ManagerManaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Staff_Manager_ManagerManaId");
+
+            entity.HasMany(d => d.Vouchers) // Quan hệ với bảng Voucher
+                .WithOne(p => p.Managers)
+                .HasForeignKey(d => d.ManaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Voucher_Manager");
+
+            entity.HasMany(d => d.Bookings) // Quan hệ với bảng Booking
+                .WithOne(p => p.Manager)
+                .HasForeignKey(d => d.ManaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Booking_Manager");
         });
 
         modelBuilder.Entity<Payment>(entity =>
@@ -448,29 +464,47 @@ public partial class PetSpaContext : DbContext
         {
             entity.HasKey(e => e.StaffId).HasName("PK__Staff__6465E19E05D526E9");
 
-            entity.HasIndex(e => e.AccId, "UQ__Staff__A471AFFB206680B8").IsUnique();
+            entity.ToTable("Staff");
+
+            entity.HasIndex(e => e.Id, "UQ__Staff__A471AFFB206680B8").IsUnique();
 
             entity.Property(e => e.StaffId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
+                .ValueGeneratedNever()
                 .HasColumnName("staffID");
-            entity.Property(e => e.AccId)
+
+            entity.Property(e => e.Id)
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("accID");
+
             entity.Property(e => e.FullName)
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("fullName");
+
             entity.Property(e => e.Gender)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("gender");
 
-            entity.HasOne(d => d.Acc).WithOne(p => p.Staff)
-                .HasForeignKey<Staff>(d => d.AccId)
+            entity.Property(e => e.Job)
+                .HasColumnType("nvarchar(max)")
+                .HasColumnName("job");
+
+            entity.Property(e => e.ManagerManaId)
+                .HasColumnName("ManagerManaId");
+
+            entity.HasOne(d => d.User) // Quan hệ với bảng AspNetUsers
+                .WithOne()
+                .HasForeignKey<Staff>(d => d.Id)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Staff__accID__412EB0B6");
+                .HasConstraintName("FK_Staff_AspNetUsers");
+
+            entity.HasOne(d => d.Manager) // Quan hệ với bảng Manager
+                .WithMany(p => p.Staffs)
+                .HasForeignKey(d => d.ManagerManaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Staff_Manager_ManagerManaId");
         });
 
         modelBuilder.Entity<Voucher>(entity =>
@@ -504,17 +538,17 @@ public partial class PetSpaContext : DbContext
             entity.Property(e => e.ManaId).HasColumnName("manaID");
             entity.Property(e => e.Status).HasColumnName("status");
 
-            entity.HasOne(d => d.Booking).WithOne(p => p.Voucher)
+            entity.HasOne(d => d.Bookings).WithOne(p => p.Voucher)
                 .HasForeignKey<Voucher>(d => d.BookingId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Voucher__booking__6A30C649");
 
-            entity.HasOne(d => d.Cus).WithMany(p => p.Vouchers)
+            entity.HasOne(d => d.Customers).WithMany(p => p.Vouchers)
                 .HasForeignKey(d => d.CusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Voucher__cusID__68487DD7");
 
-            entity.HasOne(d => d.Mana).WithMany(p => p.Vouchers)
+            entity.HasOne(d => d.Managers).WithMany(p => p.Vouchers)
                 .HasForeignKey(d => d.ManaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Voucher__manaID__693CA210");

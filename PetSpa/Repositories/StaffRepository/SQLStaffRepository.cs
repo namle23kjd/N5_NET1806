@@ -24,13 +24,12 @@ namespace PetSpa.Repositories.StaffRepository
 
         public async Task<List<Staff>> GetALlAsync()
         {
-            return await dbContext.Staff.ToListAsync();
+            return await dbContext.Staff.Include("User").Include("BookingDetails").Include("Manager").ToListAsync();
         }
 
         public async Task<Staff?> GetByIdAsync(Guid StaffID)
         {
-            return await dbContext.Staff.
-                                 FirstOrDefaultAsync(x => x.StaffId == StaffID);
+            return await dbContext.Staff.Include("User").Include("BookingDetails").Include("Manager").FirstOrDefaultAsync(x => x.StaffId == StaffID);
         }
 
         public async Task<Staff?> UpdateAsync(Guid StaffId, Staff staff)
@@ -42,12 +41,7 @@ namespace PetSpa.Repositories.StaffRepository
             }
             exsitingWalk.FullName = exsitingWalk.FullName;
             exsitingWalk.Gender = exsitingWalk.Gender;
-            exsitingWalk.AccId = exsitingWalk.AccId;
-            exsitingWalk.Acc = exsitingWalk.Acc;
-            exsitingWalk.Bookings = exsitingWalk.Bookings;
-            exsitingWalk.BookingDetails = exsitingWalk.BookingDetails;
-            exsitingWalk.Jobs = exsitingWalk.Jobs;
-
+            exsitingWalk.Job = exsitingWalk.Job;
             await dbContext.SaveChangesAsync();
             return exsitingWalk;
         }

@@ -11,6 +11,8 @@ public partial class Combo
 
     public decimal Price { get; set; }
 
+    public TimeSpan Duration { get; set; }
+
     public bool Status { get; set; }
 
     public virtual ICollection<BookingDetail> BookingDetails { get; set; } = new List<BookingDetail>();

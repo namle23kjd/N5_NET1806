@@ -11,9 +11,9 @@ public partial class Voucher
 
     public decimal Discount { get; set; }
 
-    public DateOnly IssueDate { get; set; }
+    public DateTime IssueDate { get; set; }
 
-    public DateOnly ExpiryDate { get; set; }
+    public DateTime ExpiryDate { get; set; }
 
     public Guid CusId { get; set; }
 
@@ -23,9 +23,9 @@ public partial class Voucher
 
     public bool Status { get; set; }
 
-    public virtual Booking Booking { get; set; } = null!;
+    public virtual Booking Bookings { get; set; } = null!;
 
-    public virtual Customer Cus { get; set; } = null!;
+    public virtual Customer Customers { get; set; } = null!;
 
-    public virtual Manager Mana { get; set; } = null!;
+    public virtual Manager Managers { get; set; } = null!;
 }

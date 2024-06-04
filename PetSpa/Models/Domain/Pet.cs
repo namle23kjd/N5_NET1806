@@ -17,7 +17,7 @@ public partial class Pet
 
     public bool Status { get; set; }
 
-    public DateOnly? PetBirthday { get; set; }
+    public DateTime? PetBirthday { get; set; }
 
     public decimal? PetWeight { get; set; }
 

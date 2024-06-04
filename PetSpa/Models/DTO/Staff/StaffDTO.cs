@@ -1,25 +1,25 @@
-﻿using PetSpa.Models.Domain;
-using PetSpa.Models.DTO.Account;
+﻿using Microsoft.AspNetCore.Identity;
+using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Booking;
 using PetSpa.Models.DTO.BookingDetail;
-using PetSpa.Models.DTO.Job;
+using PetSpa.Models.DTO.Manager;
 
 namespace PetSpa.Models.DTO.Staff
 {
     public class StaffDTO
     {
-        public Guid AccId { get; set; }
+        public Guid Id { get; set; }
 
-        public Guid StaffID { get; set; }
+        public Guid StaffId { get; set; }
 
-        public string FullName { get; set; }
+        public string? FullName { get; set; }
+        public string? Gender { get; set; }
+        public string? Job { get; set; }
+        public Guid ManagerManaId { get; set; }
 
-        public string Gender { get; set; } = null!;
-
-        public AccountDTO Acc { get; set; }
-        public virtual ICollection<BookingDTO> Bookings { get; set; } = new List<BookingDTO>();
-        public virtual ICollection<JobDTO> Jobs { get; set; } = new List<JobDTO>();
+        public virtual IdentityUser User { get; set; } = null!;
         public virtual ICollection<BookingDetailDTO> BookingDetails { get; set; } = new List<BookingDetailDTO>();
+        public virtual ManagerDTO Manager { get; set; } = null!;
 
     }
 }

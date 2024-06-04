@@ -37,6 +37,11 @@ namespace PetSpa.Controllers
 
             //await bookingRepository.CreateAsync(bookingDomaiModels);
             //return Ok(mapper.Map<BookingDTO>(bookingDomaiModels));
+            // Check if the booking date is in the past
+            if (addBookingRequestDTO.BookingSchedule < DateTime.Now)
+            {
+                return BadRequest("Ngày đặt lịch không được trễ hơn ngày hiện tại. Vui lòng chọn ngày khác.");
+            }
 
             var isScheduleTaken = petSpaContext.Bookings.Any(b => b.BookingSchedule == addBookingRequestDTO.BookingSchedule && b.Status);
 
@@ -53,7 +58,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpGet("available")]
-        public async Task<IActionResult> CheckAvailability(DateTime bookingSchedule)
+        public async Task<IActionResult> CheckAvailabilityBooking (DateTime bookingSchedule)
         {
             bool isAvailable = !petSpaContext.Bookings.Any(b => b.BookingSchedule == bookingSchedule && b.Status);
 
@@ -64,6 +69,27 @@ namespace PetSpa.Controllers
 
             return BadRequest("Thời gian này đã được đặt. Vui lòng chọn lịch khác.");
         }
+
+
+        [HttpGet("availableDate")]
+        public async Task<IActionResult> CheckAvailabilityDate(DateTime bookingSchedule)
+        {
+            // Check if the booking date is in the past
+            if (bookingSchedule < DateTime.Now)
+            {
+                return BadRequest("Ngày đặt lịch không được trễ hơn ngày hiện tại. Vui lòng chọn ngày khác.");
+            }
+
+            bool isAvailable = !petSpaContext.Bookings.Any(b => b.BookingSchedule == bookingSchedule && b.Status);
+
+            if (isAvailable)
+            {
+                return Ok("Thời gian này có sẵn.");
+            }
+
+            return BadRequest("Thời gian này đã được đặt. Vui lòng chọn lịch khác.");
+        }
+
 
         //Get booking 
         //Get : /api/booking
