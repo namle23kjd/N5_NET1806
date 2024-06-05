@@ -1,11 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PetSpa.Models.DTO.Respone;
+using PetSpa.Models.DTO.RegisterDTO;
 
 namespace PetSpa.CustomActionFilter
 {
     public class ApiResponseService
     {
         public ApiResponse<T> CreateSuccessResponse<T>(T data, string message = "Succeeded")
+        {
+            return new ApiResponse<T>
+            {
+                Status = true,
+                Msg = message,
+                Data = data
+            };
+        }
+        public ApiResponse<T> LoginSuccessResponse<T>(T data, string message = "Succeeded")
         {
             return new ApiResponse<T>
             {
@@ -57,5 +66,5 @@ namespace PetSpa.CustomActionFilter
             return new CreatedAtActionResult(actionName, null, routeValues, response);
         }
     }
-
 }
+

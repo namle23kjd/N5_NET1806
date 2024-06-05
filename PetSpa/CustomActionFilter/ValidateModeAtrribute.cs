@@ -6,9 +6,6 @@ namespace PetSpa.CustomActionFilter
     public class ValidateModeAtrribute : ActionFilterAttribute
     {
 
-        public bool UseCustomResponse { get; set; }
-        public string CustomErrorMessage { get; set; } = "Default error message";
-
         public override void OnActionExecuted(ActionExecutedContext context)
         {
             if (context.ModelState.IsValid == false)
@@ -29,6 +26,8 @@ namespace PetSpa.CustomActionFilter
                 {
                     context.Result = new BadRequestResult();
                 }
+                context.Result = new BadRequestResult();
+
             }
         }
     }

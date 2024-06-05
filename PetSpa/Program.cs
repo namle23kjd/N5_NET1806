@@ -1,24 +1,25 @@
 ﻿
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using PetSpa.CustomActionFilter;
 using PetSpa.Data;
 using PetSpa.Mappings;
-using Microsoft.IdentityModel.Tokens;
+using PetSpa.Repositories;
+using PetSpa.Repositories.Customer;
+using PetSpa.Repositories.Pet;
+using PetSpa.Repositories.Token;
 using System.Text;
-using Microsoft.Extensions.FileProviders;
+using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.Configuration;
+using PetSpa.Models.Domain;
+using PetSpa.Repositories.SendingEmail;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using FluentAssertions.Common;
 using Serilog;
 using PetSpa.Middlewares;
-using PetSpa.CustomActionFilter;
-using PetSpa.Repositories.ComboRepository;
-using PetSpa.Repositories.ImageRepository;
-using PetSpa.Repositories.ManagerRepository;
-using PetSpa.Repositories.ServiceRepository;
-using PetSpa.Repositories.StaffRepository;
-using PetSpa.Repositories.BookingRepository;
-using PetSpa.Repositories.BookingDetailRepository;
-using PetSpa.Repositories.AdminRepository;
-using Microsoft.AspNetCore.Identity;
-
 namespace PetSpa
 {
     public class Program
@@ -34,82 +35,97 @@ namespace PetSpa
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog(logger);
 
-            builder.Services.AddControllers().AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-            });
-            builder.Services.AddHttpContextAccessor();
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-            builder.Services.AddScoped<IStaffRepository, SQLStaffRepository>();
-            builder.Services.AddScoped<IImagesRepository, LocalImageRepository>();
-            builder.Services.AddScoped<IManagerRepository, SQLManagerRepositorycs>();
-            builder.Services.AddScoped<ApiResponseService>();
-            builder.Services.AddScoped<IServiceRepository, SQLServiceRepository>();
-            builder.Services.AddScoped<IComboRespository, SQLComboRepository>();
-            builder.Services.AddScoped<IBookingRepository, SQLBookingRepository>();
-            builder.Services.AddScoped<IBookingDetailsRepository, SQLBookingDetailRepository>();
-            builder.Services.AddScoped<IAdminRepository, SQLAdminRepository>();
-
-            //Login User 
-            //var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<EmailSettings>();
-
-            //builder.Services.AddCors(options =>
+            //builder.Services.AddControllers(options =>
             //{
-            //    options.AddPolicy("AllowAllOrigins",
-            //        builder =>
-            //        {
-            //            builder.AllowAnyOrigin()
-            //                   .AllowAnyHeader()
-            //                   .AllowAnyMethod();
-            //        });
+            //    options.Filters.Add(new ValidateModeAtrribute());
             //});
-            //builder.Services.AddSingleton(emailConfig);
-            //builder.Services.AddScoped<IEmailSender, EmailSender>();
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+
+            builder.Services.Configure<IdentityOptions>(options => options.SignIn.RequireConfirmedEmail = true);
+
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Smtp"));
+
+            builder.Services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; });
+            builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+
+
+            builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            //builder.Services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultAuthConnectionString")));
+            builder.Services.AddScoped<ApiResponseService>();
+            builder.Services.AddScoped<IPetRepository, PetRepository>();
+            builder.Services.AddScoped<IEmailSender, EmailSender>();
+            builder.Services.AddScoped<ICusRepository, CusRepository>();
+            builder.Services.AddScoped<ITokenRepository, TokenRepository>();  builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddControllers();
+            builder.Services.AddSwaggerGen( options =>
+            {
+                options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo {  Title = "Test Api", Version = "v1" });
+                options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = JwtBearerDefaults.AuthenticationScheme
+                });
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = JwtBearerDefaults.AuthenticationScheme
+                            },
+                Scheme = "Oauth2",
+                Name = JwtBearerDefaults.AuthenticationScheme,
+                In = ParameterLocation.Header
+                        },
+                        new List<string>()
+                    }
+
+                });
+            });
+
+
+            //add email config
+            var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<EmailSettings>();
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyHeader()
+                               .AllowAnyMethod();
+                    });
+            });
+            builder.Services.AddSingleton(emailConfig);
+            builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+
+           
+
 
             builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = true;
                 // Thêm các tùy chọn khác nếu cần thiết
             }).AddEntityFrameworkStores<PetSpaContext>().AddDefaultTokenProviders();
-
+            
 
             builder.Services.AddIdentityCore<IdentityUser>().AddRoles<IdentityRole>().AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("Default").AddEntityFrameworkStores<PetSpaContext>().AddDefaultTokenProviders();
-
-            builder.Services.Configure<IdentityOptions>(options =>
+            builder.Services.AddControllers().AddJsonOptions(options =>
             {
-                options.Password.RequireDigit = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequiredLength = 6;
-                options.Password.RequiredUniqueChars = 1;
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
             });
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateIssuerSigningKey = true,
-                ValidateLifetime = true,
-                ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                ValidAudience = builder.Configuration["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-            });
+            builder.Services.AddHttpContextAccessor();
 
-
-            //Login User 
-
-
-            builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-
-
-            builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
             var app = builder.Build();
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -121,17 +137,8 @@ namespace PetSpa
 
             app.UseHttpsRedirection();
 
-
-            app.UseAuthentication();
-
             app.UseAuthorization();
 
-            
-            app.UseStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Images")),
-                RequestPath = "/Images"
-            });
 
             app.MapControllers();
 

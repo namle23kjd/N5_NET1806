@@ -236,6 +236,52 @@ namespace PetSpa.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("PetSpa.Models.Domain.Account", b =>
+                {
+                    b.Property<Guid>("AccId")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("accID");
+
+                    b.Property<string>("ForgotPasswordToken")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("forgot_password_token");
+
+                    b.Property<string>("PassWord")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("passWord");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("role");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit")
+                        .HasColumnName("status");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("userName");
+
+                    b.HasKey("AccId")
+                        .HasName("PK__Account__A471AFFAB1118508");
+
+                    b.ToTable("Account", (string)null);
+                });
+
             modelBuilder.Entity("PetSpa.Models.Domain.Admin", b =>
                 {
                     b.Property<Guid>("AdminId")
@@ -245,20 +291,91 @@ namespace PetSpa.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("adminID");
 
-                    b.Property<string>("Id")
+                    b.Property<Guid>("AccId")
                         .HasMaxLength(100)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("Id");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("accID");
 
                     b.HasKey("AdminId")
                         .HasName("PK__Admin__AD050086168743E5");
 
-                    b.HasIndex(new[] { "Id" }, "UQ__Admin__A471AFFBB3371801")
-                        .IsUnique()
-                        .HasFilter("[Id] IS NOT NULL");
+                    b.HasIndex(new[] { "AccId" }, "UQ__Admin__A471AFFBB3371801")
+                        .IsUnique();
 
                     b.ToTable("Admin", (string)null);
+                });
+
+            modelBuilder.Entity("PetSpa.Models.Domain.ApplicationUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("refreshToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("refreshTokenExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Booking", b =>
@@ -280,15 +397,23 @@ namespace PetSpa.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("cusID");
 
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("endDate");
+
                     b.Property<string>("Feedback")
                         .HasColumnType("text")
                         .HasColumnName("feedback");
 
-                    b.Property<Guid>("ManaId")
+                    b.Property<Guid>("StaffId")
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("manaID");
+                        .HasColumnName("staffID");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("startDate");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit")
@@ -303,7 +428,7 @@ namespace PetSpa.Migrations
 
                     b.HasIndex("CusId");
 
-                    b.HasIndex("ManaId");
+                    b.HasIndex("StaffId");
 
                     b.ToTable("Booking", (string)null);
                 });
@@ -311,14 +436,21 @@ namespace PetSpa.Migrations
             modelBuilder.Entity("PetSpa.Models.Domain.BookingDetail", b =>
                 {
                     b.Property<Guid>("BookingDetailId")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("bookingDetailID");
 
                     b.Property<Guid>("BookingId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("bookingID");
 
                     b.Property<Guid?>("ComboId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("comboID");
 
@@ -334,14 +466,20 @@ namespace PetSpa.Migrations
                         .HasColumnName("EndDate");
 
                     b.Property<Guid>("PetId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("petID");
 
                     b.Property<Guid?>("ServiceId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("serviceID");
 
                     b.Property<Guid?>("StaffId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("staffID");
 
@@ -407,9 +545,11 @@ namespace PetSpa.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("cusID");
 
-                    b.Property<Guid>("AdminId")
+                    b.Property<Guid>("AccId")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("adminID");
+                        .HasColumnName("accID");
 
                     b.Property<string>("CusRank")
                         .IsRequired()
@@ -448,11 +588,8 @@ namespace PetSpa.Migrations
                     b.HasKey("CusId")
                         .HasName("PK__Customer__BA9897D361CDA2E7");
 
-                    b.HasIndex("AdminId");
-
-                    b.HasIndex(new[] { "Id" }, "UQ__Customer__A471AFFBD525B8F4")
-                        .IsUnique()
-                        .HasFilter("[Id] IS NOT NULL");
+                    b.HasIndex(new[] { "AccId" }, "UQ__Customer__A471AFFBD525B8F4")
+                        .IsUnique();
 
                     b.ToTable("Customer", (string)null);
                 });
@@ -488,8 +625,8 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Invoice", b =>
                 {
-                    b.Property<Guid>("InvoiceId")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int")
                         .HasColumnName("invoiceID");
 
                     b.Property<Guid>("BookingId")
@@ -511,15 +648,52 @@ namespace PetSpa.Migrations
                     b.ToTable("Invoice", (string)null);
                 });
 
-            modelBuilder.Entity("PetSpa.Models.Domain.Manager", b =>
+            modelBuilder.Entity("PetSpa.Models.Domain.Job", b =>
                 {
-                    b.Property<Guid>("ManaId")
+                    b.Property<int>("JobId")
+                        .HasColumnType("int")
+                        .HasColumnName("jobID");
+
+                    b.Property<Guid>("BookingDetailId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
+                        .HasColumnName("bookingDetailID");
+
+                    b.Property<int?>("ManaId")
+                        .HasColumnType("int")
                         .HasColumnName("manaID");
 
-                    b.Property<Guid>("AdminId")
+                    b.Property<Guid>("StaffId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("adminID");
+                        .HasColumnName("staffID");
+
+                    b.HasKey("JobId")
+                        .HasName("PK__Job__164AA1884F5D3624");
+
+                    b.HasIndex("ManaId");
+
+                    b.HasIndex("StaffId");
+
+                    b.HasIndex(new[] { "BookingDetailId" }, "UQ__Job__942CA05F6B2E2507")
+                        .IsUnique();
+
+                    b.ToTable("Job", (string)null);
+                });
+
+            modelBuilder.Entity("PetSpa.Models.Domain.Manager", b =>
+                {
+                    b.Property<int>("ManaId")
+                        .HasColumnType("int")
+                        .HasColumnName("manaID");
+
+                    b.Property<Guid>("AccId")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("accID");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -551,7 +725,8 @@ namespace PetSpa.Migrations
                     b.HasKey("ManaId")
                         .HasName("PK__Manager__22DAE4264DC65004");
 
-                    b.HasIndex("AdminId");
+                    b.HasIndex(new[] { "AccId" }, "UQ__Manager__A471AFFBEADB9F39")
+                        .IsUnique();
 
                     b.HasIndex(new[] { "Id" }, "UQ__Manager__A471AFFBEADB9F39")
                         .IsUnique()
@@ -562,12 +737,12 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Payment", b =>
                 {
-                    b.Property<Guid>("PayId")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<int>("PayId")
+                        .HasColumnType("int")
                         .HasColumnName("payID");
 
-                    b.Property<Guid>("InvoiceId")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int")
                         .HasColumnName("invoiceID");
 
                     b.HasKey("PayId")
@@ -594,12 +769,12 @@ namespace PetSpa.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("cusID");
 
-                    b.Property<byte[]>("Image")
-                        .HasColumnType("varbinary(max)")
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("image");
 
-                    b.Property<DateTime?>("PetBirthday")
-                        .HasColumnType("datetime2")
+                    b.Property<DateOnly?>("PetBirthday")
+                        .HasColumnType("date")
                         .HasColumnName("petBirthday");
 
                     b.Property<decimal?>("PetHeight")
@@ -663,6 +838,7 @@ namespace PetSpa.Migrations
                         .HasColumnName("serviceImage");
 
                     b.Property<string>("ServiceName")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .IsUnicode(false)
                         .HasColumnType("varchar(255)")
@@ -683,8 +859,17 @@ namespace PetSpa.Migrations
             modelBuilder.Entity("PetSpa.Models.Domain.Staff", b =>
                 {
                     b.Property<Guid>("StaffId")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("staffID");
+
+                    b.Property<Guid>("AccId")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("accID");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -694,6 +879,7 @@ namespace PetSpa.Migrations
                         .HasColumnName("fullName");
 
                     b.Property<string>("Gender")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .IsUnicode(false)
                         .HasColumnType("varchar(10)")
@@ -717,19 +903,16 @@ namespace PetSpa.Migrations
                     b.HasKey("StaffId")
                         .HasName("PK__Staff__6465E19E05D526E9");
 
-                    b.HasIndex("ManagerManaId");
+                    b.HasIndex(new[] { "AccId" }, "UQ__Staff__A471AFFB206680B8")
+                        .IsUnique();
 
-                    b.HasIndex(new[] { "Id" }, "UQ__Staff__A471AFFB206680B8")
-                        .IsUnique()
-                        .HasFilter("[accID] IS NOT NULL");
-
-                    b.ToTable("Staff", (string)null);
+                    b.ToTable("Staff");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Voucher", b =>
                 {
-                    b.Property<Guid>("VoucherId")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<int>("VoucherId")
+                        .HasColumnType("int")
                         .HasColumnName("voucherID");
 
                     b.Property<Guid>("BookingId")
@@ -755,16 +938,16 @@ namespace PetSpa.Migrations
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("discount");
 
-                    b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("datetime2")
+                    b.Property<DateOnly>("ExpiryDate")
+                        .HasColumnType("date")
                         .HasColumnName("expiryDate");
 
-                    b.Property<DateTime>("IssueDate")
-                        .HasColumnType("datetime2")
+                    b.Property<DateOnly>("IssueDate")
+                        .HasColumnType("date")
                         .HasColumnName("issueDate");
 
-                    b.Property<Guid>("ManaId")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<int>("ManaId")
+                        .HasColumnType("int")
                         .HasColumnName("manaID");
 
                     b.Property<bool>("Status")
@@ -795,7 +978,7 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -804,7 +987,7 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -819,7 +1002,7 @@ namespace PetSpa.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -828,7 +1011,7 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -837,31 +1020,32 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Admin", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithOne()
-                        .HasForeignKey("PetSpa.Models.Domain.Admin", "Id")
+                    b.HasOne("PetSpa.Models.Domain.Account", "Acc")
+                        .WithOne("Admin")
+                        .HasForeignKey("PetSpa.Models.Domain.Admin", "AccId")
+                        .IsRequired()
                         .HasConstraintName("FK__Admin__accID__398D8EEE");
 
-                    b.Navigation("User");
+                    b.Navigation("Acc");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Booking", b =>
                 {
-                    b.HasOne("PetSpa.Models.Domain.Customer", "Customer")
+                    b.HasOne("PetSpa.Models.Domain.Customer", "Cus")
                         .WithMany("Bookings")
                         .HasForeignKey("CusId")
                         .IsRequired()
                         .HasConstraintName("FK__Booking__cusID__4AB81AF0");
 
-                    b.HasOne("PetSpa.Models.Domain.Manager", "Manager")
+                    b.HasOne("PetSpa.Models.Domain.Staff", "Staff")
                         .WithMany("Bookings")
-                        .HasForeignKey("ManaId")
+                        .HasForeignKey("StaffId")
                         .IsRequired()
-                        .HasConstraintName("FK_Booking_Manager");
+                        .HasConstraintName("FK__Booking__staffID__4BAC3F29");
 
-                    b.Navigation("Customer");
+                    b.Navigation("Cus");
 
-                    b.Navigation("Manager");
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.BookingDetail", b =>
@@ -906,20 +1090,13 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Customer", b =>
                 {
-                    b.HasOne("PetSpa.Models.Domain.Admin", "Admins")
-                        .WithMany()
-                        .HasForeignKey("AdminId")
+                    b.HasOne("PetSpa.Models.Domain.Account", "Acc")
+                        .WithOne("Customer")
+                        .HasForeignKey("PetSpa.Models.Domain.Customer", "AccId")
                         .IsRequired()
-                        .HasConstraintName("FK_Customer_Admin");
+                        .HasConstraintName("FK__Customer__accID__44FF419A");
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithOne()
-                        .HasForeignKey("PetSpa.Models.Domain.Customer", "Id")
-                        .HasConstraintName("FK_Customer_AspNetUsers");
-
-                    b.Navigation("Admins");
-
-                    b.Navigation("User");
+                    b.Navigation("Acc");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Invoice", b =>
@@ -933,22 +1110,41 @@ namespace PetSpa.Migrations
                     b.Navigation("Booking");
                 });
 
+            modelBuilder.Entity("PetSpa.Models.Domain.Job", b =>
+                {
+                    b.HasOne("PetSpa.Models.Domain.BookingDetail", "BookingDetail")
+                        .WithOne("Job")
+                        .HasForeignKey("PetSpa.Models.Domain.Job", "BookingDetailId")
+                        .IsRequired()
+                        .HasConstraintName("FK__Job__bookingDeta__6383C8BA");
+
+                    b.HasOne("PetSpa.Models.Domain.Manager", "Mana")
+                        .WithMany("Jobs")
+                        .HasForeignKey("ManaId")
+                        .HasConstraintName("FK__Job__manaID__6477ECF3");
+
+                    b.HasOne("PetSpa.Models.Domain.Staff", "Staff")
+                        .WithMany("Jobs")
+                        .HasForeignKey("StaffId")
+                        .IsRequired()
+                        .HasConstraintName("FK__Job__staffID__628FA481");
+
+                    b.Navigation("BookingDetail");
+
+                    b.Navigation("Mana");
+
+                    b.Navigation("Staff");
+                });
+
             modelBuilder.Entity("PetSpa.Models.Domain.Manager", b =>
                 {
-                    b.HasOne("PetSpa.Models.Domain.Admin", "Admins")
-                        .WithMany("Managers")
-                        .HasForeignKey("AdminId")
+                    b.HasOne("PetSpa.Models.Domain.Account", "Acc")
+                        .WithOne("Manager")
+                        .HasForeignKey("PetSpa.Models.Domain.Manager", "AccId")
                         .IsRequired()
-                        .HasConstraintName("FK_Manager_Admin");
+                        .HasConstraintName("FK__Manager__accID__3D5E1FD2");
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithOne()
-                        .HasForeignKey("PetSpa.Models.Domain.Manager", "Id")
-                        .HasConstraintName("FK_Manager_AspNetUsers");
-
-                    b.Navigation("Admins");
-
-                    b.Navigation("User");
+                    b.Navigation("Acc");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Payment", b =>
@@ -987,63 +1183,65 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Staff", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithOne()
-                        .HasForeignKey("PetSpa.Models.Domain.Staff", "Id")
-                        .HasConstraintName("FK_Staff_AspNetUsers");
-
-                    b.HasOne("PetSpa.Models.Domain.Manager", "Manager")
-                        .WithMany("Staffs")
-                        .HasForeignKey("ManagerManaId")
+                    b.HasOne("PetSpa.Models.Domain.Account", "Acc")
+                        .WithOne("Staff")
+                        .HasForeignKey("PetSpa.Models.Domain.Staff", "AccId")
                         .IsRequired()
-                        .HasConstraintName("FK_Staff_Manager_ManagerManaId");
+                        .HasConstraintName("FK__Staff__accID__412EB0B6");
 
-                    b.Navigation("Manager");
-
-                    b.Navigation("User");
+                    b.Navigation("Acc");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Voucher", b =>
                 {
-                    b.HasOne("PetSpa.Models.Domain.Booking", "Bookings")
+                    b.HasOne("PetSpa.Models.Domain.Booking", "Booking")
                         .WithOne("Voucher")
                         .HasForeignKey("PetSpa.Models.Domain.Voucher", "BookingId")
                         .IsRequired()
                         .HasConstraintName("FK__Voucher__booking__6A30C649");
 
-                    b.HasOne("PetSpa.Models.Domain.Customer", "Customers")
+                    b.HasOne("PetSpa.Models.Domain.Customer", "Cus")
                         .WithMany("Vouchers")
                         .HasForeignKey("CusId")
                         .IsRequired()
                         .HasConstraintName("FK__Voucher__cusID__68487DD7");
 
-                    b.HasOne("PetSpa.Models.Domain.Manager", "Managers")
+                    b.HasOne("PetSpa.Models.Domain.Manager", "Mana")
                         .WithMany("Vouchers")
                         .HasForeignKey("ManaId")
                         .IsRequired()
                         .HasConstraintName("FK__Voucher__manaID__693CA210");
 
-                    b.Navigation("Bookings");
+                    b.Navigation("Booking");
 
-                    b.Navigation("Customers");
+                    b.Navigation("Cus");
 
-                    b.Navigation("Managers");
+                    b.Navigation("Mana");
                 });
 
-            modelBuilder.Entity("PetSpa.Models.Domain.Admin", b =>
+            modelBuilder.Entity("PetSpa.Models.Domain.Account", b =>
                 {
-                    b.Navigation("Managers");
+                    b.Navigation("Admin");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Manager");
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Booking", b =>
                 {
                     b.Navigation("BookingDetails");
 
-                    b.Navigation("Invoice")
-                        .IsRequired();
+                    b.Navigation("Invoice");
 
-                    b.Navigation("Voucher")
-                        .IsRequired();
+                    b.Navigation("Voucher");
+                });
+
+            modelBuilder.Entity("PetSpa.Models.Domain.BookingDetail", b =>
+                {
+                    b.Navigation("Job");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Combo", b =>
@@ -1069,9 +1267,7 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Manager", b =>
                 {
-                    b.Navigation("Bookings");
-
-                    b.Navigation("Staffs");
+                    b.Navigation("Jobs");
 
                     b.Navigation("Vouchers");
                 });
@@ -1089,6 +1285,10 @@ namespace PetSpa.Migrations
             modelBuilder.Entity("PetSpa.Models.Domain.Staff", b =>
                 {
                     b.Navigation("BookingDetails");
+
+                    b.Navigation("Bookings");
+
+                    b.Navigation("Jobs");
                 });
 #pragma warning restore 612, 618
         }

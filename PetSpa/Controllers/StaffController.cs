@@ -22,17 +22,6 @@ namespace PetSpa.Controllers
             this.staffRepository = staffRepository;
             this._apiResponseService = apiResponseService;
         }
-        //Create Staff 
-        //Post: /api/Staff
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] AddStaffRequestDTO addStaffRequestDTO)
-        {
-            // Map DTO to DomainModel
-            var staffDomainModel = mapper.Map<Staff>(addStaffRequestDTO);
-            await staffRepository.CreateAsync(staffDomainModel);
-            //Map Domail model to DTO
-            return Ok(mapper.Map<StaffDTO>(staffDomainModel));
-        }
 
         //Get Staff
         //Get : /api/Staff
