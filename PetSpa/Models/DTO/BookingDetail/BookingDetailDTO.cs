@@ -27,7 +27,6 @@ namespace PetSpa.Models.DTO.BookingDetail
 
         public virtual ComboDTO? Combo { get; set; }
 
-        public virtual PetDTO Pet { get; set; } = null!;
 
         public virtual ServiceDTO? Service { get; set; }
 

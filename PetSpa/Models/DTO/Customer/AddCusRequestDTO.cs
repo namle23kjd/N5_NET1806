@@ -1,7 +1,7 @@
 ﻿using PetSpa.Models.Domain;
 using System.ComponentModel.DataAnnotations;
 
-namespace PetSpa.Models.DTO.CustomerDTO
+namespace PetSpa.Models.DTO.Customer
 {
     public class AddCusRequestDTO
     {

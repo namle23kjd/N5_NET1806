@@ -26,14 +26,14 @@ namespace PetSpa.Models.DTO.Booking
 
         public string? Feedback { get; set; }
 
-        public List<BookingDetailDTO> BookingDetails { get; set; }
+        public List<BookingDetailDTO>? BookingDetails { get; set; }
 
-        public virtual CustomerDTO Cus { get; set; } = null!;
+        public virtual CustomerDTO Cus { get; set; } 
 
         public virtual InvoiceDTO? Invoice { get; set; }
 
         public virtual StaffDTO Staff { get; set; } = null!;
 
-        public virtual VoucherDTO Voucher { get; set; }
+        public virtual VoucherDTO? Voucher { get; set; }
     }
 }

@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
-using PetSpa.Models.DTO.CustomerDTO;
-using PetSpa.Models.DTO.PetDTO;
+using PetSpa.Models.DTO.Customer;
+using PetSpa.Models.DTO.Pet;
 using PetSpa.Repositories;
 using PetSpa.Repositories.Customer;
 using PetSpa.Repositories.Pet;
@@ -47,29 +47,6 @@ namespace PetSpa.Controllers
                 return NotFound();
             }
             return Ok(mapper.Map<CustomerDTO>(cus));
-        }
-
-        [HttpPost]
-
-        [Route("{ID:guid}")]
-        [ValidateModeAtrribute]
-        public async Task<IActionResult> Create(Guid ID, [FromBody] AddCusRequestDTO AddCusRequestDTO)
-        {
-            //if (false)//check id cus có tồn tại không
-            //{
-            //   return badrequest("stock does not exist");
-            //}
-
-
-            var cusDomainModels = mapper.Map<Customer>(AddCusRequestDTO);
-            cusDomainModels.Id = ID;
-            cusDomainModels.CusId = new Guid();
-            cusDomainModels = await cusRepository.CreateAsync(cusDomainModels);
-
-
-            var CusDTO = mapper.Map<CustomerDTO>(cusDomainModels);
-
-            return CreatedAtAction(nameof(GetById), new { petId = cusDomainModels.CusId }, CusDTO);
         }
 
         [HttpPut]

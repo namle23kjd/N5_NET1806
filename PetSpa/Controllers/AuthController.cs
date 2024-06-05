@@ -43,55 +43,98 @@ namespace PetSpa.Controllers
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterPequestDto registerRequestDto)
         {
+            //var identityUser = new IdentityUser
+            //{
+            //    UserName = registerRequestDto.Email,
+            //    Email = registerRequestDto.Email
+            //};
+            //var identityResult = await _userManager.CreateAsync(identityUser, registerRequestDto.Password);
+            //if (identityResult.Succeeded)
+            //{
+            //    //Add roles to this User
+
+            //    identityResult = await _userManager.AddToRolesAsync(identityUser, ["Customer"]);
+            //        if (identityResult.Succeeded)
+            //        {
+
+            //            //Add Account new
+            //            var user = await _userManager.FindByEmailAsync(registerRequestDto.Email);
+            //        if(user != null) { 
+            //        var account = new Account()
+            //        {
+            //            AccId = new Guid(),
+            //            Role = "Customer",
+            //            UserName = user.Id,
+            //            PassWord = user.PasswordHash,
+            //        };
+            //        petSpaContext.Accounts.Add(account);
+            //        await petSpaContext.SaveChangesAsync();
+            //        var customer = new Customer()
+            //        {
+            //            CusId = Guid.NewGuid(),
+            //            FullName = registerRequestDto.FullName,
+            //            Gender = registerRequestDto.Gender,
+            //            PhoneNumber = registerRequestDto.PhoneNumber,
+            //            CusRank = "bronze",
+            //            AccId = account.AccId
+            //        };
+            //            petSpaContext.Customers.Add(customer);
+            //            if (await petSpaContext.SaveChangesAsync() > 0)
+            //                return Ok("User was registered? Please login");
+
+            //        }
+
+
+
+
+
+            //        }
+            //    }
+
+            //return BadRequest("Something went wrong");
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var identityUser = new IdentityUser
             {
                 UserName = registerRequestDto.Email,
                 Email = registerRequestDto.Email
             };
+
             var identityResult = await _userManager.CreateAsync(identityUser, registerRequestDto.Password);
             if (identityResult.Succeeded)
             {
-                //Add roles to this User
-                
-                identityResult = await _userManager.AddToRolesAsync(identityUser, ["Customer"]);
-                    if (identityResult.Succeeded)
+                // Add roles to this User
+                identityResult = await _userManager.AddToRolesAsync(identityUser, new List<string> { "Customer" });
+                if (identityResult.Succeeded)
+                {
+                    var user = await _userManager.FindByEmailAsync(registerRequestDto.Email);
+                    if (user != null)
                     {
+                        var customer = new Customer()
+                        {
+                            CusId = Guid.NewGuid(),
+                            FullName = registerRequestDto.FullName,
+                            Gender = registerRequestDto.Gender,
+                            PhoneNumber = registerRequestDto.PhoneNumber,
+                            CusRank = "bronze",
+                            Id = user.Id  // Link to IdentityUser (AspNetUser)
+                        };
 
-                        //Add Account new
-                        var user = await _userManager.FindByEmailAsync(registerRequestDto.Email);
-                    if(user != null) { 
-                    var account = new Account()
-                    {
-                        AccId = new Guid(),
-                        Role = "Customer",
-                        UserName = user.Id,
-                        PassWord = user.PasswordHash,
-                    };
-                    petSpaContext.Accounts.Add(account);
-                    await petSpaContext.SaveChangesAsync();
-                    var customer = new Customer()
-                    {
-                        CusId = Guid.NewGuid(),
-                        FullName = registerRequestDto.FullName,
-                        Gender = registerRequestDto.Gender,
-                        PhoneNumber = registerRequestDto.PhoneNumber,
-                        CusRank = "bronze",
-                        AccId = account.AccId
-                    };
                         petSpaContext.Customers.Add(customer);
                         if (await petSpaContext.SaveChangesAsync() > 0)
-                            return Ok("User was registered? Please login");
-
-                    }
-
-
-
-                
-
+                        {
+                            return Ok("User was registered. Please login.");
+                        }
                     }
                 }
-            
-            return BadRequest("Something went wrong");
+            }
+
+            var errors = identityResult.Errors.Select(e => e.Description).ToList();
+            return BadRequest(new { message = "Something went wrong", errors });
         }
         
 

@@ -5,11 +5,9 @@ using PetSpa.Models.DTO.Booking;
 using PetSpa.Models.DTO.BookingDetail;
 using PetSpa.Models.DTO.Combo;
 using PetSpa.Models.DTO.Customer;
-using PetSpa.Models.DTO.CustomerDTO;
 using PetSpa.Models.DTO.Invoice;
 using PetSpa.Models.DTO.Manager;
 using PetSpa.Models.DTO.Pet;
-using PetSpa.Models.DTO.PetDTO;
 using PetSpa.Models.DTO.RegisterDTO;
 using PetSpa.Models.DTO.Service;
 using PetSpa.Models.DTO.Staff;
@@ -34,17 +32,17 @@ namespace PetSpa.Mappings
             CreateMap<UpdateComboRequestDTO, Combo>().ReverseMap();
             CreateMap<AddBookingRequestDTO, Booking>().ReverseMap();
             CreateMap<Booking, BookingDTO>().ReverseMap();
-            CreateMap<Customer, CustomerDTO>().ReverseMap();
             CreateMap<Invoice, InvoiceDTO>().ReverseMap();
             CreateMap<UpdateBookingRequestDTO, Booking>().ReverseMap();
             CreateMap<AddBookingDetailRequestDTO,BookingDetail>().ReverseMap();
-            CreateMap<Pet, PetDTO>().ReverseMap();
             CreateMap<UpdateBookingDetailDTO, BookingDetail>().ReverseMap();
             CreateMap<Admin, AdminDTO>().ReverseMap();
             CreateMap<AddPetRequestDTO, Pet>().ReverseMap();
             CreateMap<UpdatePetRequestDTO, Pet>().ReverseMap();
             CreateMap<AddCusRequestDTO, Customer>().ReverseMap();
             CreateMap<RegisterPequestDto, Account>().ReverseMap();
+            CreateMap<Customer, CustomerDTO>().ReverseMap();
+            CreateMap<Pet, PetDTO>().ReverseMap();
         }
     }
 }

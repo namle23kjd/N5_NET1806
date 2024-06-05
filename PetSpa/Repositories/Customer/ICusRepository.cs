@@ -9,6 +9,5 @@ namespace PetSpa.Repositories.Customer
          Task<bool> StockExit(Guid id);
         Task<PetSpa.Models.Domain.Customer> DeleteAsync(Guid Id);
         Task<PetSpa.Models.Domain.Customer> UpdateAsync(Guid id, PetSpa.Models.Domain.Customer pet);
-        Task<PetSpa.Models.Domain.Customer> CreateAsync(PetSpa.Models.Domain.Customer customer);
     }
 }

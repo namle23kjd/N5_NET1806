@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PetSpa.CustomActionFilter;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
-using PetSpa.Models.DTO.PetDTO;
+using PetSpa.Models.DTO.Pet;
 using PetSpa.Repositories;
 
 namespace PetSpa.Controllers

@@ -15,13 +15,6 @@ namespace PetSpa.Repositories.Customer
 
         }
 
-        public async Task<Models.Domain.Customer> CreateAsync(Models.Domain.Customer customer)
-        {
-            await _context.Customers.AddAsync(customer);
-            await _context.SaveChangesAsync();
-            return customer;
-        }
-
         public async Task<Models.Domain.Customer> DeleteAsync(Guid Id)
         {
             var cusModel = await _context.Customers.FirstOrDefaultAsync(x => x.CusId == Id);
