@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using PetSpa.Models.Domain;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -13,7 +14,7 @@ namespace PetSpa.Repositories.Token
         {
             this.configuration= configuration;
         }
-        public string CreateJWTToken(IdentityUser user, string role,int minute)
+        public string CreateJWTToken(ApplicationUser user, string role,int minute)
         {
             //Create claims
             var claims = new List<Claim>();

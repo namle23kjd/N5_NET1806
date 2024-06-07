@@ -12,8 +12,8 @@ using PetSpa.Data;
 namespace PetSpa.Migrations
 {
     [DbContext(typeof(PetSpaContext))]
-    [Migration("20240604074852_UpdateDatabaseName")]
-    partial class UpdateDatabaseName
+    [Migration("20240607063626_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,10 +25,11 @@ namespace PetSpa.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -54,21 +55,35 @@ namespace PetSpa.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "f6920e9c-eefe-4e77-bef2-19faa11fdec4",
-                            ConcurrencyStamp = "f6920e9c-eefe-4e77-bef2-19faa11fdec4",
-                            Name = "Reader",
-                            NormalizedName = "READER"
+                            Id = new Guid("a9a1ae47-8a1a-456a-84c8-26435fe779d3"),
+                            ConcurrencyStamp = "a9a1ae47-8a1a-456a-84c8-26435fe779d3",
+                            Name = "Customer",
+                            NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = "caa3f555-e45f-480d-a8cb-0560a8c51b7d",
-                            ConcurrencyStamp = "caa3f555-e45f-480d-a8cb-0560a8c51b7d",
-                            Name = "Writer",
-                            NormalizedName = "WRITER"
+                            Id = new Guid("3d836b5e-fe06-4cb6-b2b0-e54b308f4fcd"),
+                            ConcurrencyStamp = "3d836b5e-fe06-4cb6-b2b0-e54b308f4fcd",
+                            Name = "Staff",
+                            NormalizedName = "STAFF"
+                        },
+                        new
+                        {
+                            Id = new Guid("135c0c73-08b8-4a80-9629-ec3f56caa2c6"),
+                            ConcurrencyStamp = "135c0c73-08b8-4a80-9629-ec3f56caa2c6",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = new Guid("d5716c33-70d2-4c0a-b81c-e752254aabce"),
+                            ConcurrencyStamp = "d5716c33-70d2-4c0a-b81c-e752254aabce",
+                            Name = "Manager",
+                            NormalizedName = "MANAGER"
                         });
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -82,9 +97,8 @@ namespace PetSpa.Migrations
                     b.Property<string>("ClaimValue")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RoleId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -93,10 +107,114 @@ namespace PetSpa.Migrations
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+                {
+                    b.Property<string>("LoginProvider")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("PetSpa.Models.Domain.Admin", b =>
+                {
+                    b.Property<Guid>("AdminId")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("adminID");
+
+                    b.Property<Guid>("Id")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
+
+                    b.HasKey("AdminId")
+                        .HasName("PK__Admin__AD050086168743E5");
+
+                    b.HasIndex(new[] { "Id" }, "UQ__Admin__A471AFFBB3371801")
+                        .IsUnique();
+
+                    b.ToTable("Admin", (string)null);
+                });
+
+            modelBuilder.Entity("PetSpa.Models.Domain.ApplicationUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
@@ -145,6 +263,12 @@ namespace PetSpa.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("refreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("refreshTokenExpiry")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
@@ -156,112 +280,6 @@ namespace PetSpa.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ClaimType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ClaimValue")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AspNetUserClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-                {
-                    b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("LoginProvider", "ProviderKey");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AspNetUserLogins", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("RoleId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("AspNetUserRoles", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Value")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("UserId", "LoginProvider", "Name");
-
-                    b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("PetSpa.Models.Domain.Admin", b =>
-                {
-                    b.Property<Guid>("AdminId")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("adminID");
-
-                    b.Property<string>("Id")
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("Id");
-
-                    b.HasKey("AdminId")
-                        .HasName("PK__Admin__AD050086168743E5");
-
-                    b.HasIndex(new[] { "Id" }, "UQ__Admin__A471AFFBB3371801")
-                        .IsUnique()
-                        .HasFilter("[Id] IS NOT NULL");
-
-                    b.ToTable("Admin", (string)null);
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Booking", b =>
@@ -283,6 +301,10 @@ namespace PetSpa.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("cusID");
 
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("EndDate");
+
                     b.Property<string>("Feedback")
                         .HasColumnType("text")
                         .HasColumnName("feedback");
@@ -292,6 +314,13 @@ namespace PetSpa.Migrations
                         .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("manaID");
+
+                    b.Property<Guid>("Staff")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("StartDate");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit")
@@ -332,9 +361,9 @@ namespace PetSpa.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("comboType");
 
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("EndDate");
+                    b.Property<TimeSpan>("Duration")
+                        .HasColumnType("time(7)")
+                        .HasColumnName("duration");
 
                     b.Property<Guid>("PetId")
                         .HasColumnType("uniqueidentifier")
@@ -348,9 +377,9 @@ namespace PetSpa.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("staffID");
 
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("StartDate");
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit")
+                        .HasColumnName("status");
 
                     b.HasKey("BookingDetailId")
                         .HasName("PK__Booking___942CA05E22BB22C8");
@@ -385,7 +414,8 @@ namespace PetSpa.Migrations
                         .HasColumnName("comboType");
 
                     b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
+                        .HasColumnType("time(7)")
+                        .HasColumnName("duration");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10, 2)")
@@ -405,14 +435,12 @@ namespace PetSpa.Migrations
                 {
                     b.Property<Guid>("CusId")
                         .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("cusID");
+                        .HasColumnName("cusID")
+                        .HasDefaultValueSql("NEWID()");
 
-                    b.Property<Guid>("AdminId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("adminID");
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CusRank")
                         .IsRequired()
@@ -435,10 +463,8 @@ namespace PetSpa.Migrations
                         .HasColumnType("varchar(10)")
                         .HasColumnName("gender");
 
-                    b.Property<string>("Id")
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("Id");
 
                     b.Property<string>("PhoneNumber")
@@ -453,9 +479,9 @@ namespace PetSpa.Migrations
 
                     b.HasIndex("AdminId");
 
-                    b.HasIndex(new[] { "Id" }, "UQ__Customer__A471AFFBD525B8F4")
+                    b.HasIndex("Id")
                         .IsUnique()
-                        .HasFilter("[Id] IS NOT NULL");
+                        .HasDatabaseName("UQ__Customer__A471AFFBD525B8F4");
 
                     b.ToTable("Customer", (string)null);
                 });
@@ -538,11 +564,11 @@ namespace PetSpa.Migrations
                         .HasColumnType("varchar(10)")
                         .HasColumnName("gender");
 
-                    b.Property<string>("Id")
+                    b.Property<Guid>("Id")
                         .HasMaxLength(100)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("accID");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
@@ -557,8 +583,7 @@ namespace PetSpa.Migrations
                     b.HasIndex("AdminId");
 
                     b.HasIndex(new[] { "Id" }, "UQ__Manager__A471AFFBEADB9F39")
-                        .IsUnique()
-                        .HasFilter("[accID] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("Manager", (string)null);
                 });
@@ -597,8 +622,8 @@ namespace PetSpa.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("cusID");
 
-                    b.Property<byte[]>("Image")
-                        .HasColumnType("varbinary(max)")
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("image");
 
                     b.Property<DateTime?>("PetBirthday")
@@ -655,7 +680,8 @@ namespace PetSpa.Migrations
                         .HasColumnName("comboID");
 
                     b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
+                        .HasColumnType("time(7)")
+                        .HasColumnName("duration");
 
                     b.Property<string>("ServiceDescription")
                         .HasColumnType("text")
@@ -690,7 +716,6 @@ namespace PetSpa.Migrations
                         .HasColumnName("staffID");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .IsUnicode(false)
                         .HasColumnType("varchar(255)")
@@ -702,14 +727,13 @@ namespace PetSpa.Migrations
                         .HasColumnType("varchar(10)")
                         .HasColumnName("gender");
 
-                    b.Property<string>("Id")
+                    b.Property<Guid>("Id")
                         .HasMaxLength(100)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("accID");
 
                     b.Property<string>("Job")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("job");
 
@@ -717,14 +741,16 @@ namespace PetSpa.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("ManagerManaId");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("StaffId")
                         .HasName("PK__Staff__6465E19E05D526E9");
 
                     b.HasIndex("ManagerManaId");
 
                     b.HasIndex(new[] { "Id" }, "UQ__Staff__A471AFFB206680B8")
-                        .IsUnique()
-                        .HasFilter("[accID] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("Staff", (string)null);
                 });
@@ -787,51 +813,51 @@ namespace PetSpa.Migrations
                     b.ToTable("Voucher", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -840,9 +866,10 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Admin", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", "User")
                         .WithOne()
                         .HasForeignKey("PetSpa.Models.Domain.Admin", "Id")
+                        .IsRequired()
                         .HasConstraintName("FK__Admin__accID__398D8EEE");
 
                     b.Navigation("User");
@@ -893,8 +920,7 @@ namespace PetSpa.Migrations
 
                     b.HasOne("PetSpa.Models.Domain.Staff", "Staff")
                         .WithMany("BookingDetails")
-                        .HasForeignKey("StaffId")
-                        .HasConstraintName("FK__Booking_D__staff__5629CD9C");
+                        .HasForeignKey("StaffId");
 
                     b.Navigation("Booking");
 
@@ -909,18 +935,15 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Customer", b =>
                 {
-                    b.HasOne("PetSpa.Models.Domain.Admin", "Admins")
-                        .WithMany()
-                        .HasForeignKey("AdminId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Customer_Admin");
+                    b.HasOne("PetSpa.Models.Domain.Admin", null)
+                        .WithMany("Customers")
+                        .HasForeignKey("AdminId");
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", "User")
                         .WithOne()
                         .HasForeignKey("PetSpa.Models.Domain.Customer", "Id")
+                        .IsRequired()
                         .HasConstraintName("FK_Customer_AspNetUsers");
-
-                    b.Navigation("Admins");
 
                     b.Navigation("User");
                 });
@@ -944,9 +967,10 @@ namespace PetSpa.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Manager_Admin");
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", "User")
                         .WithOne()
                         .HasForeignKey("PetSpa.Models.Domain.Manager", "Id")
+                        .IsRequired()
                         .HasConstraintName("FK_Manager_AspNetUsers");
 
                     b.Navigation("Admins");
@@ -990,9 +1014,10 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Staff", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                    b.HasOne("PetSpa.Models.Domain.ApplicationUser", "User")
                         .WithOne()
                         .HasForeignKey("PetSpa.Models.Domain.Staff", "Id")
+                        .IsRequired()
                         .HasConstraintName("FK_Staff_AspNetUsers");
 
                     b.HasOne("PetSpa.Models.Domain.Manager", "Manager")
@@ -1035,6 +1060,8 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Admin", b =>
                 {
+                    b.Navigation("Customers");
+
                     b.Navigation("Managers");
                 });
 

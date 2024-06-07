@@ -1,142 +1,88 @@
-﻿using Azure;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
 using PetSpa.CustomActionFilter;
 using PetSpa.Data;
-using PetSpa.Helper;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.ApiResponseDTO;
 using PetSpa.Models.DTO.ForgotPasswoDDTO;
 using PetSpa.Models.DTO.LoginDTO;
+using PetSpa.Models.DTO.Pet;
 using PetSpa.Models.DTO.RegisterDTO;
+using PetSpa.Repositories.Pet;
 using PetSpa.Repositories.SendingEmail;
 using PetSpa.Repositories.Token;
-using System.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace PetSpa.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : Controller
+    public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ITokenRepository tokenRepository;
         private readonly PetSpaContext petSpaContext;
         private readonly IEmailSender _emailSender;
-       private readonly ApiResponseService _apiResponse;
+        private readonly ApiResponseService _apiResponse;
 
-
-        public AuthController(UserManager<IdentityUser> userManager, ITokenRepository tokenRepository, PetSpaContext petSpaContext, IEmailSender _emailSender,  ApiResponseService apiResponse)
+        public AuthController(UserManager<ApplicationUser> userManager, ITokenRepository tokenRepository, PetSpaContext petSpaContext, IEmailSender _emailSender, ApiResponseService apiResponse)
         {
             this._userManager = userManager;
             this.tokenRepository = tokenRepository;
             this.petSpaContext = petSpaContext;
             this._emailSender = _emailSender;
-            _apiResponse = apiResponse;
-            
+            this._apiResponse = apiResponse;
         }
+
         //Post : /api/Auth/Register
         [HttpPost]
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterPequestDto registerRequestDto)
         {
-            //var identityUser = new IdentityUser
-            //{
-            //    UserName = registerRequestDto.Email,
-            //    Email = registerRequestDto.Email
-            //};
-            //var identityResult = await _userManager.CreateAsync(identityUser, registerRequestDto.Password);
-            //if (identityResult.Succeeded)
-            //{
-            //    //Add roles to this User
-
-            //    identityResult = await _userManager.AddToRolesAsync(identityUser, ["Customer"]);
-            //        if (identityResult.Succeeded)
-            //        {
-
-            //            //Add Account new
-            //            var user = await _userManager.FindByEmailAsync(registerRequestDto.Email);
-            //        if(user != null) { 
-            //        var account = new Account()
-            //        {
-            //            AccId = new Guid(),
-            //            Role = "Customer",
-            //            UserName = user.Id,
-            //            PassWord = user.PasswordHash,
-            //        };
-            //        petSpaContext.Accounts.Add(account);
-            //        await petSpaContext.SaveChangesAsync();
-            //        var customer = new Customer()
-            //        {
-            //            CusId = Guid.NewGuid(),
-            //            FullName = registerRequestDto.FullName,
-            //            Gender = registerRequestDto.Gender,
-            //            PhoneNumber = registerRequestDto.PhoneNumber,
-            //            CusRank = "bronze",
-            //            AccId = account.AccId
-            //        };
-            //            petSpaContext.Customers.Add(customer);
-            //            if (await petSpaContext.SaveChangesAsync() > 0)
-            //                return Ok("User was registered? Please login");
-
-            //        }
-
-
-
-
-
-            //        }
-            //    }
-
-            //return BadRequest("Something went wrong");
-
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var identityUser = new IdentityUser
+            var applicationUser = new ApplicationUser
             {
                 UserName = registerRequestDto.Email,
                 Email = registerRequestDto.Email
             };
 
-            var identityResult = await _userManager.CreateAsync(identityUser, registerRequestDto.Password);
+            var identityResult = await _userManager.CreateAsync(applicationUser, registerRequestDto.Password);
             if (identityResult.Succeeded)
             {
-                // Add roles to this User
-                identityResult = await _userManager.AddToRolesAsync(identityUser, new List<string> { "Customer" });
+                // Thêm vai trò cho người dùng này
+                identityResult = await _userManager.AddToRolesAsync(applicationUser, new List<string> { "Customer" });
                 if (identityResult.Succeeded)
                 {
-                    var user = await _userManager.FindByEmailAsync(registerRequestDto.Email);
-                    if (user != null)
+                    var customer = new Customer
                     {
-                        var customer = new Customer()
-                        {
-                            CusId = Guid.NewGuid(),
-                            FullName = registerRequestDto.FullName,
-                            Gender = registerRequestDto.Gender,
-                            PhoneNumber = registerRequestDto.PhoneNumber,
-                            CusRank = "bronze",
-                            Id = user.Id  // Link to IdentityUser (AspNetUser)
-                        };
+                        CusId = Guid.NewGuid(),
+                        FullName = registerRequestDto.FullName,
+                        Gender = registerRequestDto.Gender,
+                        PhoneNumber = registerRequestDto.PhoneNumber,
+                        CusRank = "bronze",
+                        Id = applicationUser.Id, // Liên kết với ApplicationUser
+                    };
 
-                        petSpaContext.Customers.Add(customer);
-                        if (await petSpaContext.SaveChangesAsync() > 0)
-                        {
-                            return Ok("User was registered. Please login.");
-                        }
+                    petSpaContext.Customers.Add(customer);
+                    if (await petSpaContext.SaveChangesAsync() > 0)
+                    {
+                        return Ok("Người dùng đã được đăng ký. Vui lòng đăng nhập.");
                     }
                 }
             }
 
             var errors = identityResult.Errors.Select(e => e.Description).ToList();
-            return BadRequest(new { message = "Something went wrong", errors });
+            return BadRequest(new { message = "Có gì đó sai sai", errors });
         }
-        
 
         //Post: /api/Auth/Login
         [HttpPost]
@@ -146,65 +92,58 @@ namespace PetSpa.Controllers
             var user = await _userManager.FindByEmailAsync(loginRequestDto.Username);
             if (user != null)
             {
-                var checkPassworkResult = await _userManager.CheckPasswordAsync(user, loginRequestDto.Password);
+                var checkPasswordResult = await _userManager.CheckPasswordAsync(user, loginRequestDto.Password);
 
-                if (checkPassworkResult)
+                if (checkPasswordResult)
                 {
-                    //Get Roles for this user
+                    // Lấy vai trò cho người dùng này
                     var roles = await _userManager.GetRolesAsync(user);
                     if (roles != null && roles.Any())
                     {
-                        //Create Token
-                      
-                        var data = new  PetSpa.Models.DTO.ApiResponseDTO.Data
+                        // Tạo Token
+                        var data = new PetSpa.Models.DTO.ApiResponseDTO.Data
                         {
                             User = new User
                             {
-                                Id = user.Id,
+                                Id = user.Id, // Không cần chuyển đổi nếu Id là Guid
                                 Email = user.Email,
                                 Name = user.UserName,
                             },
                             Token = tokenRepository.CreateJWTToken(user, roles[0], 15)
-                    };
+                        };
 
-                        var response = _apiResponse.LoginSuccessResponse(data, "Login Successed");
+                        var response = _apiResponse.LoginSuccessResponse(data, "Đăng nhập thành công");
                         return Ok(response);
                     }
-
-
                 }
             }
-            return BadRequest("Username or password incorrect");
+            return BadRequest("Tên người dùng hoặc mật khẩu không đúng");
         }
-        
+
         [HttpPost("forgot-password")]
         //[Route("{email}")]
-        public async Task<IActionResult> ForgotPassword([FromBody]string email)
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest Fotgotpassword)
         {
-            var user = await _userManager.FindByEmailAsync(email);
-            
+            var user = await _userManager.FindByEmailAsync(Fotgotpassword.Email);
+
             if (user == null)
             {
                 return BadRequest("User not found");
             }
             var roles = await _userManager.GetRolesAsync(user);
-            if (roles != null && roles.Any() )
+            if (roles != null && roles.Any())
             {
-
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, token = token }, protocol: Request.Scheme);
+                var callbackUrl = $"http://localhost:5173/reset-password?token={token}&email={user.Email}"; // Đường link frontend
 
-                var message = new Message(new string[] { email }, "ResPassword", "Please reset your password by clicking <a>" + callbackUrl + token + "</a>");
-                 _emailSender.SendEmail(message);
-                
-                    return Ok("SSuccess");
-                
-               
+                // **Sử dụng HTML trong email**
+                var emailBody = $@" Xin chào {user.UserName}
+                   Reset Password,link here:{callbackUrl} ";
 
-                   
-                //if (await petSpaContext.SaveChangesAsync() > 0) return Ok("User was registered? Please login");
-                //return BadRequest("Wrong");
-
+                var message = new Message(new string[] { user.Email }, "Đặt lại mật khẩu", emailBody);
+                _emailSender.SendEmail(message);
+                var response = _apiResponse.CreateSuccessResponse("Send email successfully");
+                return Ok(token);
 
             }
             return BadRequest("Email does not exist incorrect");
@@ -217,13 +156,10 @@ namespace PetSpa.Controllers
             return Ok("Success");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> ResetPassword([FromBody]ForgotPasswordRequestDto model)
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ForgotPasswordRequestDto model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+
 
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
@@ -235,7 +171,12 @@ namespace PetSpa.Controllers
             var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
             if (result.Succeeded)
             {
-                return Ok("Reset password Successfully");
+                var response = _apiResponse.CreateSuccessResponse("Reset password successfully");
+                return Ok(response);
+            }
+            else
+            {
+                return BadRequest("Test");
             }
 
             foreach (var error in result.Errors)
@@ -243,7 +184,7 @@ namespace PetSpa.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return BadRequest("Wrong resetPassword") ;
+            return BadRequest("Wrong resetPassword");
         }
     }
 }

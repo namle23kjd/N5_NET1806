@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PetSpa.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateDatabaseName : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,7 @@ namespace PetSpa.Migrations
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -31,7 +31,9 @@ namespace PetSpa.Migrations
                 name: "AspNetUsers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    refreshToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    refreshTokenExpiry = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -59,7 +61,7 @@ namespace PetSpa.Migrations
                     comboID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 50, nullable: false),
                     comboType = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    Duration = table.Column<TimeSpan>(type: "time", nullable: false),
+                    duration = table.Column<TimeSpan>(type: "time(7)", nullable: false),
                     status = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -89,7 +91,7 @@ namespace PetSpa.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleId = table.Column<string>(type: "uniqueidentifier", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -109,7 +111,7 @@ namespace PetSpa.Migrations
                 columns: table => new
                 {
                     adminID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: false),
-                    Id = table.Column<string>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: true)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -127,7 +129,7 @@ namespace PetSpa.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -149,7 +151,7 @@ namespace PetSpa.Migrations
                     LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<string>(type: "uniqueidentifier", nullable: false)
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -166,8 +168,8 @@ namespace PetSpa.Migrations
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "uniqueidentifier", nullable: false),
-                    RoleId = table.Column<string>(type: "uniqueidentifier", nullable: false)
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -190,7 +192,7 @@ namespace PetSpa.Migrations
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -215,7 +217,7 @@ namespace PetSpa.Migrations
                     status = table.Column<bool>(type: "bit", nullable: false),
                     serviceDescription = table.Column<string>(type: "text", nullable: true),
                     serviceImage = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
-                    Duration = table.Column<TimeSpan>(type: "time", nullable: false),
+                    duration = table.Column<TimeSpan>(type: "time(7)", nullable: false),
                     comboID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 50, nullable: false)
                 },
                 constraints: table =>
@@ -233,20 +235,20 @@ namespace PetSpa.Migrations
                 name: "Customer",
                 columns: table => new
                 {
-                    cusID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 50, nullable: false),
-                    Id = table.Column<string>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: true),
+                    cusID = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     fullName = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: false),
                     gender = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: false),
                     phoneNumber = table.Column<string>(type: "varchar(15)", unicode: false, maxLength: 15, nullable: false),
                     cusRank = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    adminID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    AdminId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__Customer__BA9897D361CDA2E7", x => x.cusID);
                     table.ForeignKey(
-                        name: "FK_Customer_Admin",
-                        column: x => x.adminID,
+                        name: "FK_Customer_Admin_AdminId",
+                        column: x => x.AdminId,
                         principalTable: "Admin",
                         principalColumn: "adminID");
                     table.ForeignKey(
@@ -261,7 +263,7 @@ namespace PetSpa.Migrations
                 columns: table => new
                 {
                     manaID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Id = table.Column<string>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: true),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: false),
                     fullName = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: false),
                     gender = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: false),
                     phoneNumber = table.Column<string>(type: "varchar(15)", unicode: false, maxLength: 15, nullable: false),
@@ -290,7 +292,7 @@ namespace PetSpa.Migrations
                     cusID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 50, nullable: false),
                     petType = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     petName = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: false),
-                    image = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    image = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     status = table.Column<bool>(type: "bit", nullable: false),
                     petBirthday = table.Column<DateTime>(type: "datetime2", nullable: true),
                     petWeight = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
@@ -316,7 +318,10 @@ namespace PetSpa.Migrations
                     status = table.Column<bool>(type: "bit", nullable: false),
                     totalAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     bookingSchedule = table.Column<DateTime>(type: "datetime", nullable: true),
-                    feedback = table.Column<string>(type: "text", nullable: true)
+                    feedback = table.Column<string>(type: "text", nullable: true),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Staff = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -338,18 +343,19 @@ namespace PetSpa.Migrations
                 columns: table => new
                 {
                     staffID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Id = table.Column<string>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: true),
-                    fullName = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: false),
+                    accID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: false),
+                    fullName = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: true),
                     gender = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
-                    job = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ManagerManaId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    job = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ManagerManaId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__Staff__6465E19E05D526E9", x => x.staffID);
                     table.ForeignKey(
                         name: "FK_Staff_AspNetUsers",
-                        column: x => x.Id,
+                        column: x => x.accID,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -421,13 +427,18 @@ namespace PetSpa.Migrations
                     serviceID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     staffID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     comboID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    status = table.Column<bool>(type: "bit", nullable: false),
+                    duration = table.Column<TimeSpan>(type: "time(7)", nullable: false),
                     comboType = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__Booking___942CA05E22BB22C8", x => x.bookingDetailID);
+                    table.ForeignKey(
+                        name: "FK_Booking_Detail_Staff_staffID",
+                        column: x => x.staffID,
+                        principalTable: "Staff",
+                        principalColumn: "staffID");
                     table.ForeignKey(
                         name: "FK__Booking_D__booki__571DF1D5",
                         column: x => x.bookingID,
@@ -448,11 +459,6 @@ namespace PetSpa.Migrations
                         column: x => x.serviceID,
                         principalTable: "Service",
                         principalColumn: "serviceID");
-                    table.ForeignKey(
-                        name: "FK__Booking_D__staff__5629CD9C",
-                        column: x => x.staffID,
-                        principalTable: "Staff",
-                        principalColumn: "staffID");
                 });
 
             migrationBuilder.CreateTable(
@@ -477,16 +483,17 @@ namespace PetSpa.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "caa3f555-e45f-480d-a8cb-0560a8c51b7d", "caa3f555-e45f-480d-a8cb-0560a8c51b7d", "Writer", "WRITER" },
-                    { "f6920e9c-eefe-4e77-bef2-19faa11fdec4", "f6920e9c-eefe-4e77-bef2-19faa11fdec4", "Reader", "READER" }
+                    { new Guid("135c0c73-08b8-4a80-9629-ec3f56caa2c6"), "135c0c73-08b8-4a80-9629-ec3f56caa2c6", "Admin", "ADMIN" },
+                    { new Guid("3d836b5e-fe06-4cb6-b2b0-e54b308f4fcd"), "3d836b5e-fe06-4cb6-b2b0-e54b308f4fcd", "Staff", "STAFF" },
+                    { new Guid("a9a1ae47-8a1a-456a-84c8-26435fe779d3"), "a9a1ae47-8a1a-456a-84c8-26435fe779d3", "Customer", "CUSTOMER" },
+                    { new Guid("d5716c33-70d2-4c0a-b81c-e752254aabce"), "d5716c33-70d2-4c0a-b81c-e752254aabce", "Manager", "MANAGER" }
                 });
 
             migrationBuilder.CreateIndex(
                 name: "UQ__Admin__A471AFFBB3371801",
                 table: "Admin",
                 column: "Id",
-                unique: true,
-                filter: "[Id] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -563,16 +570,15 @@ namespace PetSpa.Migrations
                 column: "staffID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Customer_adminID",
+                name: "IX_Customer_AdminId",
                 table: "Customer",
-                column: "adminID");
+                column: "AdminId");
 
             migrationBuilder.CreateIndex(
                 name: "UQ__Customer__A471AFFBD525B8F4",
                 table: "Customer",
                 column: "Id",
-                unique: true,
-                filter: "[Id] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "UQ__Invoice__C6D03BECA66EC071",
@@ -589,8 +595,7 @@ namespace PetSpa.Migrations
                 name: "UQ__Manager__A471AFFBEADB9F39",
                 table: "Manager",
                 column: "Id",
-                unique: true,
-                filter: "[Id] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "UQ__Payment__1252410D691653AC",
@@ -616,9 +621,8 @@ namespace PetSpa.Migrations
             migrationBuilder.CreateIndex(
                 name: "UQ__Staff__A471AFFB206680B8",
                 table: "Staff",
-                column: "Id",
-                unique: true,
-                filter: "[Id] IS NOT NULL");
+                column: "accID",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Voucher_cusID",
@@ -671,13 +675,13 @@ namespace PetSpa.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "Staff");
+
+            migrationBuilder.DropTable(
                 name: "Pet");
 
             migrationBuilder.DropTable(
                 name: "Service");
-
-            migrationBuilder.DropTable(
-                name: "Staff");
 
             migrationBuilder.DropTable(
                 name: "Invoice");

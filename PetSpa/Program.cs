@@ -105,18 +105,39 @@ namespace PetSpa
             builder.Services.AddSingleton(emailConfig);
             builder.Services.AddScoped<IEmailSender, EmailSender>();
 
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                };
+            });
 
-           
 
 
-            builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            //builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            //{
+            //    options.SignIn.RequireConfirmedAccount = true;
+            //    // Thêm các tùy chọn khác nếu cần thiết
+            //}).AddEntityFrameworkStores<PetSpaContext>().AddDefaultTokenProviders();
+
+            // Cấu hình Identity sử dụng ApplicationUser và IdentityRole<Guid>
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = true;
                 // Thêm các tùy chọn khác nếu cần thiết
             }).AddEntityFrameworkStores<PetSpaContext>().AddDefaultTokenProviders();
-            
 
-            builder.Services.AddIdentityCore<IdentityUser>().AddRoles<IdentityRole>().AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("Default").AddEntityFrameworkStores<PetSpaContext>().AddDefaultTokenProviders();
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
@@ -138,7 +159,7 @@ namespace PetSpa
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
+            app.UseAuthentication();
 
             app.MapControllers();
 

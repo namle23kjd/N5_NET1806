@@ -38,6 +38,7 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="System.Data.Common" Version="4.1.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.2" />
     <PackageReference Include="System.Text.Json" Version="8.0.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
@@ -51,7 +52,6 @@
   <ItemGroup>
     <Folder Include="Images\" />
     <Folder Include="Logs\" />
-    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>

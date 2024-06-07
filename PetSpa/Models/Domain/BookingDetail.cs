@@ -17,9 +17,9 @@ public partial class BookingDetail
 
     public Guid? ComboId { get; set; } // ID của Combo (có thể null)
 
-    public DateTime StartDate { get; set; } // Ngày bắt đầu
+    public bool Status { get; set; }
 
-    public DateTime EndDate { get; set; } // Ngày kết thúc
+    public TimeSpan Duration { get; set; }
 
     public string ComboType { get; set; } = null!; // Loại Combo
 

@@ -12,6 +12,7 @@ namespace PetSpa.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class BookingController : ControllerBase
     {
         private readonly IMapper mapper;

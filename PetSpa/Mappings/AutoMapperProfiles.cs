@@ -40,7 +40,6 @@ namespace PetSpa.Mappings
             CreateMap<AddPetRequestDTO, Pet>().ReverseMap();
             CreateMap<UpdatePetRequestDTO, Pet>().ReverseMap();
             CreateMap<AddCusRequestDTO, Customer>().ReverseMap();
-            CreateMap<RegisterPequestDto, Account>().ReverseMap();
             CreateMap<Customer, CustomerDTO>().ReverseMap();
             CreateMap<Pet, PetDTO>().ReverseMap();
         }

@@ -12,6 +12,12 @@ namespace PetSpa.Repositories.AdminRepository
         {
             this.dbContext = dbContext;
         }
+
+        public Task<Admin> CreateAsync(Admin admin)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<List<Admin>> GetAll()
         {
            return await dbContext.Admins.ToListAsync();
