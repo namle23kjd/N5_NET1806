@@ -20,6 +20,14 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using FluentAssertions.Common;
 using Serilog;
 using PetSpa.Middlewares;
+using PetSpa.Repositories.AdminRepository;
+using PetSpa.Repositories.BookingRepository;
+using PetSpa.Repositories.BookingDetailRepository;
+using PetSpa.Repositories.ComboRepository;
+using PetSpa.Repositories.ImageRepository;
+using PetSpa.Repositories.ManagerRepository;
+using PetSpa.Repositories.ServiceRepository;
+using PetSpa.Repositories.StaffRepository;
 namespace PetSpa
 {
     public class Program
@@ -48,6 +56,7 @@ namespace PetSpa
 
             builder.Services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; });
             builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+            builder.Services.AddLogging();
 
 
             builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -56,7 +65,18 @@ namespace PetSpa
             builder.Services.AddScoped<IPetRepository, PetRepository>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddScoped<ICusRepository, CusRepository>();
-            builder.Services.AddScoped<ITokenRepository, TokenRepository>();  builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddScoped<IAdminRepository, SQLAdminRepository>();
+            builder.Services.AddScoped<IBookingRepository, SQLBookingRepository>();
+            builder.Services.AddScoped<IBookingDetailsRepository, SQLBookingDetailRepository>();
+            builder.Services.AddScoped<IComboRespository, SQLComboRepository>();
+            builder.Services.AddScoped<ICusRepository, CusRepository>();
+            builder.Services.AddScoped<IImagesRepository, LocalImageRepository>();
+            builder.Services.AddScoped<IManagerRepository, SQLManagerRepositorycs>();
+            builder.Services.AddScoped<IPetRepository, PetRepository>();
+            builder.Services.AddScoped<IServiceRepository, SQLServiceRepository>();
+            builder.Services.AddScoped<IStaffRepository, SQLStaffRepository>();
             builder.Services.AddControllers();
             builder.Services.AddSwaggerGen( options =>
             {
