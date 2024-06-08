@@ -43,7 +43,6 @@ namespace PetSpa.Repositories.StaffRepository
             }
             existingStaff.FullName = staff.FullName;
             existingStaff.Gender = staff.Gender;
-            existingStaff.Job = staff.Job;
             await _dbContext.SaveChangesAsync();
             return existingStaff;
         }

@@ -21,10 +21,11 @@ namespace PetSpa.Mappings
         {
             CreateMap<ApplicationUser, IdentityUser>().ReverseMap();
             CreateMap<Staff, StaffDTO>()
-               .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
-               .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails))
-               .ForMember(dest => dest.Manager, opt => opt.MapFrom(src => src.Manager));
+                           .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+                           .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails))
+                           .ForMember(dest => dest.Manager, opt => opt.MapFrom(src => src.Manager));
             CreateMap<UpdateStaffRequestDTO, Staff>().ReverseMap();
+            CreateMap<AddStaffRequestDTO, Staff>().ReverseMap();
             CreateMap<AddRequestManagerDTO, Manager>().ReverseMap();
             CreateMap<Manager, ManagerDTO>()
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))

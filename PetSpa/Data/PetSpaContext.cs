@@ -479,7 +479,7 @@ namespace PetSpa.Data
                 entity.Property(e => e.Id)
                     .HasMaxLength(100)
                     .IsUnicode(false)
-                    .HasColumnName("accID");
+                    .HasColumnName("Id");
 
                 entity.Property(e => e.FullName)
                     .HasMaxLength(255)
@@ -490,10 +490,6 @@ namespace PetSpa.Data
                     .HasMaxLength(10)
                     .IsUnicode(false)
                     .HasColumnName("gender");
-
-                entity.Property(e => e.Job)
-                    .HasColumnType("nvarchar(max)")
-                    .HasColumnName("job");
 
                 entity.Property(e => e.ManagerManaId)
                     .HasColumnName("ManagerManaId");

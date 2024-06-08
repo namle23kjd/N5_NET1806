@@ -13,9 +13,7 @@ public partial class Staff
 
     public string? FullName { get; set; } 
     public string? Gender { get; set; }
-    public string? Job { get; set; }
     public Guid ManagerManaId { get; set; }
-    [ForeignKey("UserId")]
     public virtual ApplicationUser User { get; set; } = null!;
     public virtual ICollection<BookingDetail> BookingDetails { get; set; } = new List<BookingDetail>();
     public virtual Manager Manager { get; set; } = null!;
