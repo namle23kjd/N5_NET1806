@@ -7,5 +7,6 @@ namespace PetSpa.Repositories.ManagerRepository
         Task<List<Manager>> GetAllAsync();
         Task<Manager?> GetByIDAsync(Guid ManaId);
         Task<Manager?> UpdateAsync(Guid ManaId, Manager manager);
+        Task<Manager> CreateAsync(Manager manager);
     }
 }

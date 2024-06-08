@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Admin;
 using PetSpa.Models.DTO.Booking;
@@ -18,9 +19,19 @@ namespace PetSpa.Mappings
     {
         public AutoMapperProfiles()
         {
-            CreateMap<Staff, StaffDTO>().ReverseMap();
+            CreateMap<ApplicationUser, IdentityUser>().ReverseMap();
+            CreateMap<Staff, StaffDTO>()
+               .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+               .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails))
+               .ForMember(dest => dest.Manager, opt => opt.MapFrom(src => src.Manager));
             CreateMap<UpdateStaffRequestDTO, Staff>().ReverseMap();
-            CreateMap<Manager, ManagerDTO>().ReverseMap();
+            CreateMap<AddRequestManagerDTO, Manager>().ReverseMap();
+            CreateMap<Manager, ManagerDTO>()
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.Admins, opt => opt.MapFrom(src => src.Admins))
+                .ForMember(dest => dest.Staffs, opt => opt.MapFrom(src => src.Staffs))
+                .ForMember(dest => dest.Vouchers, opt => opt.MapFrom(src => src.Vouchers))
+                .ForMember(dest => dest.Bookings, opt => opt.MapFrom(src => src.Bookings));
             CreateMap<UpdateManagerRequestDTO, Manager>().ReverseMap();
             CreateMap<AddServiceRequest, Service>().ReverseMap();
             CreateMap<Service, ServiceDTO>().ReverseMap();

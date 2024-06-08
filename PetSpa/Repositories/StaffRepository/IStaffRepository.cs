@@ -1,4 +1,7 @@
 ﻿using PetSpa.Models.Domain;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace PetSpa.Repositories.StaffRepository
 {
@@ -7,5 +10,6 @@ namespace PetSpa.Repositories.StaffRepository
         Task<List<Staff>> GetALlAsync();
         Task<Staff?> GetByIdAsync(Guid StaffId);
         Task<Staff?> UpdateAsync(Guid StaffId, Staff staff);
+        Task<Staff> CreateAsync(Staff staff); // Thêm hàm CreateAsync
     }
 }

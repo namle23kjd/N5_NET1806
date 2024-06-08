@@ -5,6 +5,11 @@ using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Manager;
 using PetSpa.Repositories.ManagerRepository;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace PetSpa.Controllers
 {
@@ -12,60 +17,137 @@ namespace PetSpa.Controllers
     [ApiController]
     public class ManagerController : ControllerBase
     {
-        private readonly IMapper mapper;
-        private readonly IManagerRepository managerRepository;
-        private readonly ApiResponseService apiResponseService;
+        private readonly IMapper _mapper;
+        private readonly IManagerRepository _managerRepository;
+        private readonly ApiResponseService _apiResponseService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<ManagerController> _logger;
 
-        public ManagerController(IMapper mapper, IManagerRepository managerRepository, ApiResponseService apiResponseService)
+        public ManagerController(IMapper mapper, IManagerRepository managerRepository, ApiResponseService apiResponseService, UserManager<ApplicationUser> userManager, ILogger<ManagerController> logger)
         {
-            this.mapper = mapper;
-            this.managerRepository = managerRepository;
-            this.apiResponseService = apiResponseService;
+            this._mapper = mapper;
+            this._managerRepository = managerRepository;
+            this._apiResponseService = apiResponseService;
+            this._userManager = userManager;
+            this._logger = logger;
         }
 
-        //Get ALl Manager
+        // Get All Managers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-               var manaDomainModels =  await managerRepository.GetAllAsync();
-            return Ok(mapper.Map<List<ManagerDTO>>(manaDomainModels));
+            try
+            {
+                var manaDomainModels = await _managerRepository.GetAllAsync();
+                var managerDTOs = _mapper.Map<List<ManagerDTO>>(manaDomainModels);
+                return Ok(_apiResponseService.CreateSuccessResponse(managerDTOs, "Managers retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting all managers.");
+                return Ok(_apiResponseService.CreateErrorResponse("An error occurred while getting all managers"));
+            }
         }
 
-
-        //Get Manager By ID
-        //Get /api/Manager/{id}
+        // Get Manager By ID
+        // Get /api/Manager/{id}
         [HttpGet]
         [Route("{ManaId:guid}")]
         public async Task<IActionResult> GetById([FromRoute] Guid ManaId)
         {
-            var manaDomailModels = await managerRepository.GetByIDAsync(ManaId);
-            if (manaDomailModels == null) 
+            try
             {
-                return apiResponseService.CreateUnauthorizedResponse();
-            }
+                var manaDomainModels = await _managerRepository.GetByIDAsync(ManaId);
+                if (manaDomainModels == null)
+                {
+                    return NotFound(_apiResponseService.CreateErrorResponse("Manager not found"));
+                }
 
-            //Map Domain Model to DTo
-             var managerDTO = mapper.Map<ManagerDTO>(manaDomailModels);
-            return Ok(apiResponseService.CreateSuccessResponse(managerDTO));
+                var managerDTO = _mapper.Map<ManagerDTO>(manaDomainModels);
+                return Ok(_apiResponseService.CreateSuccessResponse(managerDTO, "Manager retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting manager by ID.");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
+            }
         }
 
-        //Update Manager
+        // Create Manager
+        // POST: /api/Manager
+        [HttpPost]
+        public async Task<IActionResult> CreateManager([FromBody] AddRequestManagerDTO addManagerRequestDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(_apiResponseService.CreateErrorResponse("Invalid data"));
+            }
+
+            try
+            {
+                // Tạo một đối tượng ApplicationUser mới
+                var user = new ApplicationUser
+                {
+                    UserName = addManagerRequestDTO.UserName,
+                    Email = addManagerRequestDTO.Email,
+                    EmailConfirmed = true
+                };
+
+                // Tạo người dùng mới trong bảng AspNetUsers
+                var result = await _userManager.CreateAsync(user, addManagerRequestDTO.Password);
+                if (!result.Succeeded)
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        _logger.LogError("Error creating user: Code={Code}, Description={Description}", error.Code, error.Description);
+                    }
+                    return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Error creating user"));
+                }
+
+                // Thêm người dùng vào role "Manager"
+                await _userManager.AddToRoleAsync(user, "Manager");
+
+                // Tạo bản ghi mới trong bảng Manager
+                var manager = _mapper.Map<Manager>(addManagerRequestDTO);
+                manager.ManaId = Guid.NewGuid();
+                manager.Id = user.Id;
+
+                var createdManager = await _managerRepository.CreateAsync(manager);
+                var managerDTO = _mapper.Map<ManagerDTO>(createdManager);
+
+                return Ok(_apiResponseService.CreateSuccessResponse(managerDTO, "Manager created successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while creating manager.");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
+            }
+        }
+
+        // Update Manager
         // PUT: /api/Manager/{id}
         [HttpPut]
         [Route("{ManaId:guid}")]
         public async Task<IActionResult> Update([FromRoute] Guid ManaId, UpdateManagerRequestDTO updateManagerRequestDTO)
         {
-            //Map DTO to Domain Model
-            var managerDomainModels = mapper.Map<Manager>(updateManagerRequestDTO);
-            managerDomainModels = await managerRepository.UpdateAsync(ManaId, managerDomainModels);
-
-            if (managerDomainModels == null)
+            try
             {
-                return NotFound();
+                var managerDomainModels = _mapper.Map<Manager>(updateManagerRequestDTO);
+                managerDomainModels = await _managerRepository.UpdateAsync(ManaId, managerDomainModels);
+
+                if (managerDomainModels == null)
+                {
+                    return NotFound(_apiResponseService.CreateErrorResponse("Manager not found"));
+                }
+
+                var managerDTO = _mapper.Map<ManagerDTO>(managerDomainModels);
+                return Ok(_apiResponseService.CreateSuccessResponse(managerDTO, "Manager updated successfully"));
             }
-            //Map Domain Models to DTO
-             var manaDTO =  mapper.Map<ManagerDTO>(managerDomainModels);
-            return Ok(apiResponseService.CreateSuccessResponse(manaDTO));
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating manager.");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
+            }
         }
     }
 }
