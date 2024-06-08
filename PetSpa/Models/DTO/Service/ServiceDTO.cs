@@ -1,6 +1,7 @@
 ﻿using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.BookingDetail;
 using PetSpa.Models.DTO.Combo;
+using System.ComponentModel.DataAnnotations;
 
 namespace PetSpa.Models.DTO.Service
 {
@@ -15,8 +16,9 @@ namespace PetSpa.Models.DTO.Service
         public string? ServiceDescription { get; set; }
 
         public byte[]? ServiceImage { get; set; }
-
-        public Guid ComboId { get; set; }
+        [Required]
+        public string? Duration { get; set; }
+        public Guid? ComboId { get; set; }
 
         public virtual ICollection<BookingDetailDTO> BookingDetails { get; set; } = new List<BookingDetailDTO>();
 

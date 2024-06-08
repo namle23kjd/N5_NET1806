@@ -445,7 +445,8 @@ namespace PetSpa.Data
                 entity.Property(e => e.ComboId)
                     .HasMaxLength(50)
                     .IsUnicode(false)
-                    .HasColumnName("comboID");
+                    .HasColumnName("comboID")
+                    .IsRequired(false);
                 entity.Property(e => e.ServiceDescription)
                     .HasColumnType("text")
                     .HasColumnName("serviceDescription");
@@ -461,7 +462,7 @@ namespace PetSpa.Data
 
                 entity.HasOne(d => d.Combo).WithMany(p => p.Services)
                     .HasForeignKey(d => d.ComboId)
-                    .HasConstraintName("FK_Service_Combo");
+                    .HasConstraintName("FK_Service_Combo").OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Staff>(entity =>

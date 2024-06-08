@@ -65,10 +65,21 @@ namespace PetSpa.Mappings
                             .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.ToString())); // Chuyển đổi TimeSpan thành chuỗi
 
             CreateMap<AddComboRequestDTO, Combo>()
-                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration))); // Chuyển đổi chuỗi thành TimeSpan
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration)));
 
             CreateMap<UpdateComboRequestDTO, Combo>()
-                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration))); // Chuyển đổi chuỗi thành TimeSpan
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration)));
+
+            CreateMap<Service, ServiceDTO>()
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.ToString())); // Chuyển đổi TimeSpan thành chuỗi
+
+            CreateMap<AddServiceRequest, Service>()
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration)))
+                .ForMember(dest => dest.ComboId, opt => opt.MapFrom(src => src.ComboId));
+
+            CreateMap<UpdateServiceRequestDTO, Service>()
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration)))
+                .ForMember(dest => dest.ComboId, opt => opt.MapFrom(src => src.ComboId));
         }
     }
 }

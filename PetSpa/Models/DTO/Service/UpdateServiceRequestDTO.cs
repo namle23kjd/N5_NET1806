@@ -1,4 +1,6 @@
-﻿namespace PetSpa.Models.DTO.Service
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PetSpa.Models.DTO.Service
 {
     public class UpdateServiceRequestDTO
     {
@@ -9,7 +11,8 @@
         public string? ServiceDescription { get; set; }
 
         public byte[]? ServiceImage { get; set; }
-
-        public Guid ComboId { get; set; }
+        [Required]
+        public string? Duration { get; set; }
+        public Guid? ComboId { get; set; }
     }
 }

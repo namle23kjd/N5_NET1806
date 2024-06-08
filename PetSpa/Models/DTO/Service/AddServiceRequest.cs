@@ -1,4 +1,5 @@
 ﻿using PetSpa.Models.Domain;
+using System.ComponentModel.DataAnnotations;
 
 namespace PetSpa.Models.DTO.Service
 {
@@ -12,7 +13,10 @@ namespace PetSpa.Models.DTO.Service
 
         public byte[]? ServiceImage { get; set; }
 
-        public Guid ComboId { get; set; }
+        [Required]
+        public string? Duration { get; set; }
+
+        public Guid? ComboId { get; set; }
 
     }
 }
