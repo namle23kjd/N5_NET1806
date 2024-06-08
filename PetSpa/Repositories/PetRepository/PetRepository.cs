@@ -1,50 +1,53 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace PetSpa.Repositories.Pet
+namespace PetSpa.Repositories
 {
     public class PetRepository : IPetRepository
     {
-
         private readonly PetSpaContext _context;
+
         public PetRepository(PetSpaContext context)
         {
             _context = context;
-
         }
 
-        public async Task<Models.Domain.Pet> CreateAsync(Models.Domain.Pet pet)
+        public async Task<Pet> CreateAsync(Pet pet)
         {
             await _context.Pets.AddAsync(pet);
             await _context.SaveChangesAsync();
             return pet;
         }
 
-        public async Task<Models.Domain.Pet> DeleteAsync(Guid Id)
+        public async Task<Pet?> DeleteAsync(Guid Id)
         {
-            var commentModel = await _context.Pets.FirstOrDefaultAsync(x => x.PetId == Id);
-            if (commentModel == null)
+            var pet = await _context.Pets.FirstOrDefaultAsync(x => x.PetId == Id);
+            if (pet == null)
             {
                 return null;
             }
-            _context.Pets.Remove(commentModel);
+
+            // Thay đổi trạng thái từ true thành false
+            pet.Status = false;
             await _context.SaveChangesAsync();
-            return commentModel;
+            return pet;
         }
 
-        public async Task<List<Models.Domain.Pet>> GetALLAsync()
+        public async Task<List<Pet>> GetALLAsync()
         {
             return await _context.Pets.ToListAsync();
         }
 
-        public async Task<Models.Domain.Pet?> getByIdAsync(Guid id)
+        public async Task<Pet?> GetByIdAsync(Guid id)
         {
             return await _context.Pets.FirstOrDefaultAsync(r => r.PetId == id);
         }
 
-        public async Task<Models.Domain.Pet> UpdateAsync(Guid id, Models.Domain.Pet pet)
+        public async Task<Pet?> UpdateAsync(Guid id, Pet pet)
         {
             var existingPet = await _context.Pets.FirstOrDefaultAsync(x => x.PetId == id);
 
@@ -53,8 +56,8 @@ namespace PetSpa.Repositories.Pet
                 return null;
             }
 
-             existingPet.PetBirthday = pet.PetBirthday;
-             if(existingPet.Status != pet.Status) existingPet.Status = pet.Status;
+            existingPet.PetBirthday = pet.PetBirthday;
+            existingPet.Status = pet.Status;
             existingPet.PetWeight = pet.PetWeight;
             existingPet.Image = pet.Image;
             existingPet.PetName = pet.PetName;
@@ -62,7 +65,6 @@ namespace PetSpa.Repositories.Pet
 
             await _context.SaveChangesAsync();
             return existingPet;
-            
         }
     }
 }

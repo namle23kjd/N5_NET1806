@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PetSpa.CustomActionFilter;
-using PetSpa.Data;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Pet;
 using PetSpa.Repositories;
@@ -13,22 +11,21 @@ namespace PetSpa.Controllers
     [ApiController]
     public class PetController : ControllerBase
     {
-        private readonly PetSpaContext petSpaContext;
-        private readonly IPetRepository petRepository;
-        private readonly IMapper mapper;
+        private readonly IPetRepository _petRepository;
+        private readonly IMapper _mapper;
 
-        public PetController(PetSpaContext petSpaContext,IPetRepository petRepository, IMapper mapper)
+        public PetController(IPetRepository petRepository, IMapper mapper)
         {
-            this.mapper = mapper;
-            this.petSpaContext = petSpaContext;
-            this.petRepository = petRepository;
+            _petRepository = petRepository;
+            _mapper = mapper;
         }
+
         [HttpGet]
         [ValidateModeAtrribute]
         public async Task<IActionResult> GetAll()
         {
-            var petDomainModel = await petRepository.GetALLAsync();
-            return Ok(mapper.Map<List<PetDTO>>(petDomainModel));
+            var petDomainModels = await _petRepository.GetALLAsync();
+            return Ok(_mapper.Map<List<PetDTO>>(petDomainModels));
         }
 
         [HttpGet]
@@ -36,72 +33,70 @@ namespace PetSpa.Controllers
         [Route("{ID:guid}")]
         public async Task<IActionResult> GetById([FromRoute] Guid ID)
         {
-           
-            var comment = await petRepository.getByIdAsync(ID);
+            var pet = await _petRepository.GetByIdAsync(ID);
 
-            if (comment == null)
+            if (pet == null)
             {
                 return NotFound();
             }
-            return Ok(mapper.Map<PetDTO>(comment));
+
+            return Ok(_mapper.Map<PetDTO>(pet));
         }
 
         [HttpPost]
-        
-        [Route("{ID:guid}")]
-        public async Task<IActionResult> Create( Guid ID, [FromBody] AddPetRequestDTO AddPetRequestDTO)
+        [ValidateModeAtrribute]
+        public async Task<IActionResult> Create([FromBody] AddPetRequestDTO addPetRequestDTO)
         {
-            //if (false)//check id cus có tồn tại không
-            //{
-            //   return badrequest("stock does not exist");
-            //}
-            
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            var petDomainModels = mapper.Map<Pet>(AddPetRequestDTO);
-            petDomainModels.CusId = ID;
-            petDomainModels.PetId = new Guid();
-            petDomainModels.Status = true;
-            petDomainModels = await petRepository.CreateAsync(petDomainModels);
-            
+            var petDomainModel = _mapper.Map<Pet>(addPetRequestDTO);
+            petDomainModel.PetId = Guid.NewGuid();
 
-            var accountDTO = mapper.Map<PetDTO>(petDomainModels);
+            var createdPet = await _petRepository.CreateAsync(petDomainModel);
 
-            return CreatedAtAction(nameof(GetById), new { petId = petDomainModels.PetId}, accountDTO);
+            var petDTO = _mapper.Map<PetDTO>(createdPet);
+
+            return CreatedAtAction(nameof(GetById), new { ID = petDTO.PetId }, petDTO);
         }
-        [HttpDelete]
 
+        [HttpDelete]
         [Route("{id:guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
-            if (!ModelState.IsValid) { return BadRequest(ModelState); }
-            var petModel = await petRepository.DeleteAsync(id);
-            if (petModel == null)
-            {
-                return NotFound("Comment does not exist");
-            }
-            return Ok(Ok(mapper.Map<PetDTO>(petModel)));
-        }
+            var pet = await _petRepository.DeleteAsync(id);
 
+            if (pet == null)
+            {
+                return NotFound("Pet does not exist");
+            }
+
+            return Ok(_mapper.Map<PetDTO>(pet));
+        }
 
         [HttpPut]
         [ValidateModeAtrribute]
         [Route("{ID:guid}")]
         public async Task<IActionResult> Update([FromRoute] Guid ID, [FromBody] UpdatePetRequestDTO updatePetRequestDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-
-            var regionDomainModels = mapper.Map<Pet>(updatePetRequestDTO);
-            //Check region exist
-            regionDomainModels = await petRepository.UpdateAsync(ID, regionDomainModels);
-
-            if (regionDomainModels == null)
+            var existingPet = await _petRepository.GetByIdAsync(ID);
+            if (existingPet == null)
             {
                 return NotFound();
             }
 
+            var petDomainModel = _mapper.Map(updatePetRequestDTO, existingPet);
 
-            return (Ok(mapper.Map<PetDTO>(regionDomainModels)));
+            var updatedPet = await _petRepository.UpdateAsync(ID, petDomainModel);
 
+            return Ok(_mapper.Map<PetDTO>(updatedPet));
         }
     }
 }

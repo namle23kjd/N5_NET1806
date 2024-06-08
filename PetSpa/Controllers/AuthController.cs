@@ -10,7 +10,6 @@ using PetSpa.Models.DTO.ForgotPasswoDDTO;
 using PetSpa.Models.DTO.LoginDTO;
 using PetSpa.Models.DTO.Pet;
 using PetSpa.Models.DTO.RegisterDTO;
-using PetSpa.Repositories.Pet;
 using PetSpa.Repositories.SendingEmail;
 using PetSpa.Repositories.Token;
 using System;

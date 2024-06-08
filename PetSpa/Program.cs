@@ -8,7 +8,6 @@ using PetSpa.CustomActionFilter;
 using PetSpa.Data;
 using PetSpa.Mappings;
 using PetSpa.Repositories;
-using PetSpa.Repositories.Pet;
 using PetSpa.Repositories.Token;
 using System.Text;
 using Microsoft.OpenApi.Models;
