@@ -1,73 +1,136 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
-using PetSpa.Data;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Customer;
-using PetSpa.Models.DTO.Pet;
-using PetSpa.Repositories;
-using PetSpa.Repositories.Customer;
-using PetSpa.Repositories.Pet;
+using PetSpa.Repositories.CustomerRepository;
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace PetSpa.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
-    public class CustomerController  : ControllerBase
+    public class CustomerController : ControllerBase
     {
-        private readonly PetSpaContext petSpaContext;
-        private readonly ICusRepository cusRepository;
-        private readonly IMapper mapper;
+        private readonly IMapper _mapper;
+        private readonly ICustomerRepository _customerRepository;
+        private readonly ApiResponseService _apiResponseService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<CustomerController> _logger;
 
-        public CustomerController(PetSpaContext petSpaContext, ICusRepository cusRepository, IMapper mapper)
+        public CustomerController(IMapper mapper, ICustomerRepository customerRepository, ApiResponseService apiResponseService, UserManager<ApplicationUser> userManager, ILogger<CustomerController> logger)
         {
-            this.mapper = mapper;
-            this.petSpaContext = petSpaContext;
-            this.cusRepository = cusRepository;
+            this._mapper = mapper;
+            this._customerRepository = customerRepository;
+            this._apiResponseService = apiResponseService;
+            this._userManager = userManager;
+            this._logger = logger;
         }
 
+        // Get All Customers
         [HttpGet]
-        [ValidateModeAtrribute]
         public async Task<IActionResult> GetAll()
         {
-            var cusDomainModel = await cusRepository.GetALLAsync();
-            return Ok(mapper.Map<List<CustomerDTO>>(cusDomainModel));
+            try
+            {
+                var customerDomainModels = await _customerRepository.GetAllAsync();
+                var customerDTOs = _mapper.Map<List<CustomerDTO>>(customerDomainModels);
+                return Ok(_apiResponseService.CreateSuccessResponse(customerDTOs, "Customers retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting all customers.");
+                return Ok(_apiResponseService.CreateErrorResponse("An error occurred while getting all customers"));
+            }
         }
+
+        // Get Customer By ID
+        // Get /api/Customer/{id}
         [HttpGet]
-        [Route("{ID:guid}")]
-        [ValidateModeAtrribute]
-        public async Task<IActionResult> GetById(Guid ID)
+        [Route("{CusId:guid}")]
+        public async Task<IActionResult> GetById([FromRoute] Guid CusId)
         {
-            var cus = await cusRepository.getByIdAsync(ID);
-
-            if (cus == null)
+            try
             {
-                return NotFound();
+                var customerDomainModel = await _customerRepository.GetByIdAsync(CusId);
+
+                if (customerDomainModel == null)
+                {
+                    return NotFound(_apiResponseService.CreateErrorResponse("Customer not found"));
+                }
+
+                var customerDTO = _mapper.Map<CustomerDTO>(customerDomainModel);
+                return Ok(_apiResponseService.CreateSuccessResponse(customerDTO, "Customer retrieved successfully"));
             }
-            return Ok(mapper.Map<CustomerDTO>(cus));
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting customer by ID.");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
+            }
         }
 
+        // Update Customer by User
+        // PUT: /api/Customer/UpdateByUser/{id}
         [HttpPut]
-        [ValidateModeAtrribute]
-        [Route("{ID:guid}")]
-        public async Task<IActionResult> Update([FromRoute] Guid ID, [FromBody] AddCusRequestDTO updatecusRequestDTO)
+        [Route("UpdateByUser/{CusId:guid}")]
+        public async Task<IActionResult> UpdateByUser([FromRoute] Guid CusId,  UpdateCustomerRequestDTO updateCustomerByUserRequestDTO)
         {
-
-
-            var cusDomainModels = mapper.Map<Customer>(updatecusRequestDTO);
-            //Check region exis
-            cusDomainModels = await cusRepository.UpdateAsync(ID, cusDomainModels);
-
-            if (cusDomainModels == null)
+            try
             {
-                return NotFound();
+                var existingCustomer = await _customerRepository.GetByIdAsync(CusId);
+                if (existingCustomer == null)
+                {
+                    return NotFound(_apiResponseService.CreateErrorResponse("Customer not found"));
+                }
+
+                existingCustomer.FullName = updateCustomerByUserRequestDTO.FullName;
+                existingCustomer.Gender = updateCustomerByUserRequestDTO.Gender;
+                existingCustomer.PhoneNumber = updateCustomerByUserRequestDTO.PhoneNumber;
+
+                var updatedCustomer = await _customerRepository.UpdateAsync(CusId, existingCustomer);
+                var customerDTO = _mapper.Map<CustomerDTO>(updatedCustomer);
+                return Ok(_apiResponseService.CreateSuccessResponse(customerDTO, "Customer updated successfully"));
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating customer.");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
+            }
+        }
 
 
-            return (Ok(mapper.Map<CustomerDTO>(cusDomainModels)));
+        // Update Customer by Admin
+        // PUT: /api/Customer/UpdateByAdmin/{id}
+        [HttpPut]
+        [Route("UpdateByAdmin/{CusId:guid}")]
+        public async Task<IActionResult> UpdateByAdmin([FromRoute] Guid CusId, UpdateCustomerRequestByAdminDTO updateCustomerByAdminRequestDTO)
+        {
+            try
+            {
+                var existingCustomer = await _customerRepository.GetByIdAsync(CusId);
+                if (existingCustomer == null)
+                {
+                    return NotFound(_apiResponseService.CreateErrorResponse("Customer not found"));
+                }
 
+                existingCustomer.FullName = updateCustomerByAdminRequestDTO.FullName;
+                existingCustomer.Gender = updateCustomerByAdminRequestDTO.Gender;
+                existingCustomer.PhoneNumber = updateCustomerByAdminRequestDTO.PhoneNumber;
+                existingCustomer.CusRank = updateCustomerByAdminRequestDTO.CusRank;
+
+                var updatedCustomer = await _customerRepository.UpdateAsync(CusId, existingCustomer);
+                var customerDTO = _mapper.Map<CustomerDTO>(updatedCustomer);
+                return Ok(_apiResponseService.CreateSuccessResponse(customerDTO, "Customer updated successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating customer.");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
+            }
         }
     }
 }

@@ -50,8 +50,13 @@ namespace PetSpa.Mappings
             CreateMap<UpdateBookingDetailDTO, BookingDetail>().ReverseMap();
             CreateMap<AddPetRequestDTO, Pet>().ReverseMap();
             CreateMap<UpdatePetRequestDTO, Pet>().ReverseMap();
-            CreateMap<AddCusRequestDTO, Customer>().ReverseMap();
-            CreateMap<Customer, CustomerDTO>().ReverseMap();
+            CreateMap<Customer, CustomerDTO>()
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.Bookings, opt => opt.MapFrom(src => src.Bookings))
+                .ForMember(dest => dest.Pets, opt => opt.MapFrom(src => src.Pets))
+                .ForMember(dest => dest.Vouchers, opt => opt.MapFrom(src => src.Vouchers));
+            CreateMap<UpdateCustomerRequestDTO, Customer>().ReverseMap();
+            CreateMap<UpdateCustomerRequestByAdminDTO, Customer>().ReverseMap();
             CreateMap<Pet, PetDTO>().ReverseMap();
             CreateMap<AddAdminRequestDTO, Admin>().ReverseMap();
             CreateMap<Admin, AdminDTO>()

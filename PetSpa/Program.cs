@@ -8,7 +8,6 @@ using PetSpa.CustomActionFilter;
 using PetSpa.Data;
 using PetSpa.Mappings;
 using PetSpa.Repositories;
-using PetSpa.Repositories.Customer;
 using PetSpa.Repositories.Pet;
 using PetSpa.Repositories.Token;
 using System.Text;
@@ -28,6 +27,7 @@ using PetSpa.Repositories.ImageRepository;
 using PetSpa.Repositories.ManagerRepository;
 using PetSpa.Repositories.ServiceRepository;
 using PetSpa.Repositories.StaffRepository;
+using PetSpa.Repositories.CustomerRepository;
 namespace PetSpa
 {
     public class Program
@@ -64,19 +64,18 @@ namespace PetSpa
             builder.Services.AddScoped<ApiResponseService>();
             builder.Services.AddScoped<IPetRepository, PetRepository>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
-            builder.Services.AddScoped<ICusRepository, CusRepository>();
             builder.Services.AddScoped<ITokenRepository, TokenRepository>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddScoped<IAdminRepository, SQLAdminRepository>();
             builder.Services.AddScoped<IBookingRepository, SQLBookingRepository>();
             builder.Services.AddScoped<IBookingDetailsRepository, SQLBookingDetailRepository>();
             builder.Services.AddScoped<IComboRespository, SQLComboRepository>();
-            builder.Services.AddScoped<ICusRepository, CusRepository>();
             builder.Services.AddScoped<IImagesRepository, LocalImageRepository>();
             builder.Services.AddScoped<IManagerRepository, SQLManagerRepositorycs>();
             builder.Services.AddScoped<IPetRepository, PetRepository>();
             builder.Services.AddScoped<IServiceRepository, SQLServiceRepository>();
             builder.Services.AddScoped<IStaffRepository, SQLStaffRepository>();
+            builder.Services.AddScoped<ICustomerRepository, SQLCustomerRepository>();
             builder.Services.AddControllers();
             builder.Services.AddSwaggerGen( options =>
             {
