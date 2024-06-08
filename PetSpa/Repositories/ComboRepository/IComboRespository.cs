@@ -8,5 +8,6 @@ namespace PetSpa.Repositories.ComboRepository
         Task<List<Combo>> GetAllAsync();
         Task<Combo?> GetByIdAsync(Guid ComboId);
         Task<Combo?> UpdateAsync(Guid ComboID, Combo combo);
+        Task<Combo?> DeleteAsync(Guid ComboID);
     }
 }

@@ -36,10 +36,7 @@ namespace PetSpa.Mappings
             CreateMap<UpdateManagerRequestDTO, Manager>().ReverseMap();
             CreateMap<AddServiceRequest, Service>().ReverseMap();
             CreateMap<Service, ServiceDTO>().ReverseMap();
-            CreateMap<Combo, ComboDTO>().ReverseMap();
             CreateMap<UpdateServiceRequestDTO, Service>().ReverseMap();
-            CreateMap<AddComboRequestDTO, Combo>().ReverseMap();
-            CreateMap<Combo, ComboDTO>().ReverseMap();
             CreateMap<BookingDetail, BookingDetailDTO>().ReverseMap();
             CreateMap<UpdateComboRequestDTO, Combo>().ReverseMap();
             CreateMap<AddBookingRequestDTO, Booking>().ReverseMap();
@@ -64,6 +61,14 @@ namespace PetSpa.Mappings
             CreateMap<Pet, PetDTO>().ReverseMap();
             CreateMap<AddPetRequestDTO, Pet>().ReverseMap();
             CreateMap<UpdatePetRequestDTO, Pet>().ReverseMap();
+            CreateMap<Combo, ComboDTO>()
+                            .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.ToString())); // Chuyển đổi TimeSpan thành chuỗi
+
+            CreateMap<AddComboRequestDTO, Combo>()
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration))); // Chuyển đổi chuỗi thành TimeSpan
+
+            CreateMap<UpdateComboRequestDTO, Combo>()
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration))); // Chuyển đổi chuỗi thành TimeSpan
         }
     }
 }

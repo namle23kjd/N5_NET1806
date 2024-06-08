@@ -14,6 +14,8 @@ namespace PetSpa.Models.DTO.Combo
 
         public bool Status { get; set; }
 
+        public string? Duration { get; set; }
+
         public virtual ICollection<BookingDetailDTO> BookingDetails { get; set; } = new List<BookingDetailDTO>();
 
         public virtual ICollection<ServiceDTO> Services { get; set; } = new List<ServiceDTO>();

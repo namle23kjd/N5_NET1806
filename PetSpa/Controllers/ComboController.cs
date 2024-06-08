@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
@@ -23,12 +22,12 @@ namespace PetSpa.Controllers
             this.apiResponseService = apiResponseService;
         }
 
-        //Create Combo
+        // Create Combo
         // Post : api/Combo
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AddComboRequestDTO addComboRequestDTO)
         {
-            //Map DTO to Domain Model
+            // Map DTO to Domain Model
             var comboDomainModle = mapper.Map<Combo>(addComboRequestDTO);
             await comboRespository.CreateAsync(comboDomainModle);
             var combo = mapper.Map<ComboDTO>(comboDomainModle);
@@ -41,26 +40,26 @@ namespace PetSpa.Controllers
                 return Ok(apiResponseService.CreateUnauthorizedResponse());
             }
         }
-        //Get Combo
-        //Get: api/combo
+
+        // Get Combo
+        // Get: api/combo
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var comboDomainModel  = await comboRespository.GetAllAsync();
+            var comboDomainModel = await comboRespository.GetAllAsync();
 
-            //Map Domain Model To DTO
-            if (comboDomainModel != null) {
+            // Map Domain Model To DTO
+            if (comboDomainModel != null)
+            {
                 return Ok(mapper.Map<List<ComboDTO>>(comboDomainModel));
             }
             else
             {
                 return Ok(apiResponseService.CreatePaymentNotFound());
             }
-         
         }
 
-
-        //Get Combo by ID
+        // Get Combo by ID
         // Get: /api/Combo/{id}
         [HttpGet]
         [Route("{ComboId:guid}")]
@@ -71,26 +70,37 @@ namespace PetSpa.Controllers
             {
                 return apiResponseService.CreatePaymentNotFound();
             }
-            //Mapp DomainMOdel 
+            // Map DomainModel 
             var combo = mapper.Map<ComboDTO>(comboDomainModels);
             return Ok(apiResponseService.CreateSuccessResponse(combo));
-
         }
 
-
-        //Update Combo By ID
+        // Update Combo By ID
         [HttpPut]
         [Route("{ComboId:guid}")]
         public async Task<IActionResult> Update([FromRoute] Guid ComboId, UpdateComboRequestDTO updateComboRequestDTO)
         {
-            //Map DTO to Domain 
+            // Map DTO to Domain 
             var comboDomainModels = mapper.Map<Combo>(updateComboRequestDTO);
             await comboRespository.UpdateAsync(ComboId, comboDomainModels);
             if (comboDomainModels == null) return apiResponseService.CreatePaymentNotFound();
-            //Map Domain DTO
+            // Map Domain DTO
             return Ok(mapper.Map<ComboDTO>(comboDomainModels));
-
         }
 
+        // Delete Combo By ID (Set Status to False)
+        [HttpDelete]
+        [Route("{ComboId:guid}")]
+        public async Task<IActionResult> Delete([FromRoute] Guid ComboId)
+        {
+            var comboDomainModels = await comboRespository.DeleteAsync(ComboId);
+            if (comboDomainModels == null)
+            {
+                return apiResponseService.CreatePaymentNotFound();
+            }
+            // Map DomainModel 
+            var combo = mapper.Map<ComboDTO>(comboDomainModels);
+            return Ok(apiResponseService.CreateSuccessResponse(combo));
+        }
     }
 }

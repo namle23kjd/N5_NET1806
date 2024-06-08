@@ -1,4 +1,5 @@
 ﻿using PetSpa.Models.Domain;
+using System.ComponentModel.DataAnnotations;
 
 namespace PetSpa.Models.DTO.Combo
 {
@@ -9,5 +10,7 @@ namespace PetSpa.Models.DTO.Combo
         public decimal Price { get; set; }
 
         public bool Status { get; set; }
+        [Required]
+        public string? Duration { get; set; }
     }
 }
