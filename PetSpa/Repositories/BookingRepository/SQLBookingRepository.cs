@@ -3,6 +3,7 @@ using PetSpa.Data;
 using PetSpa.Models.Domain;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace PetSpa.Repositories.BookingRepository
@@ -66,6 +67,26 @@ namespace PetSpa.Repositories.BookingRepository
 
             await dbContext.SaveChangesAsync();
             return existingBooking;
+        }
+
+        public async Task<bool> IsScheduleTakenAsync(DateTime bookingSchedule)
+        {
+            return await dbContext.Bookings.AnyAsync(b => b.BookingSchedule == bookingSchedule && b.Status);
+        }
+
+        public async Task<Manager> GetManagerWithLeastBookingsAsync()
+        {
+            return await dbContext.Managers
+                .OrderBy(m => dbContext.Bookings.Count(b => b.ManaId == m.ManaId))
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<Booking>> GetCompletedBookingsAsync()
+        {
+            return await dbContext.Bookings
+                .Include(b => b.BookingDetails)
+                .Where(b => b.Status == true)
+                .ToListAsync();
         }
     }
 }

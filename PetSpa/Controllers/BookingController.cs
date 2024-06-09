@@ -37,16 +37,13 @@ namespace PetSpa.Controllers
                 return BadRequest("Ngày đặt lịch không được trễ hơn ngày hiện tại. Vui lòng chọn ngày khác.");
             }
 
-            var isScheduleTaken = await petSpaContext.Bookings.AnyAsync(b => b.BookingSchedule == addBookingRequestDTO.BookingSchedule && b.Status);
+            var isScheduleTaken = await bookingRepository.IsScheduleTakenAsync(addBookingRequestDTO.BookingSchedule);
             if (isScheduleTaken)
             {
                 return BadRequest("Thời gian này đã được đặt. Vui lòng chọn lịch khác.");
             }
 
-            var managerWithLeastBookings = await petSpaContext.Managers
-                .OrderBy(m => petSpaContext.Bookings.Count(b => b.ManaId == m.ManaId))
-                .FirstOrDefaultAsync();
-
+            var managerWithLeastBookings = await bookingRepository.GetManagerWithLeastBookingsAsync();
             if (managerWithLeastBookings == null)
             {
                 return BadRequest("Không tìm thấy quản lý.");
@@ -64,19 +61,9 @@ namespace PetSpa.Controllers
             {
                 detail.BookingDetailId = Guid.NewGuid();
                 detail.BookingId = bookingDomainModels.BookingId;
-                // Ensure staffId, comboId, and serviceId are properly set
-                if (detail.StaffId == Guid.Empty)
-                {
-                    detail.StaffId = null;
-                }
-                if (detail.ComboId == Guid.Empty)
-                {
-                    detail.ComboId = null;
-                }
-                if (detail.ServiceId == Guid.Empty)
-                {
-                    detail.ServiceId = null;
-                }
+                if (detail.StaffId == Guid.Empty) detail.StaffId = null;
+                if (detail.ComboId == Guid.Empty) detail.ComboId = null;
+                if (detail.ServiceId == Guid.Empty) detail.ServiceId = null;
             }
 
             await bookingRepository.CreateAsync(bookingDomainModels);
@@ -114,6 +101,14 @@ namespace PetSpa.Controllers
                 return apiResponseService.CreatePaymentNotFound();
             }
             return Ok(mapper.Map<BookingDTO>(updatedBooking));
+        }
+
+
+        [HttpGet("completed")]
+        public async Task<IActionResult> GetCompletedBookings()
+        {
+            var completedBookings = await bookingRepository.GetCompletedBookingsAsync();
+            return Ok(mapper.Map<List<BookingDTO>>(completedBookings));
         }
     }
 }

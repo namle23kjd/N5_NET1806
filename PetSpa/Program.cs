@@ -27,6 +27,7 @@ using PetSpa.Repositories.ManagerRepository;
 using PetSpa.Repositories.ServiceRepository;
 using PetSpa.Repositories.StaffRepository;
 using PetSpa.Repositories.CustomerRepository;
+using Hangfire;
 namespace PetSpa
 {
     public class Program
@@ -55,6 +56,8 @@ namespace PetSpa
 
             builder.Services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; });
             builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+            builder.Services.AddHangfire(config => config.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddHangfireServer();
             builder.Services.AddLogging();
 
 
@@ -75,6 +78,7 @@ namespace PetSpa
             builder.Services.AddScoped<IServiceRepository, SQLServiceRepository>();
             builder.Services.AddScoped<IStaffRepository, SQLStaffRepository>();
             builder.Services.AddScoped<ICustomerRepository, SQLCustomerRepository>();
+            builder.Services.AddScoped<BookingStatusChecker>();
             builder.Services.AddControllers();
             builder.Services.AddSwaggerGen( options =>
             {
@@ -178,7 +182,14 @@ namespace PetSpa
 
             app.UseAuthorization();
             app.UseAuthentication();
-
+            app.UseHangfireDashboard();
+            app.UseHangfireServer();
+            app.Lifetime.ApplicationStarted.Register(() =>
+            {
+                using var scope = app.Services.CreateScope();
+                var serviceProvider = scope.ServiceProvider;
+                BookingStatusChecker.ConfigureHangfireJobs(serviceProvider);
+            });
             app.MapControllers();
 
             app.Run();

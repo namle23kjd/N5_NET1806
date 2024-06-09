@@ -86,10 +86,11 @@ namespace PetSpa.Mappings
            .ForMember(dest => dest.BookingDetailId, opt => opt.Ignore())
            .ForMember(dest => dest.Duration, opt => opt.Ignore()); // Ensure Duration is mapped correctly
 
-            CreateMap<BookingDetail, BookingDetailDTO>();
+            CreateMap<BookingDetail, BookingDetailDTO>().ReverseMap();
 
-            CreateMap<UpdateBookingRequestDTO, Booking>();
-            CreateMap<UpdateBookingDetailDTO, BookingDetail>();
+            CreateMap<UpdateBookingRequestDTO, Booking>().ReverseMap();
+            CreateMap<UpdateBookingDetailDTO, BookingDetail>().ReverseMap();
+            CreateMap<CompleteBookingRequestDTO, Booking>().ReverseMap();
         }
     }
 }
