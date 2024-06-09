@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PetSpa.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class MigrationPetSpa : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -218,7 +218,8 @@ namespace PetSpa.Migrations
                     serviceDescription = table.Column<string>(type: "text", nullable: true),
                     serviceImage = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     duration = table.Column<TimeSpan>(type: "time(7)", nullable: false),
-                    comboID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 50, nullable: false)
+                    price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    comboID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -228,7 +229,7 @@ namespace PetSpa.Migrations
                         column: x => x.comboID,
                         principalTable: "Combo",
                         principalColumn: "comboID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -320,8 +321,7 @@ namespace PetSpa.Migrations
                     bookingSchedule = table.Column<DateTime>(type: "datetime", nullable: true),
                     feedback = table.Column<string>(type: "text", nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Staff = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -343,19 +343,17 @@ namespace PetSpa.Migrations
                 columns: table => new
                 {
                     staffID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    accID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: false),
                     fullName = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: true),
                     gender = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
-                    job = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ManagerManaId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    ManagerManaId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__Staff__6465E19E05D526E9", x => x.staffID);
                     table.ForeignKey(
                         name: "FK_Staff_AspNetUsers",
-                        column: x => x.accID,
+                        column: x => x.Id,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -448,7 +446,8 @@ namespace PetSpa.Migrations
                         name: "FK__Booking_D__combo__5535A963",
                         column: x => x.comboID,
                         principalTable: "Combo",
-                        principalColumn: "comboID");
+                        principalColumn: "comboID",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK__Booking_D__petID__5441852A",
                         column: x => x.petID,
@@ -458,7 +457,8 @@ namespace PetSpa.Migrations
                         name: "FK__Booking_D__servi__534D60F1",
                         column: x => x.serviceID,
                         principalTable: "Service",
-                        principalColumn: "serviceID");
+                        principalColumn: "serviceID",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -483,10 +483,10 @@ namespace PetSpa.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("135c0c73-08b8-4a80-9629-ec3f56caa2c6"), "135c0c73-08b8-4a80-9629-ec3f56caa2c6", "Admin", "ADMIN" },
-                    { new Guid("3d836b5e-fe06-4cb6-b2b0-e54b308f4fcd"), "3d836b5e-fe06-4cb6-b2b0-e54b308f4fcd", "Staff", "STAFF" },
-                    { new Guid("a9a1ae47-8a1a-456a-84c8-26435fe779d3"), "a9a1ae47-8a1a-456a-84c8-26435fe779d3", "Customer", "CUSTOMER" },
-                    { new Guid("d5716c33-70d2-4c0a-b81c-e752254aabce"), "d5716c33-70d2-4c0a-b81c-e752254aabce", "Manager", "MANAGER" }
+                    { new Guid("318d21a9-233e-4e6d-9781-7bea038b2384"), "318d21a9-233e-4e6d-9781-7bea038b2384", "Admin", "ADMIN" },
+                    { new Guid("424d1add-1319-447d-a7cc-efad19fcf5f8"), "424d1add-1319-447d-a7cc-efad19fcf5f8", "Customer", "CUSTOMER" },
+                    { new Guid("7e2af33d-27f1-4678-bea2-3a38a3887516"), "7e2af33d-27f1-4678-bea2-3a38a3887516", "Manager", "MANAGER" },
+                    { new Guid("a638f665-fac1-40f1-9a0c-19d70f2cf95e"), "a638f665-fac1-40f1-9a0c-19d70f2cf95e", "Staff", "STAFF" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -621,7 +621,7 @@ namespace PetSpa.Migrations
             migrationBuilder.CreateIndex(
                 name: "UQ__Staff__A471AFFB206680B8",
                 table: "Staff",
-                column: "accID",
+                column: "Id",
                 unique: true);
 
             migrationBuilder.CreateIndex(

@@ -37,14 +37,10 @@ namespace PetSpa.Mappings
             CreateMap<AddServiceRequest, Service>().ReverseMap();
             CreateMap<Service, ServiceDTO>().ReverseMap();
             CreateMap<UpdateServiceRequestDTO, Service>().ReverseMap();
-            CreateMap<BookingDetail, BookingDetailDTO>().ReverseMap();
             CreateMap<UpdateComboRequestDTO, Combo>().ReverseMap();
             CreateMap<AddBookingRequestDTO, Booking>().ReverseMap();
-            CreateMap<Booking, BookingDTO>().ReverseMap();
             CreateMap<Invoice, InvoiceDTO>().ReverseMap();
-            CreateMap<UpdateBookingRequestDTO, Booking>().ReverseMap();
             CreateMap<AddBookingDetailRequestDTO,BookingDetail>().ReverseMap();
-            CreateMap<UpdateBookingDetailDTO, BookingDetail>().ReverseMap();
             CreateMap<AddPetRequestDTO, Pet>().ReverseMap();
             CreateMap<UpdatePetRequestDTO, Pet>().ReverseMap();
             CreateMap<Customer, CustomerDTO>()
@@ -80,6 +76,20 @@ namespace PetSpa.Mappings
             CreateMap<UpdateServiceRequestDTO, Service>()
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration)))
                 .ForMember(dest => dest.ComboId, opt => opt.MapFrom(src => src.ComboId));
+            CreateMap<AddBookingRequestDTO, Booking>()
+           .ForMember(dest => dest.BookingId, opt => opt.Ignore())
+           .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails));
+            CreateMap<Booking, BookingDTO>()
+             .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails));
+
+            CreateMap<AddBookingDetailRequestDTO, BookingDetail>()
+           .ForMember(dest => dest.BookingDetailId, opt => opt.Ignore())
+           .ForMember(dest => dest.Duration, opt => opt.Ignore()); // Ensure Duration is mapped correctly
+
+            CreateMap<BookingDetail, BookingDetailDTO>();
+
+            CreateMap<UpdateBookingRequestDTO, Booking>();
+            CreateMap<UpdateBookingDetailDTO, BookingDetail>();
         }
     }
 }

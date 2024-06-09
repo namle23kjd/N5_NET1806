@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace PetSpa.Repositories.BookingRepository
 {
@@ -12,7 +15,8 @@ namespace PetSpa.Repositories.BookingRepository
         {
             this.dbContext = dbContext;
         }
-        public  async Task<Booking> CreateAsync(Booking booking)
+
+        public async Task<Booking> CreateAsync(Booking booking)
         {
             await dbContext.Bookings.AddAsync(booking);
             await dbContext.SaveChangesAsync();
@@ -21,27 +25,47 @@ namespace PetSpa.Repositories.BookingRepository
 
         public async Task<List<Booking>> GetAllAsync()
         {
-            return await dbContext.Bookings.Include("BookingDetails").Include("Cus").Include("Invoice").Include("Staff").Include("Voucher").ToListAsync();
+            return await dbContext.Bookings
+                .Include(b => b.BookingDetails)
+                .ThenInclude(bd => bd.Combo)
+                .Include(b => b.BookingDetails)
+                .ThenInclude(bd => bd.Service)
+                .Include(b => b.Customer)
+                .Include(b => b.Manager)
+                .Include(b => b.Invoice)
+                .Include(b => b.Voucher)
+                .ToListAsync();
         }
 
         public async Task<Booking?> GetByIdAsync(Guid BookingId)
         {
-            return await dbContext.Bookings.Include("BookingDetails").Include("Cus").Include("Invoice").Include("Staff").Include("Voucher").FirstOrDefaultAsync(x => x.BookingId == BookingId);
+            return await dbContext.Bookings
+                .Include(b => b.BookingDetails)
+                .ThenInclude(bd => bd.Combo)
+                .Include(b => b.BookingDetails)
+                .ThenInclude(bd => bd.Service)
+                .Include(b => b.Customer)
+                .Include(b => b.Manager)
+                .Include(b => b.Invoice)
+                .Include(b => b.Voucher)
+                .FirstOrDefaultAsync(b => b.BookingId == BookingId);
         }
 
         public async Task<Booking?> UpdateAsync(Guid BookingId, Booking booking)
         {
-            var existBoooking = await dbContext.Bookings.FirstOrDefaultAsync(x => x.BookingId == BookingId);
-            if (existBoooking != null) return null;
+            var existingBooking = await dbContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == BookingId);
+            if (existingBooking == null) return null;
 
-            existBoooking.CusId = booking.CusId;
-            existBoooking.Status = booking.Status;
-            existBoooking.BookingSchedule = booking.BookingSchedule;
-            existBoooking.TotalAmount = booking.TotalAmount;
-            existBoooking.Feedback = booking.Feedback;
+            existingBooking.CusId = booking.CusId;
+            existingBooking.Status = booking.Status;
+            existingBooking.BookingSchedule = booking.BookingSchedule;
+            existingBooking.TotalAmount = booking.TotalAmount;
+            existingBooking.Feedback = booking.Feedback;
+            existingBooking.StartDate = booking.StartDate;
+            existingBooking.EndDate = booking.EndDate;
 
             await dbContext.SaveChangesAsync();
-            return existBoooking;
+            return existingBooking;
         }
     }
 }

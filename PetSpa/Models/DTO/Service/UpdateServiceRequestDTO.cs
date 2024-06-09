@@ -13,6 +13,7 @@ namespace PetSpa.Models.DTO.Service
         public byte[]? ServiceImage { get; set; }
         [Required]
         public string? Duration { get; set; }
+        public decimal Price { get; set; }
         public Guid? ComboId { get; set; }
     }
 }

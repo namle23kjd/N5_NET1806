@@ -48,6 +48,7 @@ namespace PetSpa.Repositories.ServiceRepository
             existService.ServiceImage = service.ServiceImage;
             existService.Status = service.Status;
             existService.Duration = service.Duration;
+            existService.Price = service.Price;
             existService.ComboId = service.ComboId;
 
             await dbContext.SaveChangesAsync();

@@ -47,34 +47,34 @@ namespace PetSpa.Data
             var ManagerRoleId = Guid.NewGuid();
 
             var roles = new List<IdentityRole<Guid>> {
-                new IdentityRole<Guid>{
-                    Id = CustomerRoleId,
-                    ConcurrencyStamp = CustomerRoleId.ToString(),
-                    Name = "Customer",
-                    NormalizedName = "CUSTOMER"
-                },
-                new IdentityRole<Guid>
-                {
-                    Id = StaffRoleId,
-                    ConcurrencyStamp = StaffRoleId.ToString(),
-                    Name = "Staff",
-                    NormalizedName = "STAFF"
-                },
-                new IdentityRole<Guid>
-                {
-                    Id = AdminRoleId,
-                    ConcurrencyStamp = AdminRoleId.ToString(),
-                    Name = "Admin",
-                    NormalizedName = "ADMIN"
-                },
-                new IdentityRole<Guid>
-                {
-                    Id = ManagerRoleId,
-                    ConcurrencyStamp = ManagerRoleId.ToString(),
-                    Name = "Manager",
-                    NormalizedName = "MANAGER"
-                }
-            };
+        new IdentityRole<Guid>{
+            Id = CustomerRoleId,
+            ConcurrencyStamp = CustomerRoleId.ToString(),
+            Name = "Customer",
+            NormalizedName = "CUSTOMER"
+        },
+        new IdentityRole<Guid>
+        {
+            Id = StaffRoleId,
+            ConcurrencyStamp = StaffRoleId.ToString(),
+            Name = "Staff",
+            NormalizedName = "STAFF"
+        },
+        new IdentityRole<Guid>
+        {
+            Id = AdminRoleId,
+            ConcurrencyStamp = AdminRoleId.ToString(),
+            Name = "Admin",
+            NormalizedName = "ADMIN"
+        },
+        new IdentityRole<Guid>
+        {
+            Id = ManagerRoleId,
+            ConcurrencyStamp = ManagerRoleId.ToString(),
+            Name = "Manager",
+            NormalizedName = "MANAGER"
+        }
+    };
             modelBuilder.Entity<IdentityRole<Guid>>().HasData(roles);
 
             modelBuilder.Entity<Admin>(entity =>
@@ -177,13 +177,16 @@ namespace PetSpa.Data
                     .HasColumnName("petID");
 
                 entity.Property(e => e.ServiceId)
-                    .HasColumnName("serviceID");
+                    .HasColumnName("serviceID")
+                    .IsRequired(false);
 
                 entity.Property(e => e.StaffId)
                     .HasColumnName("staffID");
 
                 entity.Property(e => e.ComboId)
-                    .HasColumnName("comboID");
+                    .HasColumnName("comboID")
+                    .IsRequired(false);
+
                 entity.Property(e => e.Status).HasColumnName("status");
 
                 entity.Property(e => e.ComboType)
@@ -203,6 +206,7 @@ namespace PetSpa.Data
                 entity.HasOne(d => d.Combo) // Quan hệ với bảng Combo
                     .WithMany(p => p.BookingDetails)
                     .HasForeignKey(d => d.ComboId)
+                    .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK__Booking_D__combo__5535A963");
 
                 entity.HasOne(d => d.Pet) // Quan hệ với bảng Pet
@@ -214,8 +218,8 @@ namespace PetSpa.Data
                 entity.HasOne(d => d.Service) // Quan hệ với bảng Service
                     .WithMany(p => p.BookingDetails)
                     .HasForeignKey(d => d.ServiceId)
+                    .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK__Booking_D__servi__534D60F1");
-
             });
 
             modelBuilder.Entity<Combo>(entity =>
@@ -459,10 +463,14 @@ namespace PetSpa.Data
                 entity.Property(e => e.Duration)
                     .HasColumnType("time(7)") // Định nghĩa kiểu dữ liệu time(7) cho Duration
                     .HasColumnName("duration");
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(10, 2)")
+                    .HasColumnName("price");
 
                 entity.HasOne(d => d.Combo).WithMany(p => p.Services)
                     .HasForeignKey(d => d.ComboId)
-                    .HasConstraintName("FK_Service_Combo").OnDelete(DeleteBehavior.SetNull);
+                    .HasConstraintName("FK_Service_Combo")
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Staff>(entity =>
