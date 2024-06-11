@@ -15,6 +15,7 @@ public partial class Booking
     public string? Feedback { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
+    public bool CheckAccept { get; set; }
     public virtual Customer Customer { get; set; } = null!;
     public virtual Manager Manager { get; set; } = null!; // Quan hệ với bảng Manager
     public virtual ICollection<BookingDetail> BookingDetails { get; set; } = new List<BookingDetail>();

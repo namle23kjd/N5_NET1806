@@ -64,6 +64,7 @@ namespace PetSpa.Repositories.BookingRepository
             existingBooking.Feedback = booking.Feedback;
             existingBooking.StartDate = booking.StartDate;
             existingBooking.EndDate = booking.EndDate;
+            existingBooking.CheckAccept = booking.CheckAccept;
 
             await dbContext.SaveChangesAsync();
             return existingBooking;

@@ -29,6 +29,8 @@ namespace PetSpa.Controllers
         {
             if (!ModelState.IsValid)
             {
+                var errorDetails = new ValidationProblemDetails(ModelState);
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorDetails));
                 return BadRequest(ModelState); // Trả về lỗi xác thực chi tiết
             }
 

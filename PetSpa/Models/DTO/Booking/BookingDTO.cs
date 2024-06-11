@@ -24,7 +24,7 @@ namespace PetSpa.Models.DTO.Booking
         public DateTime? BookingSchedule { get; set; }
 
         public string? Feedback { get; set; }
-
+        public bool CheckAccept { get; set; }
         public List<BookingDetailDTO>? BookingDetails { get; set; }
 
         public virtual CustomerDTO Cus { get; set; } 

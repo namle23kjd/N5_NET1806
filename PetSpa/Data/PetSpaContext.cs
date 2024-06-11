@@ -132,7 +132,11 @@ namespace PetSpa.Data
                 entity.Property(e => e.CusId)
                     .HasMaxLength(50)
                     .IsUnicode(false)
+
                     .HasColumnName("cusID");
+                entity.Property(e => e.CheckAccept)
+                    .HasColumnName("checkAccept") // Thêm cột CheckAccept
+                    .HasDefaultValue(false);
 
                 entity.Property(e => e.ManaId)
                     .HasMaxLength(50)

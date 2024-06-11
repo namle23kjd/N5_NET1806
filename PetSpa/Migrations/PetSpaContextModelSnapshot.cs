@@ -52,29 +52,29 @@ namespace PetSpa.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("424d1add-1319-447d-a7cc-efad19fcf5f8"),
-                            ConcurrencyStamp = "424d1add-1319-447d-a7cc-efad19fcf5f8",
+                            Id = new Guid("fe4326d7-f5c4-422c-9116-90cf9d60ce22"),
+                            ConcurrencyStamp = "fe4326d7-f5c4-422c-9116-90cf9d60ce22",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = new Guid("a638f665-fac1-40f1-9a0c-19d70f2cf95e"),
-                            ConcurrencyStamp = "a638f665-fac1-40f1-9a0c-19d70f2cf95e",
+                            Id = new Guid("bc7ffb1b-860d-4ebf-914a-3d74817dc48e"),
+                            ConcurrencyStamp = "bc7ffb1b-860d-4ebf-914a-3d74817dc48e",
                             Name = "Staff",
                             NormalizedName = "STAFF"
                         },
                         new
                         {
-                            Id = new Guid("318d21a9-233e-4e6d-9781-7bea038b2384"),
-                            ConcurrencyStamp = "318d21a9-233e-4e6d-9781-7bea038b2384",
+                            Id = new Guid("341669d7-a702-4b2e-a75c-8a70c212cf31"),
+                            ConcurrencyStamp = "341669d7-a702-4b2e-a75c-8a70c212cf31",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = new Guid("7e2af33d-27f1-4678-bea2-3a38a3887516"),
-                            ConcurrencyStamp = "7e2af33d-27f1-4678-bea2-3a38a3887516",
+                            Id = new Guid("99178ca2-39ca-4b4f-bce0-e3e3c13ede22"),
+                            ConcurrencyStamp = "99178ca2-39ca-4b4f-bce0-e3e3c13ede22",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         });
@@ -291,6 +291,12 @@ namespace PetSpa.Migrations
                     b.Property<DateTime?>("BookingSchedule")
                         .HasColumnType("datetime")
                         .HasColumnName("bookingSchedule");
+
+                    b.Property<bool>("CheckAccept")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("checkAccept");
 
                     b.Property<Guid>("CusId")
                         .HasMaxLength(50)

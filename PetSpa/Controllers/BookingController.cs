@@ -103,6 +103,22 @@ namespace PetSpa.Controllers
             return Ok(mapper.Map<BookingDTO>(updatedBooking));
         }
 
+        [HttpPut("{BookingId:Guid}/accept")]
+        public async Task<IActionResult> AcceptBooking([FromRoute] Guid BookingId, [FromBody] AcceptBookingRequest acceptRequest)
+        {
+            var booking = await bookingRepository.GetByIdAsync(BookingId);
+            if (booking == null)
+            {
+                return NotFound("Booking not found");
+            }
+
+            booking.CheckAccept = acceptRequest.CheckAccept;
+            await bookingRepository.UpdateAsync(BookingId, booking);
+
+            return Ok(mapper.Map<BookingDTO>(booking));
+        }
+
+
 
         [HttpGet("completed")]
         public async Task<IActionResult> GetCompletedBookings()

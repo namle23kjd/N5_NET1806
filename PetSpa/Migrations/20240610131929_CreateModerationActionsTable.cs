@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PetSpa.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrationPetSpa : Migration
+    public partial class CreateModerationActionsTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -321,7 +321,8 @@ namespace PetSpa.Migrations
                     bookingSchedule = table.Column<DateTime>(type: "datetime", nullable: true),
                     feedback = table.Column<string>(type: "text", nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    checkAccept = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -483,10 +484,10 @@ namespace PetSpa.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("318d21a9-233e-4e6d-9781-7bea038b2384"), "318d21a9-233e-4e6d-9781-7bea038b2384", "Admin", "ADMIN" },
-                    { new Guid("424d1add-1319-447d-a7cc-efad19fcf5f8"), "424d1add-1319-447d-a7cc-efad19fcf5f8", "Customer", "CUSTOMER" },
-                    { new Guid("7e2af33d-27f1-4678-bea2-3a38a3887516"), "7e2af33d-27f1-4678-bea2-3a38a3887516", "Manager", "MANAGER" },
-                    { new Guid("a638f665-fac1-40f1-9a0c-19d70f2cf95e"), "a638f665-fac1-40f1-9a0c-19d70f2cf95e", "Staff", "STAFF" }
+                    { new Guid("341669d7-a702-4b2e-a75c-8a70c212cf31"), "341669d7-a702-4b2e-a75c-8a70c212cf31", "Admin", "ADMIN" },
+                    { new Guid("99178ca2-39ca-4b4f-bce0-e3e3c13ede22"), "99178ca2-39ca-4b4f-bce0-e3e3c13ede22", "Manager", "MANAGER" },
+                    { new Guid("bc7ffb1b-860d-4ebf-914a-3d74817dc48e"), "bc7ffb1b-860d-4ebf-914a-3d74817dc48e", "Staff", "STAFF" },
+                    { new Guid("fe4326d7-f5c4-422c-9116-90cf9d60ce22"), "fe4326d7-f5c4-422c-9116-90cf9d60ce22", "Customer", "CUSTOMER" }
                 });
 
             migrationBuilder.CreateIndex(
