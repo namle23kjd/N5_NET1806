@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PetSpa.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateModerationActionsTable : Migration
+    public partial class UpdateInvoiceAndPaymentRelationship : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -83,6 +83,27 @@ namespace PetSpa.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Images", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Merchants",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    MerchantName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MerchantWebLink = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MerchantIpnUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MerchantReturnUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecretKey = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastUpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastUpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Merchants", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -463,20 +484,41 @@ namespace PetSpa.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Payment",
+                name: "Payments",
                 columns: table => new
                 {
-                    payID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    invoiceID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PaymentContent = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentCurrency = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentRefId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RequiredAmount = table.Column<decimal>(type: "decimal(19,2)", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpireDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PaymentLanguage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MerchantId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    PaymentDestinationId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaidAmount = table.Column<decimal>(type: "decimal(19,2)", nullable: false),
+                    PaymentStatus = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentLastMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    InvoiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK__Payment__082E8AE3B771F3B3", x => x.payID);
+                    table.PrimaryKey("PK_Payments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK__Payment__invoice__5EBF139D",
-                        column: x => x.invoiceID,
+                        name: "FK_Payments_Invoice_InvoiceId",
+                        column: x => x.InvoiceId,
                         principalTable: "Invoice",
-                        principalColumn: "invoiceID");
+                        principalColumn: "invoiceID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Payments_Merchants_MerchantId",
+                        column: x => x.MerchantId,
+                        principalTable: "Merchants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(
@@ -484,10 +526,10 @@ namespace PetSpa.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("341669d7-a702-4b2e-a75c-8a70c212cf31"), "341669d7-a702-4b2e-a75c-8a70c212cf31", "Admin", "ADMIN" },
-                    { new Guid("99178ca2-39ca-4b4f-bce0-e3e3c13ede22"), "99178ca2-39ca-4b4f-bce0-e3e3c13ede22", "Manager", "MANAGER" },
-                    { new Guid("bc7ffb1b-860d-4ebf-914a-3d74817dc48e"), "bc7ffb1b-860d-4ebf-914a-3d74817dc48e", "Staff", "STAFF" },
-                    { new Guid("fe4326d7-f5c4-422c-9116-90cf9d60ce22"), "fe4326d7-f5c4-422c-9116-90cf9d60ce22", "Customer", "CUSTOMER" }
+                    { new Guid("7c47dc42-4b7b-4062-830d-835adf78cd8c"), "7c47dc42-4b7b-4062-830d-835adf78cd8c", "Manager", "MANAGER" },
+                    { new Guid("acc632fe-b432-469f-99be-983456fe2b90"), "acc632fe-b432-469f-99be-983456fe2b90", "Admin", "ADMIN" },
+                    { new Guid("e542b423-ffdd-48df-b412-dfe746889212"), "e542b423-ffdd-48df-b412-dfe746889212", "Staff", "STAFF" },
+                    { new Guid("ebc24123-b4fd-4930-a254-4f97a60269b0"), "ebc24123-b4fd-4930-a254-4f97a60269b0", "Customer", "CUSTOMER" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -599,10 +641,14 @@ namespace PetSpa.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "UQ__Payment__1252410D691653AC",
-                table: "Payment",
-                column: "invoiceID",
-                unique: true);
+                name: "IX_Payments_InvoiceId",
+                table: "Payments",
+                column: "InvoiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_MerchantId",
+                table: "Payments",
+                column: "MerchantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Pet_cusID",
@@ -667,7 +713,7 @@ namespace PetSpa.Migrations
                 name: "Images");
 
             migrationBuilder.DropTable(
-                name: "Payment");
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "Voucher");
@@ -686,6 +732,9 @@ namespace PetSpa.Migrations
 
             migrationBuilder.DropTable(
                 name: "Invoice");
+
+            migrationBuilder.DropTable(
+                name: "Merchants");
 
             migrationBuilder.DropTable(
                 name: "Combo");

@@ -13,5 +13,5 @@ public partial class Invoice
 
     public virtual Booking Booking { get; set; } = null!;
 
-    public virtual Payment? Payment { get; set; }
+    public ICollection<Payment> Payments { get; set; }
 }

@@ -52,29 +52,29 @@ namespace PetSpa.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("fe4326d7-f5c4-422c-9116-90cf9d60ce22"),
-                            ConcurrencyStamp = "fe4326d7-f5c4-422c-9116-90cf9d60ce22",
+                            Id = new Guid("ebc24123-b4fd-4930-a254-4f97a60269b0"),
+                            ConcurrencyStamp = "ebc24123-b4fd-4930-a254-4f97a60269b0",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = new Guid("bc7ffb1b-860d-4ebf-914a-3d74817dc48e"),
-                            ConcurrencyStamp = "bc7ffb1b-860d-4ebf-914a-3d74817dc48e",
+                            Id = new Guid("e542b423-ffdd-48df-b412-dfe746889212"),
+                            ConcurrencyStamp = "e542b423-ffdd-48df-b412-dfe746889212",
                             Name = "Staff",
                             NormalizedName = "STAFF"
                         },
                         new
                         {
-                            Id = new Guid("341669d7-a702-4b2e-a75c-8a70c212cf31"),
-                            ConcurrencyStamp = "341669d7-a702-4b2e-a75c-8a70c212cf31",
+                            Id = new Guid("acc632fe-b432-469f-99be-983456fe2b90"),
+                            ConcurrencyStamp = "acc632fe-b432-469f-99be-983456fe2b90",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = new Guid("99178ca2-39ca-4b4f-bce0-e3e3c13ede22"),
-                            ConcurrencyStamp = "99178ca2-39ca-4b4f-bce0-e3e3c13ede22",
+                            Id = new Guid("7c47dc42-4b7b-4062-830d-835adf78cd8c"),
+                            ConcurrencyStamp = "7c47dc42-4b7b-4062-830d-835adf78cd8c",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         });
@@ -588,23 +588,103 @@ namespace PetSpa.Migrations
                     b.ToTable("Manager", (string)null);
                 });
 
+            modelBuilder.Entity("PetSpa.Models.Domain.Merchant", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MerchantIpnUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MerchantName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MerchantReturnUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MerchantWebLink")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SecretKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Merchants");
+                });
+
             modelBuilder.Entity("PetSpa.Models.Domain.Payment", b =>
                 {
-                    b.Property<Guid>("PayId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("payID");
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid>("InvoiceId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("invoiceID");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
-                    b.HasKey("PayId")
-                        .HasName("PK__Payment__082E8AE3B771F3B3");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex(new[] { "InvoiceId" }, "UQ__Payment__1252410D691653AC")
-                        .IsUnique();
+                    b.Property<DateTime>("ExpireDate")
+                        .HasColumnType("datetime2");
 
-                    b.ToTable("Payment", (string)null);
+                    b.Property<Guid?>("InvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MerchantId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("PaidAmount")
+                        .HasColumnType("decimal(19, 2)");
+
+                    b.Property<string>("PaymentContent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentCurrency")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentDestinationId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentLanguage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentLastMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentRefId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("RequiredAmount")
+                        .HasColumnType("decimal(19, 2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("MerchantId");
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Pet", b =>
@@ -980,12 +1060,18 @@ namespace PetSpa.Migrations
             modelBuilder.Entity("PetSpa.Models.Domain.Payment", b =>
                 {
                     b.HasOne("PetSpa.Models.Domain.Invoice", "Invoice")
-                        .WithOne("Payment")
-                        .HasForeignKey("PetSpa.Models.Domain.Payment", "InvoiceId")
-                        .IsRequired()
-                        .HasConstraintName("FK__Payment__invoice__5EBF139D");
+                        .WithMany("Payments")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("PetSpa.Models.Domain.Merchant", "Merchant")
+                        .WithMany()
+                        .HasForeignKey("MerchantId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Invoice");
+
+                    b.Navigation("Merchant");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Pet", b =>
@@ -1092,7 +1178,7 @@ namespace PetSpa.Migrations
 
             modelBuilder.Entity("PetSpa.Models.Domain.Invoice", b =>
                 {
-                    b.Navigation("Payment");
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("PetSpa.Models.Domain.Manager", b =>

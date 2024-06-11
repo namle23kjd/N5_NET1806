@@ -27,6 +27,7 @@ namespace PetSpa.Data
         public virtual DbSet<Staff> Staff { get; set; }
         public virtual DbSet<Voucher> Vouchers { get; set; }
         public virtual DbSet<Images> Images { get; set; }
+        public virtual DbSet<Merchant> Merchants { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -385,21 +386,23 @@ namespace PetSpa.Data
 
             modelBuilder.Entity<Payment>(entity =>
             {
-                entity.HasKey(e => e.PayId).HasName("PK__Payment__082E8AE3B771F3B3");
+                entity.HasKey(e => e.Id);
 
-                entity.ToTable("Payment");
+                entity.Property(e => e.RequiredAmount)
+                    .HasColumnType("decimal(19, 2)");
 
-                entity.HasIndex(e => e.InvoiceId, "UQ__Payment__1252410D691653AC").IsUnique();
+                entity.Property(e => e.PaidAmount)
+                    .HasColumnType("decimal(19, 2)");
 
-                entity.Property(e => e.PayId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("payID");
-                entity.Property(e => e.InvoiceId).HasColumnName("invoiceID");
+                entity.HasOne(e => e.Invoice)
+                    .WithMany(i => i.Payments)
+                    .HasForeignKey(e => e.InvoiceId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(d => d.Invoice).WithOne(p => p.Payment)
-                    .HasForeignKey<Payment>(d => d.InvoiceId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Payment__invoice__5EBF139D");
+                entity.HasOne(e => e.Merchant)
+                    .WithMany()
+                    .HasForeignKey(e => e.MerchantId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Pet>(entity =>
@@ -565,6 +568,11 @@ namespace PetSpa.Data
                     .HasForeignKey(d => d.ManaId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Voucher__manaID__693CA210");
+            });
+
+            modelBuilder.Entity<Merchant>(entity =>
+            {
+                entity.HasKey(e => e.Id);
             });
 
             OnModelCreatingPartial(modelBuilder);
