@@ -52,29 +52,29 @@ namespace PetSpa.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("a9a1ae47-8a1a-456a-84c8-26435fe779d3"),
-                            ConcurrencyStamp = "a9a1ae47-8a1a-456a-84c8-26435fe779d3",
+                            Id = new Guid("7878214c-ddb9-4b3f-aa15-a0bcad95782e"),
+                            ConcurrencyStamp = "7878214c-ddb9-4b3f-aa15-a0bcad95782e",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = new Guid("3d836b5e-fe06-4cb6-b2b0-e54b308f4fcd"),
-                            ConcurrencyStamp = "3d836b5e-fe06-4cb6-b2b0-e54b308f4fcd",
+                            Id = new Guid("3fc49d3a-1a13-4832-b8ce-dc0cb56e28f2"),
+                            ConcurrencyStamp = "3fc49d3a-1a13-4832-b8ce-dc0cb56e28f2",
                             Name = "Staff",
                             NormalizedName = "STAFF"
                         },
                         new
                         {
-                            Id = new Guid("135c0c73-08b8-4a80-9629-ec3f56caa2c6"),
-                            ConcurrencyStamp = "135c0c73-08b8-4a80-9629-ec3f56caa2c6",
+                            Id = new Guid("aea52904-4729-4280-8166-14c06f5d979c"),
+                            ConcurrencyStamp = "aea52904-4729-4280-8166-14c06f5d979c",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = new Guid("d5716c33-70d2-4c0a-b81c-e752254aabce"),
-                            ConcurrencyStamp = "d5716c33-70d2-4c0a-b81c-e752254aabce",
+                            Id = new Guid("35db7ac6-0e2a-4594-8acd-8821ee6cb4fb"),
+                            ConcurrencyStamp = "35db7ac6-0e2a-4594-8acd-8821ee6cb4fb",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         });
@@ -670,7 +670,7 @@ namespace PetSpa.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("serviceID");
 
-                    b.Property<Guid>("ComboId")
+                    b.Property<Guid?>("ComboId")
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
@@ -679,6 +679,10 @@ namespace PetSpa.Migrations
                     b.Property<TimeSpan>("Duration")
                         .HasColumnType("time(7)")
                         .HasColumnName("duration");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(10, 2)")
+                        .HasColumnName("price");
 
                     b.Property<string>("ServiceDescription")
                         .HasColumnType("text")
@@ -728,18 +732,11 @@ namespace PetSpa.Migrations
                         .HasMaxLength(100)
                         .IsUnicode(false)
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("accID");
-
-                    b.Property<string>("Job")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("job");
+                        .HasColumnName("Id");
 
                     b.Property<Guid>("ManagerManaId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("ManagerManaId");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("StaffId")
                         .HasName("PK__Staff__6465E19E05D526E9");
@@ -902,6 +899,7 @@ namespace PetSpa.Migrations
                     b.HasOne("PetSpa.Models.Domain.Combo", "Combo")
                         .WithMany("BookingDetails")
                         .HasForeignKey("ComboId")
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK__Booking_D__combo__5535A963");
 
                     b.HasOne("PetSpa.Models.Domain.Pet", "Pet")
@@ -913,6 +911,7 @@ namespace PetSpa.Migrations
                     b.HasOne("PetSpa.Models.Domain.Service", "Service")
                         .WithMany("BookingDetails")
                         .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK__Booking_D__servi__534D60F1");
 
                     b.HasOne("PetSpa.Models.Domain.Staff", "Staff")
@@ -1002,8 +1001,7 @@ namespace PetSpa.Migrations
                     b.HasOne("PetSpa.Models.Domain.Combo", "Combo")
                         .WithMany("Services")
                         .HasForeignKey("ComboId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Service_Combo");
 
                     b.Navigation("Combo");

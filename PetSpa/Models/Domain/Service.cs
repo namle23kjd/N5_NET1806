@@ -17,7 +17,8 @@ public partial class Service
 
     public TimeSpan Duration { get; set; }
 
-    public Guid ComboId { get; set; }
+    public Guid? ComboId { get; set; }
+    public decimal Price { get; set; }
 
     public virtual ICollection<BookingDetail> BookingDetails { get; set; } = new List<BookingDetail>();
 

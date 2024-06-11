@@ -58,6 +58,25 @@ namespace PetSpa
             builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
             builder.Services.AddLogging();
 
+            builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromMinutes(15); // thời gian hết hạn 1 giờ
+            }); builder.Services.AddControllers()
+            .AddNewtonsoftJson(options =>
+            {
+           options.SerializerSettings.DateFormatString = "yyyy-MM-dd";
+             });  
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyHeader()
+                               .AllowAnyMethod();
+                    });
+            });
+
 
             builder.Services.AddDbContext<PetSpaContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //builder.Services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultAuthConnectionString")));
@@ -177,10 +196,13 @@ namespace PetSpa
             app.UseMiddleware<ExceptionHandlerMiddleware>();
 
             app.UseHttpsRedirection();
-
+            app.UseCors("AllowAllOrigins");
             app.UseAuthorization();
             app.UseAuthentication();
-
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
             app.MapControllers();
 
             app.Run();

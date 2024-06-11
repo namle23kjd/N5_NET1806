@@ -15,7 +15,8 @@ namespace PetSpa.Models.DTO.Pet
         public string PetName { get; set; } = null!;
 
 
-       
+        public string? Image { get; set; } = null;
+        public DateTime? PetBirthday { get; set; }
         public bool? Status { get; set; }
 
 
