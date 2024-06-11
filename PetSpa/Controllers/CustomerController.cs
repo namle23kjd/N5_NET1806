@@ -9,6 +9,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PetSpa.Controllers
 {
@@ -33,6 +34,7 @@ namespace PetSpa.Controllers
 
         // Get All Customers
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             try
