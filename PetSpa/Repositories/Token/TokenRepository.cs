@@ -19,10 +19,13 @@ namespace PetSpa.Repositories.Token
             //Create claims
             var claims = new List<Claim>();
 
-            claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user), "User cannot be null.");
+            }
 
-            
-                claims.Add(new Claim(ClaimTypes.Role, role));
+
+            claims.Add(new Claim(ClaimTypes.Role, role));
             
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

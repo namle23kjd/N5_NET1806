@@ -152,7 +152,7 @@ namespace PetSpa.Data
 
                 entity.Property(e => e.TotalAmount)
                     .HasColumnType("decimal(10, 2)")
-                    .HasColumnName("totalAmount");
+.HasColumnName("totalAmount");
 
                 entity.HasOne(d => d.Customer).WithMany(p => p.Bookings)
                     .HasForeignKey(d => d.CusId)
@@ -221,7 +221,7 @@ namespace PetSpa.Data
                     .HasConstraintName("FK__Booking_D__petID__5441852A");
 
                 entity.HasOne(d => d.Service) // Quan hệ với bảng Service
-                    .WithMany(p => p.BookingDetails)
+.WithMany(p => p.BookingDetails)
                     .HasForeignKey(d => d.ServiceId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK__Booking_D__servi__534D60F1");
@@ -298,7 +298,6 @@ namespace PetSpa.Data
                 entity.HasKey(e => e.InvoiceId).HasName("PK__Invoice__1252410C1622F1EA");
 
                 entity.ToTable("Invoice");
-
                 entity.HasIndex(e => e.BookingId, "UQ__Invoice__C6D03BECA66EC071").IsUnique();
 
                 entity.Property(e => e.InvoiceId)
@@ -370,12 +369,11 @@ namespace PetSpa.Data
                     .HasForeignKey(d => d.ManagerManaId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Staff_Manager_ManagerManaId");
-
                 entity.HasMany(d => d.Vouchers) // Quan hệ với bảng Voucher
-                    .WithOne(p => p.Managers)
-                    .HasForeignKey(d => d.ManaId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Voucher_Manager");
+                                    .WithOne(p => p.Managers)
+                                    .HasForeignKey(d => d.ManaId)
+                                    .OnDelete(DeleteBehavior.ClientSetNull)
+                                    .HasConstraintName("FK_Voucher_Manager");
 
                 entity.HasMany(d => d.Bookings) // Quan hệ với bảng Booking
                     .WithOne(p => p.Manager)
@@ -440,7 +438,7 @@ namespace PetSpa.Data
                 entity.HasOne(d => d.Cus).WithMany(p => p.Pets)
                     .HasForeignKey(d => d.CusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Pet__cusID__47DBAE45");
+.HasConstraintName("FK__Pet__cusID__47DBAE45");
             });
 
             modelBuilder.Entity<Service>(entity =>
@@ -514,7 +512,7 @@ namespace PetSpa.Data
                     .WithOne()
                     .HasForeignKey<Staff>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Staff_AspNetUsers");
+.HasConstraintName("FK_Staff_AspNetUsers");
 
                 entity.HasOne(d => d.Manager) // Quan hệ với bảng Manager
                     .WithMany(p => p.Staffs)

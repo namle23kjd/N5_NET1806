@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
+using PetSpa.Models.DTO.ApiResponseDTO;
 using PetSpa.Models.DTO.Service;
 using PetSpa.Repositories.ServiceRepository;
 
@@ -33,20 +34,20 @@ namespace PetSpa.Controllers
                 Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorDetails));
                 return BadRequest(ModelState); // Trả về lỗi xác thực chi tiết
             }
-
             var serviceDomainModel = mapper.Map<Service>(addServiceRequest);
-            serviceDomainModel = await serviceRepository.CreateAsync(serviceDomainModel);
-            var service = mapper.Map<ServiceDTO>(serviceDomainModel);
-            return Ok(apiResponseService.CreateSuccessResponse(service));
-        }
+            await serviceRepository.CreateAsync(serviceDomainModel);
+            var service = mapper.Map<Service>(serviceDomainModel);
+            return Ok(apiResponseService.CreateSuccessResponse(apiResponseService.CreateSuccessResponse(service), "Successed"));
 
+        }
         // Get Service
         // Get: /api/Service
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var serviceDomainModel = await serviceRepository.GetAllAsync();
-            return Ok(mapper.Map<List<ServiceDTO>>(serviceDomainModel));
+          return Ok(apiResponseService.CreateSuccessResponse(apiResponseService.CreateSuccessResponse(serviceDomainModel), "Successed"));
+
         }
 
         // Get Service by ID

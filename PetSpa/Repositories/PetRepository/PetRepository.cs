@@ -59,6 +59,7 @@ namespace PetSpa.Repositories
             existingPet.PetBirthday = pet.PetBirthday;
             existingPet.Status = pet.Status;
             existingPet.PetWeight = pet.PetWeight;
+            existingPet.PetHeight = pet.PetHeight;
             existingPet.Image = pet.Image;
             existingPet.PetName = pet.PetName;
             existingPet.PetType = pet.PetType;

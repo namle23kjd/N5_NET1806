@@ -14,10 +14,11 @@ public partial class Pet
     public string PetName { get; set; } = null!;
 
     public string? Image { get; set; } = null;
+    public DateTime? PetBirthday { get; set; }
 
     public bool Status { get; set; }
 
-    public DateTime? PetBirthday { get; set; }
+   
 
     public decimal? PetWeight { get; set; }
 
