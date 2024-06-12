@@ -11,7 +11,7 @@ public partial class Booking
     public Guid ManaId { get; set; } // Thêm cột ManaId
     public bool Status { get; set; }
     public decimal? TotalAmount { get; set; }
-    public DateTime? BookingSchedule { get; set; }
+    public DateTime BookingSchedule { get; set; }
     public string? Feedback { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }

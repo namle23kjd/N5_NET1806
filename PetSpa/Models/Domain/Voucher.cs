@@ -17,8 +17,6 @@ public partial class Voucher
 
     public Guid CusId { get; set; }
 
-    public Guid ManaId { get; set; }
-
     public Guid BookingId { get; set; }
 
     public bool Status { get; set; }
@@ -27,5 +25,4 @@ public partial class Voucher
 
     public virtual Customer Customers { get; set; } = null!;
 
-    public virtual Manager Managers { get; set; } = null!;
 }

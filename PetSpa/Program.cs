@@ -28,6 +28,10 @@ using PetSpa.Repositories.StaffRepository;
 using PetSpa.Repositories.CustomerRepository;
 using Hangfire;
 using System.Reflection;
+using PetSpa.Payment;
+using Newtonsoft.Json.Converters;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace PetSpa
 {
@@ -95,11 +99,6 @@ namespace PetSpa
             });
 
             // Other services
-            builder.Services.AddControllers().AddNewtonsoftJson(options =>
-            {
-                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.DateFormatString = "yyyy-MM-dd";
-            });
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
@@ -152,6 +151,9 @@ namespace PetSpa
 
                 });
             });
+
+            builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPayConfig"));
+            builder.Services.AddSingleton<VNPayService>();
 
             // Register repositories and services
             builder.Services.AddScoped<ApiResponseService>();

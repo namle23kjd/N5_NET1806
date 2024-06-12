@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -40,11 +41,8 @@ namespace PetSpa.Controllers
             this._apiResponse = apiResponse;
         }
 
-
-
-
-
         [HttpPost("google")]
+        [Authorize(Roles = "Customer")]
 
         public async Task<IActionResult> CreateUserGoogle([FromBody] LoginGG email)
         {
@@ -137,6 +135,8 @@ namespace PetSpa.Controllers
         //Post : /api/Auth/Register
         [HttpPost]
         [Route("Register")]
+        [Authorize(Roles = "Customer")]
+
         public async Task<IActionResult> Register([FromBody] RegisterPequestDto registerRequestDto)
         {
             if (!ModelState.IsValid)
@@ -208,6 +208,7 @@ namespace PetSpa.Controllers
 
         }
         [HttpGet("ConfirmEmail")]
+        [Authorize(Roles = "Admin,Customer")]
         public async Task<IActionResult> ConfirmEmail([FromBody] ComfirmEmailDTO request)
         {
             if (string.IsNullOrEmpty(request.Token) || string.IsNullOrEmpty(request.Email))
@@ -233,6 +234,8 @@ namespace PetSpa.Controllers
         //Post: /api/Auth/Login
         [HttpPost]
         [Route("Login")]
+        [Authorize(Roles = "Admin,Customer,Staff,Manager")]
+
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
         {
             var user = await _userManager.FindByEmailAsync(loginRequestDto.Username);
@@ -268,6 +271,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpPost("forgot-password")]
+        [Authorize(Roles = "Admin,Customer,Staff,Manager")]
         //[Route("{email}")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest Fotgotpassword)
         {
@@ -296,6 +300,8 @@ namespace PetSpa.Controllers
             return BadRequest("Email does not exist incorrect");
         }
         [HttpGet]
+        [Authorize(Roles = "Admin,Customer,Staff,Manager")]
+
         public async Task<IActionResult> TestEmail()
         {
             var message = new Message(new string[] { "nguyenbaminhduc2019@gmail.com" }, "Test", "<h1>Hoàng Anh stupid</h1>");
@@ -304,6 +310,8 @@ namespace PetSpa.Controllers
         }
 
         [HttpPost("reset-password")]
+        [Authorize(Roles = "Admin,Customer,Staff,Manager")]
+
         public async Task<IActionResult> ResetPassword([FromBody] ForgotPasswordRequestDto model)
         {
 

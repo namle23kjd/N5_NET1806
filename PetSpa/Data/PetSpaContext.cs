@@ -21,13 +21,13 @@ namespace PetSpa.Data
         public virtual DbSet<Customer> Customers { get; set; }
         public virtual DbSet<Invoice> Invoices { get; set; }
         public virtual DbSet<Manager> Managers { get; set; }
-        public virtual DbSet<Payment> Payments { get; set; }
+        public virtual DbSet<PaymentT> Payments { get; set; }
         public virtual DbSet<Pet> Pets { get; set; }
         public virtual DbSet<Service> Services { get; set; }
         public virtual DbSet<Staff> Staff { get; set; }
         public virtual DbSet<Voucher> Vouchers { get; set; }
         public virtual DbSet<Images> Images { get; set; }
-        public virtual DbSet<Merchant> Merchants { get; set; }
+        public virtual DbSet<Merchant> Merchants { get; set; } // Thêm bảng Merchant
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -48,34 +48,34 @@ namespace PetSpa.Data
             var ManagerRoleId = Guid.NewGuid();
 
             var roles = new List<IdentityRole<Guid>> {
-        new IdentityRole<Guid>{
-            Id = CustomerRoleId,
-            ConcurrencyStamp = CustomerRoleId.ToString(),
-            Name = "Customer",
-            NormalizedName = "CUSTOMER"
-        },
-        new IdentityRole<Guid>
-        {
-            Id = StaffRoleId,
-            ConcurrencyStamp = StaffRoleId.ToString(),
-            Name = "Staff",
-            NormalizedName = "STAFF"
-        },
-        new IdentityRole<Guid>
-        {
-            Id = AdminRoleId,
-            ConcurrencyStamp = AdminRoleId.ToString(),
-            Name = "Admin",
-            NormalizedName = "ADMIN"
-        },
-        new IdentityRole<Guid>
-        {
-            Id = ManagerRoleId,
-            ConcurrencyStamp = ManagerRoleId.ToString(),
-            Name = "Manager",
-            NormalizedName = "MANAGER"
-        }
-    };
+                new IdentityRole<Guid>{
+                    Id = CustomerRoleId,
+                    ConcurrencyStamp = CustomerRoleId.ToString(),
+                    Name = "Customer",
+                    NormalizedName = "CUSTOMER"
+                },
+                new IdentityRole<Guid>
+                {
+                    Id = StaffRoleId,
+                    ConcurrencyStamp = StaffRoleId.ToString(),
+                    Name = "Staff",
+                    NormalizedName = "STAFF"
+                },
+                new IdentityRole<Guid>
+                {
+                    Id = AdminRoleId,
+                    ConcurrencyStamp = AdminRoleId.ToString(),
+                    Name = "Admin",
+                    NormalizedName = "ADMIN"
+                },
+                new IdentityRole<Guid>
+                {
+                    Id = ManagerRoleId,
+                    ConcurrencyStamp = ManagerRoleId.ToString(),
+                    Name = "Manager",
+                    NormalizedName = "MANAGER"
+                }
+            };
             modelBuilder.Entity<IdentityRole<Guid>>().HasData(roles);
 
             modelBuilder.Entity<Admin>(entity =>
@@ -152,7 +152,7 @@ namespace PetSpa.Data
 
                 entity.Property(e => e.TotalAmount)
                     .HasColumnType("decimal(10, 2)")
-.HasColumnName("totalAmount");
+                    .HasColumnName("totalAmount");
 
                 entity.HasOne(d => d.Customer).WithMany(p => p.Bookings)
                     .HasForeignKey(d => d.CusId)
@@ -221,7 +221,7 @@ namespace PetSpa.Data
                     .HasConstraintName("FK__Booking_D__petID__5441852A");
 
                 entity.HasOne(d => d.Service) // Quan hệ với bảng Service
-.WithMany(p => p.BookingDetails)
+                    .WithMany(p => p.BookingDetails)
                     .HasForeignKey(d => d.ServiceId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK__Booking_D__servi__534D60F1");
@@ -369,11 +369,6 @@ namespace PetSpa.Data
                     .HasForeignKey(d => d.ManagerManaId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Staff_Manager_ManagerManaId");
-                entity.HasMany(d => d.Vouchers) // Quan hệ với bảng Voucher
-                                    .WithOne(p => p.Managers)
-                                    .HasForeignKey(d => d.ManaId)
-                                    .OnDelete(DeleteBehavior.ClientSetNull)
-                                    .HasConstraintName("FK_Voucher_Manager");
 
                 entity.HasMany(d => d.Bookings) // Quan hệ với bảng Booking
                     .WithOne(p => p.Manager)
@@ -382,7 +377,7 @@ namespace PetSpa.Data
                     .HasConstraintName("FK_Booking_Manager");
             });
 
-            modelBuilder.Entity<Payment>(entity =>
+            modelBuilder.Entity<PaymentT>(entity =>
             {
                 entity.HasKey(e => e.Id);
 
@@ -392,13 +387,28 @@ namespace PetSpa.Data
                 entity.Property(e => e.PaidAmount)
                     .HasColumnType("decimal(19, 2)");
 
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.InvoiceId)
+                    .HasColumnName("invoiceID")
+                    .IsRequired();
+
+                entity.Property(e => e.MerchantId)
+                    .HasColumnName("merchantID")
+                    .IsRequired();
+
                 entity.HasOne(e => e.Invoice)
                     .WithMany(i => i.Payments)
                     .HasForeignKey(e => e.InvoiceId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.Merchant)
-                    .WithMany()
+                    .WithMany(m => m.Payments)
                     .HasForeignKey(e => e.MerchantId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
@@ -438,7 +448,7 @@ namespace PetSpa.Data
                 entity.HasOne(d => d.Cus).WithMany(p => p.Pets)
                     .HasForeignKey(d => d.CusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-.HasConstraintName("FK__Pet__cusID__47DBAE45");
+                    .HasConstraintName("FK__Pet__cusID__47DBAE45");
             });
 
             modelBuilder.Entity<Service>(entity =>
@@ -512,7 +522,7 @@ namespace PetSpa.Data
                     .WithOne()
                     .HasForeignKey<Staff>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-.HasConstraintName("FK_Staff_AspNetUsers");
+                    .HasConstraintName("FK_Staff_AspNetUsers");
 
                 entity.HasOne(d => d.Manager) // Quan hệ với bảng Manager
                     .WithMany(p => p.Staffs)
@@ -549,7 +559,6 @@ namespace PetSpa.Data
                     .HasColumnName("discount");
                 entity.Property(e => e.ExpiryDate).HasColumnName("expiryDate");
                 entity.Property(e => e.IssueDate).HasColumnName("issueDate");
-                entity.Property(e => e.ManaId).HasColumnName("manaID");
                 entity.Property(e => e.Status).HasColumnName("status");
 
                 entity.HasOne(d => d.Bookings).WithOne(p => p.Voucher)
@@ -561,16 +570,25 @@ namespace PetSpa.Data
                     .HasForeignKey(d => d.CusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Voucher__cusID__68487DD7");
-
-                entity.HasOne(d => d.Managers).WithMany(p => p.Vouchers)
-                    .HasForeignKey(d => d.ManaId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Voucher__manaID__693CA210");
             });
+
 
             modelBuilder.Entity<Merchant>(entity =>
             {
                 entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ContactInfo)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
             });
 
             OnModelCreatingPartial(modelBuilder);

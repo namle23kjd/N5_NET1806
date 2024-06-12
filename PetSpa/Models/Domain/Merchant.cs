@@ -2,16 +2,11 @@
 {
     public class Merchant
     {
-        public string Id { get; set; }
-        public string? MerchantName { get; set; }
-        public string? MerchantWebLink { get; set; }
-        public string? MerchantIpnUrl { get; set; }
-        public string? MerchantReturnUrl { get; set; }
-        public string? SecretKey { get; set; }
-        public bool IsActive { get; set; }
-        public string? CreatedBy { get; set; }
-        public string? LastUpdatedBy { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime LastUpdatedAt { get; set; }
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string ContactInfo { get; set; }
+
+        public virtual ICollection<PaymentT> Payments { get; set; }
     }
 }

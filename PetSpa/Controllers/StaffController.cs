@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PetSpa.Controllers
 {
@@ -35,6 +36,8 @@ namespace PetSpa.Controllers
         //Get Staff
         //Get : /api/Staff
         [HttpGet]
+        [Authorize(Roles = "Admin,Customer,Manager,Staff")]
+
         public async Task<IActionResult> GetAll()
         {
             try

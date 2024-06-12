@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
@@ -11,6 +12,7 @@ namespace PetSpa.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles ="Admin")]
     public class AdminController : ControllerBase
     {
         private readonly IMapper mapper;
@@ -27,6 +29,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -44,6 +47,7 @@ namespace PetSpa.Controllers
 
         [HttpPost]
         [Route("CreateAdmin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateAdmin([FromBody] AddAdminRequestDTO addAdminRequestDTO)
         {
             if (!ModelState.IsValid)
@@ -67,7 +71,10 @@ namespace PetSpa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
             }
         }
+
+
         [HttpGet("{adminId}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> FindAdmin(Guid adminId)
         {
             try

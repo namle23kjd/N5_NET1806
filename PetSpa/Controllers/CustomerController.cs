@@ -34,7 +34,7 @@ namespace PetSpa.Controllers
 
         // Get All Customers
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -54,6 +54,8 @@ namespace PetSpa.Controllers
         // Get /api/Customer/{id}
         [HttpGet]
         [Route("{CusId:guid}")]
+        [Authorize(Roles = "Admin,Customer,Manager")]
+
         public async Task<IActionResult> GetById([FromRoute] Guid CusId)
         {
             try
@@ -79,6 +81,7 @@ namespace PetSpa.Controllers
         // PUT: /api/Customer/UpdateByUser/{id}
         [HttpPut]
         [Route("UpdateByUser/{CusId:guid}")]
+        [Authorize(Roles = "Admin,Customer,Manager")]
         public async Task<IActionResult> UpdateByUser([FromRoute] Guid CusId,  UpdateCustomerRequestDTO updateCustomerByUserRequestDTO)
         {
             try

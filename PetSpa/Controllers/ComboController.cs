@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
@@ -25,6 +26,8 @@ namespace PetSpa.Controllers
         // Create Combo
         // Post : api/Combo
         [HttpPost]
+        [Authorize(Roles = "Admin,Customer,Manager,Staff")]
+
         public async Task<IActionResult> Create([FromBody] AddComboRequestDTO addComboRequestDTO)
         {
             // Map DTO to Domain Model
@@ -44,6 +47,7 @@ namespace PetSpa.Controllers
         // Get Combo
         // Get: api/combo
         [HttpGet]
+        [Authorize(Roles = "Admin,Manager,Staff")]
         public async Task<IActionResult> GetAll()
         {
             var comboDomainModel = await comboRespository.GetAllAsync();
@@ -63,6 +67,7 @@ namespace PetSpa.Controllers
         // Get: /api/Combo/{id}
         [HttpGet]
         [Route("{ComboId:guid}")]
+        [Authorize(Roles = "Admin,Customer,Manager,Staff")]
         public async Task<IActionResult> GetById([FromRoute] Guid ComboId)
         {
             var comboDomainModels = await comboRespository.GetByIdAsync(ComboId);
@@ -78,6 +83,8 @@ namespace PetSpa.Controllers
         // Update Combo By ID
         [HttpPut]
         [Route("{ComboId:guid}")]
+        [Authorize(Roles = "Admin,Manager")]
+
         public async Task<IActionResult> Update([FromRoute] Guid ComboId, UpdateComboRequestDTO updateComboRequestDTO)
         {
             // Map DTO to Domain 
@@ -91,6 +98,8 @@ namespace PetSpa.Controllers
         // Delete Combo By ID (Set Status to False)
         [HttpDelete]
         [Route("{ComboId:guid}")]
+        [Authorize(Roles = "Admin,Manager")]
+
         public async Task<IActionResult> Delete([FromRoute] Guid ComboId)
         {
             var comboDomainModels = await comboRespository.DeleteAsync(ComboId);
