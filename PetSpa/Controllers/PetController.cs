@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
@@ -31,6 +32,7 @@ namespace PetSpa.Controllers
         [HttpGet]
         [ValidateModeAtrribute]
         [Route("{ID:guid}")]
+        [Authorize]
         public async Task<IActionResult> GetById([FromRoute] Guid ID)
         {
             var pet = await _petRepository.GetByIdAsync(ID);
@@ -45,6 +47,7 @@ namespace PetSpa.Controllers
 
         [HttpPost]
         [ValidateModeAtrribute]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] AddPetRequestDTO addPetRequestDTO)
         {
             if (!ModelState.IsValid)
@@ -64,6 +67,7 @@ namespace PetSpa.Controllers
 
         [HttpDelete]
         [Route("{id:guid}")]
+        [Authorize]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             var pet = await _petRepository.DeleteAsync(id);

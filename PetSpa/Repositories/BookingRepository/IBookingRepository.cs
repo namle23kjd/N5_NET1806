@@ -11,5 +11,6 @@ namespace PetSpa.Repositories.BookingRepository
         Task<bool> IsScheduleTakenAsync(DateTime bookingSchedule);
         Task<Manager> GetManagerWithLeastBookingsAsync();
         Task<List<Booking>> GetCompletedBookingsAsync();
+        List<Staff> GetAvailableStaffsForStartTime(DateTime startTime, DateTime endTime);
     }
 }

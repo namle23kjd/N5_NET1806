@@ -70,9 +70,11 @@ namespace PetSpa.Repositories.BookingRepository
             return existingBooking;
         }
 
+
         public async Task<bool> IsScheduleTakenAsync(DateTime bookingSchedule)
         {
             return await dbContext.Bookings.AnyAsync(b => b.BookingSchedule == bookingSchedule && b.Status);
+
         }
 
         public async Task<Manager> GetManagerWithLeastBookingsAsync()
@@ -88,6 +90,19 @@ namespace PetSpa.Repositories.BookingRepository
                 .Include(b => b.BookingDetails)
                 .Where(b => b.Status == true)
                 .ToListAsync();
+        }
+
+        public List<Staff> GetAvailableStaffsForStartTime(DateTime startTime, DateTime endTime)
+        {
+
+            return dbContext.Staff
+            .Include(s => s.BookingDetails)
+            .ThenInclude(bd => bd.Booking)
+            .Where(s => !s.BookingDetails.Any(bd =>
+                (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate) || // Overlap check
+                (endTime > bd.Booking.StartDate && startTime < bd.Booking.EndDate)    // Overlap check
+            ))
+            .ToList();
         }
     }
 }

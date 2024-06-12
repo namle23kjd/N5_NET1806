@@ -34,7 +34,8 @@ namespace PetSpa.Data
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=DESKTOP-LJMA02H\\PIEDTEAM;Database=Pet_Spa;User Id=SA;Password=12345;Trusted_Connection=True;TrustServerCertificate=True;");
+
+                optionsBuilder.UseSqlServer("Server=DESKTOP-S41VFN3\\PIEDTEAM;Database=Pet__SPAManagement;User Id=sa;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
             }
         }
 
@@ -433,7 +434,7 @@ namespace PetSpa.Data
                 entity.Property(e => e.PetWeight)
                     .HasColumnType("decimal(5, 2)")
                     .HasColumnName("petWeight");
-                entity.Property(e => e.Status).HasColumnName("status");
+                entity.Property(e => e.Status).HasColumnName("status").HasDefaultValue(true);
 
                 entity.HasOne(d => d.Cus).WithMany(p => p.Pets)
                     .HasForeignKey(d => d.CusId)

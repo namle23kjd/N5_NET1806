@@ -9,6 +9,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PetSpa.Controllers
 {
@@ -33,6 +34,7 @@ namespace PetSpa.Controllers
 
         // Get All Customers
         [HttpGet]
+        //[Authorize]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -52,6 +54,7 @@ namespace PetSpa.Controllers
         // Get /api/Customer/{id}
         [HttpGet]
         [Route("{CusId:guid}")]
+        [Authorize]
         public async Task<IActionResult> GetById([FromRoute] Guid CusId)
         {
             try
@@ -77,7 +80,7 @@ namespace PetSpa.Controllers
         // PUT: /api/Customer/UpdateByUser/{id}
         [HttpPut]
         [Route("UpdateByUser/{CusId:guid}")]
-        public async Task<IActionResult> UpdateByUser([FromRoute] Guid CusId,  UpdateCustomerRequestDTO updateCustomerByUserRequestDTO)
+        public async Task<IActionResult> UpdateByUser([FromRoute] Guid CusId, UpdateCustomerRequestDTO updateCustomerByUserRequestDTO)
         {
             try
             {

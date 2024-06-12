@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FluentAssertions.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PetSpa.CustomActionFilter;
@@ -20,13 +21,15 @@ namespace PetSpa.Controllers
         private readonly ApiResponseService apiResponseService;
         private readonly IBookingRepository bookingRepository;
         private readonly PetSpaContext petSpaContext;
+        private readonly ApiResponseService responseService;
 
-        public BookingController(IMapper mapper, ApiResponseService apiResponseService, IBookingRepository bookingRepository, PetSpaContext petSpaContext)
+        public BookingController(IMapper mapper, ApiResponseService apiResponseService, IBookingRepository bookingRepository, PetSpaContext petSpaContext, ApiResponseService responseService)
         {
             this.mapper = mapper;
             this.apiResponseService = apiResponseService;
             this.bookingRepository = bookingRepository;
             this.petSpaContext = petSpaContext;
+            this.responseService = responseService;
         }
 
         [HttpPost]
@@ -34,19 +37,20 @@ namespace PetSpa.Controllers
         {
             if (addBookingRequestDTO.BookingSchedule < DateTime.Now)
             {
-                return BadRequest("Ngày đặt lịch không được trễ hơn ngày hiện tại. Vui lòng chọn ngày khác.");
+                return BadRequest("Scheduled date cannot be later than the current date. Please choose another date.");
             }
 
-            var isScheduleTaken = await bookingRepository.IsScheduleTakenAsync(addBookingRequestDTO.BookingSchedule);
-            if (isScheduleTaken)
-            {
-                return BadRequest("Thời gian này đã được đặt. Vui lòng chọn lịch khác.");
-            }
+            //var isScheduleTaken = await bookingRepository.IsScheduleTakenAsync(addBookingRequestDTO.BookingSchedule);
+            //if (isScheduleTaken)
+            //{
+            //    return BadRequest("Thời gian này đã được đặt. Vui lòng chọn lịch khác.");
+            //}
+
 
             var managerWithLeastBookings = await bookingRepository.GetManagerWithLeastBookingsAsync();
             if (managerWithLeastBookings == null)
             {
-                return BadRequest("Không tìm thấy quản lý.");
+                return BadRequest("Not found any manager");
             }
 
             var bookingDomainModels = mapper.Map<Booking>(addBookingRequestDTO);
@@ -56,6 +60,19 @@ namespace PetSpa.Controllers
             var totalDurationTimeSpan = new TimeSpan(totalDuration) + TimeSpan.FromMinutes(20);
             bookingDomainModels.EndDate = bookingDomainModels.StartDate + totalDurationTimeSpan;
             bookingDomainModels.TotalAmount = bookingDomainModels.BookingDetails.Sum(bd => (bd.Combo?.Price ?? 0) + (bd.Service?.Price ?? 0));
+            var startOfDay = new DateTime(bookingDomainModels.StartDate.Year, bookingDomainModels.StartDate.Month, bookingDomainModels.StartDate.Day, 8, 0, 0);
+            var endOfDay = new DateTime(bookingDomainModels.EndDate.Year, bookingDomainModels.EndDate.Month, bookingDomainModels.EndDate.Day, 20, 0, 0);
+
+            if (bookingDomainModels.StartDate < startOfDay || bookingDomainModels.EndDate > endOfDay)
+            {
+                return BadRequest("Bookings can only be made between 08:00 and 20:00.");
+            }
+            var availableStaffs = bookingRepository.GetAvailableStaffsForStartTime(bookingDomainModels.StartDate, bookingDomainModels.EndDate);
+            if (availableStaffs == null || !availableStaffs.Any())
+            {
+                return NotFound("No available staff found for the given time slot.");
+            }
+
 
             foreach (var detail in bookingDomainModels.BookingDetails)
             {
@@ -69,6 +86,27 @@ namespace PetSpa.Controllers
             await bookingRepository.CreateAsync(bookingDomainModels);
             return Ok(mapper.Map<BookingDTO>(bookingDomainModels));
         }
+
+
+
+        [HttpGet("available")]
+        public IActionResult GetAvailableStaffs([FromQuery] DateTime startTime, [FromQuery] DateTime endTime)
+        {
+            try
+            {
+                var availableStaffs = bookingRepository.GetAvailableStaffsForStartTime(startTime, endTime);
+                if (availableStaffs == null || !availableStaffs.Any())
+                {
+                    return NotFound("No available staff found for the given time slot.");
+                }
+                return Ok(availableStaffs);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
