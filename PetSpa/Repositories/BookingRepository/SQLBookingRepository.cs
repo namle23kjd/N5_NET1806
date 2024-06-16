@@ -92,8 +92,25 @@ namespace PetSpa.Repositories.BookingRepository
                 .ToListAsync();
         }
 
-        public List<Staff> GetAvailableStaffsForStartTime(DateTime startTime, DateTime endTime)
+        public List<Staff> GetAvailableStaffsForStartTime(DateTime startTime, DateTime endTime, Guid? staffId = null)
         {
+            
+
+            // If a specific staffId is provided, filter the query to check availability of that staff member
+            if (staffId.HasValue)
+            {
+                // Check availability for the specific staff member
+                var staff = dbContext.Staff
+                    .Include(s => s.BookingDetails)
+                    .ThenInclude(bd => bd.Booking)
+                    .Where(s => s.StaffId == staffId.Value && !s.BookingDetails.Any(bd =>
+                        (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate) || // Overlap check
+                        (endTime > bd.Booking.StartDate && startTime < bd.Booking.EndDate)    // Overlap check
+                    ))
+                    .ToList();
+
+                return staff;
+            }
 
             return dbContext.Staff
             .Include(s => s.BookingDetails)
@@ -104,5 +121,6 @@ namespace PetSpa.Repositories.BookingRepository
             ))
             .ToList();
         }
+      
     }
 }

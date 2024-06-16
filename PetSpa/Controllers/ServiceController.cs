@@ -49,6 +49,27 @@ namespace PetSpa.Controllers
           return Ok(apiResponseService.CreateSuccessResponse(apiResponseService.CreateSuccessResponse(serviceDomainModel), "Successed"));
 
         }
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchServices(string searchTerm)
+        {
+            if (string.IsNullOrEmpty(searchTerm))
+            {
+                return BadRequest(apiResponseService.CreateErrorResponse("Search term is required"));
+            }
+
+            var allServices = await serviceRepository.GetAllAsync();
+
+            var filteredServices = allServices.Where(service =>
+                service.ServiceName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                service.ServiceDescription.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (!filteredServices.Any())
+            {
+                return NotFound(apiResponseService.CreateErrorResponse("No services found matching the search term"));
+            }
+
+            return Ok(apiResponseService.CreateSuccessResponse(filteredServices, "Search successful"));
+        }
 
         // Get Service by ID
         // Get: /api/Service/{id}

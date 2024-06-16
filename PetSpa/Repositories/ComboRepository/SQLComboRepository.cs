@@ -23,7 +23,6 @@ namespace PetSpa.Repositories.ComboRepository
         public async Task<List<Combo>> GetAllAsync()
         {
             return await dbContext.Combos
-                .Include(c => c.BookingDetails)
                 .Include(c => c.Services)
                 .Where(c => c.Status == true) // Only get combos with Status true
                 .ToListAsync();

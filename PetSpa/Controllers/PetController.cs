@@ -83,6 +83,7 @@ namespace PetSpa.Controllers
         [HttpPut]
         [ValidateModeAtrribute]
         [Route("{ID:guid}")]
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] Guid ID, [FromBody] UpdatePetRequestDTO updatePetRequestDTO)
         {
             if (!ModelState.IsValid)
