@@ -12,7 +12,9 @@ namespace PetSpa.Repositories.BookingRepository
         Task<Manager> GetManagerWithLeastBookingsAsync();
         Task<List<Booking>> GetCompletedBookingsAsync();
         List<Staff> GetAvailableStaffsForStartTime(DateTime startTime, DateTime endTime, Guid? staffId = null);
-      
+        (List<Staff>, string) GetAvailableStaffs(DateTime startTime, DateTime endTime, int? periodMonths = null, Guid? staffId = null);
+
+
 
     }
 }

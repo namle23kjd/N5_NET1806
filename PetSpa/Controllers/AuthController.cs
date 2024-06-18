@@ -182,7 +182,7 @@ namespace PetSpa.Controllers
                             {
                                 User = new User
                                 {
-                                    Id = customer.Id,
+                                    Id = customer.CusId,
                                     Email = user.Email,
                                     Name = user.UserName,
                                 },

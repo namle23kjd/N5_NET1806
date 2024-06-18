@@ -94,7 +94,7 @@ namespace PetSpa.Repositories.BookingRepository
 
         public List<Staff> GetAvailableStaffsForStartTime(DateTime startTime, DateTime endTime, Guid? staffId = null)
         {
-            
+
 
             // If a specific staffId is provided, filter the query to check availability of that staff member
             if (staffId.HasValue)
@@ -121,6 +121,90 @@ namespace PetSpa.Repositories.BookingRepository
             ))
             .ToList();
         }
-      
+
+        public (List<Staff>, string) GetAvailableStaffs(DateTime startTime, DateTime endTime, int? periodMonths = null, Guid? staffId = null)
+        {
+            if (periodMonths.HasValue)
+            {
+                if (periodMonths != 3 && periodMonths != 6 && periodMonths != 9)
+                {
+                    throw new ArgumentException("Invalid period. Please choose 3, 6, or 9 months.");
+                }
+
+                var availableStaffs = new List<Staff>();
+                var currentStartTime = startTime;
+
+                for (int i = 0; i < periodMonths; i++)
+                {
+                    var currentEndTime = currentStartTime.AddMonths(1);
+
+                    if (staffId.HasValue)
+                    {
+                        var staff = dbContext.Staff
+                            .Include(s => s.BookingDetails)
+                            .ThenInclude(bd => bd.Booking)
+                            .Where(s => s.StaffId == staffId.Value && !s.BookingDetails.Any(bd =>
+                                (currentStartTime < bd.Booking.EndDate && currentEndTime > bd.Booking.StartDate)
+                            ))
+                            .ToList();
+
+                        if (!staff.Any())
+                        {
+                            return (null, $"Time conflict for the month starting from {currentStartTime:dd/MM/yyyy HH:mm}");
+                        }
+
+                        availableStaffs.AddRange(staff);
+                    }
+                    else
+                    {
+                        var staffList = dbContext.Staff
+                            .Include(s => s.BookingDetails)
+                            .ThenInclude(bd => bd.Booking)
+                            .Where(s => !s.BookingDetails.Any(bd =>
+                                (currentStartTime < bd.Booking.EndDate && currentEndTime > bd.Booking.StartDate)
+                            ))
+                            .ToList();
+
+                        if (!staffList.Any())
+                        {
+                            return (null, $"Thời gian bị trùng cho tháng bắt đầu từ {currentStartTime:dd/MM/yyyy HH:mm}");
+                        }
+
+                        availableStaffs.AddRange(staffList);
+                    }
+
+                    currentStartTime = currentStartTime.AddMonths(1);
+                }
+
+                return (availableStaffs.Distinct().ToList(), null);
+            }
+            else
+            {
+                if (staffId.HasValue)
+                {
+                    var staff = dbContext.Staff
+                        .Include(s => s.BookingDetails)
+                        .ThenInclude(bd => bd.Booking)
+                        .Where(s => s.StaffId == staffId.Value && !s.BookingDetails.Any(bd =>
+                            (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate)
+                        ))
+                        .ToList();
+
+                    return (staff, null);
+                }
+
+                var allStaff = dbContext.Staff
+                    .Include(s => s.BookingDetails)
+                    .ThenInclude(bd => bd.Booking)
+                    .Where(s => !s.BookingDetails.Any(bd =>
+                        (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate)
+                    ))
+                    .ToList();
+
+                return (allStaff, null);
+            }
+        }
+
+
     }
 }
