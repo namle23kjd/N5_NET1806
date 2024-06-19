@@ -65,7 +65,7 @@ namespace PetSpa.Controllers
             bookingDomainModels.TotalAmount = bookingDomainModels.BookingDetails.Sum(bd => (bd.Combo?.Price ?? 0) + (bd.Service?.Price ?? 0));
             var startOfDay = new DateTime(bookingDomainModels.StartDate.Year, bookingDomainModels.StartDate.Month, bookingDomainModels.StartDate.Day, 8, 0, 0);
             var endOfDay = new DateTime(bookingDomainModels.EndDate.Year, bookingDomainModels.EndDate.Month, bookingDomainModels.EndDate.Day, 20, 0, 0);
-
+           
             if (bookingDomainModels.StartDate < startOfDay || bookingDomainModels.EndDate > endOfDay)
             {
                 return BadRequest("Bookings can only be made between 08:00 and 20:00.");

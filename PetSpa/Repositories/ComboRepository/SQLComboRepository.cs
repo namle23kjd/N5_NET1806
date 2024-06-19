@@ -30,8 +30,7 @@ namespace PetSpa.Repositories.ComboRepository
 
         public async Task<Combo?> GetByIdAsync(Guid ComboId)
         {
-            return await dbContext.Combos
-                .Include(c => c.BookingDetails)
+            return await dbContext.Combos               
                 .Include(c => c.Services)
                 .FirstOrDefaultAsync(x => x.ComboId == ComboId && x.Status == true); // Only get if Status true
         }
