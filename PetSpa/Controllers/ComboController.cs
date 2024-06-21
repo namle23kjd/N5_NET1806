@@ -51,6 +51,7 @@ namespace PetSpa.Controllers
             // Map Domain Model To DTO
             if (comboDomainModel != null)
             {
+                apiResponseService.CreateSuccessResponse(comboDomainModel);
                 return Ok(mapper.Map<List<ComboDTO>>(comboDomainModel));
             }
             else

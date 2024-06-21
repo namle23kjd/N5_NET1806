@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentAssertions.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PetSpa.CustomActionFilter;
@@ -8,6 +9,7 @@ using PetSpa.Helper;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Booking;
 using PetSpa.Repositories.BookingRepository;
+using PetSpa.Repositories.ServiceRepository;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,6 +38,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] AddBookingRequestDTO addBookingRequestDTO)
         {
             if (addBookingRequestDTO.BookingSchedule < DateTime.Now)
@@ -64,7 +67,7 @@ namespace PetSpa.Controllers
             });
             var startOfDay = new DateTime(bookingDomainModels.StartDate.Year, bookingDomainModels.StartDate.Month, bookingDomainModels.StartDate.Day, 8, 0, 0);
             var endOfDay = new DateTime(bookingDomainModels.EndDate.Year, bookingDomainModels.EndDate.Month, bookingDomainModels.EndDate.Day, 20, 0, 0);
-
+           
             if (bookingDomainModels.StartDate < startOfDay || bookingDomainModels.EndDate > endOfDay)
             {
                 return BadRequest("Bookings can only be made between 08:00 and 20:00.");
@@ -93,23 +96,168 @@ namespace PetSpa.Controllers
             }
             return Ok(mapper.Map<BookingDTO>(bookingDomainModels));
         }
+
+
+
         [HttpGet("available")]
-        public IActionResult GetAvailableStaffs([FromQuery] DateTime startTime, [FromQuery] DateTime endTime)
+        [Authorize]
+        public async Task<IActionResult> GetAvailableStaffs([FromQuery] DateTime startTime, [FromQuery] Guid serviceCode, [FromQuery] Guid? staffId)
         {
             try
             {
-                var availableStaffs = bookingRepository.GetAvailableStaffsForStartTime(startTime, endTime);
+                if (startTime < DateTime.Now)
+                {
+                    return BadRequest("Scheduled date cannot be earlier than the current date. Please choose another date.");
+                }
+
+                TimeSpan totalDurationTimeSpan;
+
+                // Kiểm tra nếu serviceCode là từ Combo
+                var combo = await petSpaContext.Combos
+                    .Include(c => c.Services)
+                    .FirstOrDefaultAsync(c => c.ComboId == serviceCode);
+
+                if (combo != null)
+                {
+                    // Tính tổng thời gian từ các dịch vụ trong combo
+                    var totalDurationTicks = combo.Services.Sum(service => service.Duration.Ticks);
+                    totalDurationTimeSpan = new TimeSpan(totalDurationTicks) + TimeSpan.FromMinutes(20);
+                }
+                else
+                {
+                    // Fetch the service duration based on the provided service code
+                    var service = await petSpaContext.Services.FirstOrDefaultAsync(s => s.ServiceId == serviceCode);
+                    if (service == null)
+                    {
+                        return NotFound("Service not found for the given service code.");
+                    }
+
+                    // Initialize total duration with the fetched service duration
+                    totalDurationTimeSpan = service.Duration + TimeSpan.FromMinutes(20);
+                }
+
+                // Compute the end time based on the start time and total duration
+                var endTime = startTime + totalDurationTimeSpan;
+
+                // Define working hours
+                var startOfDay = new DateTime(startTime.Year, startTime.Month, startTime.Day, 8, 0, 0);
+                var endOfDay = new DateTime(endTime.Year, endTime.Month, endTime.Day, 20, 0, 0);
+
+                if (startTime < startOfDay || endTime > endOfDay)
+                {
+                    return BadRequest("Bookings can only be made between 08:00 and 20:00.");
+                }
+
+                // Fetch available staff based on the calculated start and end times
+                List<Staff> availableStaffs;
+
+                if (staffId.HasValue)
+                {
+                    // Check availability for the specific staff member
+                    availableStaffs = bookingRepository.GetAvailableStaffsForStartTime(startTime, endTime, staffId.Value);
+                }
+                else
+                {
+                    // Check availability for all staff members
+                    availableStaffs = bookingRepository.GetAvailableStaffsForStartTime(startTime, endTime);
+                }
+
                 if (availableStaffs == null || !availableStaffs.Any())
                 {
                     return NotFound("No available staff found for the given time slot.");
                 }
+
                 return Ok(availableStaffs);
             }
             catch (InvalidOperationException ex)
             {
+                // Handle specific invalid operation exception
                 return BadRequest(ex.Message);
             }
+            catch (Exception ex)
+            {
+                // Handle general exceptions
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
         }
+        [HttpGet("availableForPeriod")]
+        [Authorize]
+        public async Task<IActionResult> GetAvailableStaffsForPeriod([FromQuery] DateTime startTime, [FromQuery] Guid serviceCode, [FromQuery] Guid? staffId, [FromQuery] int? periodMonths)
+        {
+            try
+            {
+                if (startTime < DateTime.Now)
+                {
+                    return BadRequest("Scheduled date cannot be earlier than the current date. Please choose another date.");
+                }
+
+                TimeSpan totalDurationTimeSpan;
+
+                // Kiểm tra nếu serviceCode là từ Combo
+                var combo = await petSpaContext.Combos
+                    .Include(c => c.Services)
+                    .FirstOrDefaultAsync(c => c.ComboId == serviceCode);
+
+                if (combo != null)
+                {
+                    // Tính tổng thời gian từ các dịch vụ trong combo
+                    var totalDurationTicks = combo.Services.Sum(service => service.Duration.Ticks);
+                    totalDurationTimeSpan = new TimeSpan(totalDurationTicks) + TimeSpan.FromMinutes(20);
+                }
+                else
+                {
+                    // Fetch the service duration based on the provided service code
+                    var service = await petSpaContext.Services.FirstOrDefaultAsync(s => s.ServiceId == serviceCode);
+                    if (service == null)
+                    {
+                        return NotFound("Service not found for the given service code.");
+                    }
+
+                    // Initialize total duration with the fetched service duration
+                    totalDurationTimeSpan = service.Duration + TimeSpan.FromMinutes(20);
+                }
+
+                // Compute the end time based on the start time and total duration
+                var endTime = startTime + totalDurationTimeSpan;
+
+                // Define working hours
+                var startOfDay = new DateTime(startTime.Year, startTime.Month, startTime.Day, 8, 0, 0);
+                var endOfDay = new DateTime(endTime.Year, endTime.Month, endTime.Day, 20, 0, 0);
+
+                if (startTime < startOfDay || endTime > endOfDay)
+                {
+                    return BadRequest("Bookings can only be made between 08:00 and 20:00.");
+                }
+
+                // Fetch available staff based on the calculated start and end times
+                var (availableStaffs, errorMessage) = bookingRepository.GetAvailableStaffs(startTime, endTime, periodMonths, staffId);
+
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    return BadRequest(errorMessage);
+                }
+
+                if (availableStaffs == null || !availableStaffs.Any())
+                {
+                    return NotFound("No available staff found for the given time slot.");
+                }
+
+                return Ok(availableStaffs);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Handle specific invalid operation exception
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Handle general exceptions
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
+
+
+
 
 
         [HttpGet]
