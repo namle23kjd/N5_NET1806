@@ -27,15 +27,14 @@ namespace PetSpa.Data
         public virtual DbSet<Staff> Staff { get; set; }
         public virtual DbSet<Voucher> Vouchers { get; set; }
         public virtual DbSet<Images> Images { get; set; }
-        public virtual DbSet<Merchant> Merchants { get; set; }
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
-            {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-
-                optionsBuilder.UseSqlServer("Server=DESKTOP-S41VFN3\\PIEDTEAM;Database=Pet__SPAManagement;User Id=sa;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
+            { 
+                //optionsBuilder.UseSqlServer("Server=DESKTOP-S41VFN3\\PIEDTEAM;Database=Pet__SPAManagement;User Id=sa;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
+                optionsBuilder.UseSqlServer("Server=DESKTOP-LJMA02H\\PIEDTEAM;Database=Pet_Spa;User Id=SA;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
             }
         }
 
@@ -101,7 +100,7 @@ namespace PetSpa.Data
                     .HasForeignKey<Admin>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Admin__accID__398D8EEE");
-                entity.HasMany(d => d.Managers) // Quan hệ với bảng Manager
+                entity.HasMany(d => d.Managers)
                     .WithOne(p => p.Admins)
                     .HasForeignKey(d => d.AdminId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
@@ -115,8 +114,7 @@ namespace PetSpa.Data
                 entity.ToTable("Booking");
 
                 entity.Property(e => e.BookingId)
-                    .HasMaxLength(50)
-                    .IsUnicode(false)
+                    .ValueGeneratedOnAdd()
                     .HasColumnName("bookingID");
 
                 entity.Property(e => e.BookingSchedule)
@@ -132,38 +130,59 @@ namespace PetSpa.Data
                     .HasColumnName("EndDate");
 
                 entity.Property(e => e.CusId)
-                    .HasMaxLength(50)
-                    .IsUnicode(false)
-
+                    .IsRequired()
                     .HasColumnName("cusID");
+
                 entity.Property(e => e.CheckAccept)
-                    .HasColumnName("checkAccept") // Thêm cột CheckAccept
+                    .HasColumnName("checkAccept")
                     .HasDefaultValue(false);
 
                 entity.Property(e => e.ManaId)
-                    .HasMaxLength(50)
-                    .IsUnicode(false)
-                    .HasColumnName("manaID"); // Thêm cột ManaId
+                    .IsRequired()
+                    .HasColumnName("manaID");
 
                 entity.Property(e => e.Feedback)
                     .HasColumnType("text")
                     .HasColumnName("feedback");
 
                 entity.Property(e => e.Status).HasColumnName("status");
+                entity.Property(e => e.PaymentStatus).HasColumnName("paymentstatus");
 
                 entity.Property(e => e.TotalAmount)
                     .HasColumnType("decimal(10, 2)")
-.HasColumnName("totalAmount");
+                    .HasColumnName("totalAmount");
 
-                entity.HasOne(d => d.Customer).WithMany(p => p.Bookings)
+                entity.Property(e => e.PaymentId)
+                    .HasColumnName("paymentID")
+                    .IsRequired(false);
+
+                entity.Property(e => e.InvoiceId)
+                    .HasColumnName("invoiceID")
+                    .IsRequired(false);
+
+                entity.HasOne(d => d.Customer)
+                    .WithMany(p => p.Bookings)
                     .HasForeignKey(d => d.CusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Booking__cusID__4AB81AF0");
 
-                entity.HasOne(d => d.Manager).WithMany(p => p.Bookings) // Quan hệ với bảng Manager
+                entity.HasOne(d => d.Manager)
+                    .WithMany(p => p.Bookings)
                     .HasForeignKey(d => d.ManaId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Booking_Manager");
+
+                entity.HasOne(d => d.Payments)
+                    .WithMany(p => p.Bookings)
+                    .HasForeignKey(d => d.PaymentId)
+                    .OnDelete(DeleteBehavior.Cascade) // Change to Cascade
+                    .HasConstraintName("FK_Booking_Payment");
+
+                entity.HasOne(d => d.Invoice)
+                    .WithOne(i => i.Bookings)
+                    .HasForeignKey<Booking>(d => d.InvoiceId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_Booking_Invoice");
             });
 
             modelBuilder.Entity<BookingDetail>(entity =>
@@ -200,29 +219,29 @@ namespace PetSpa.Data
                     .IsUnicode(false)
                     .HasColumnName("comboType");
                 entity.Property(e => e.Duration)
-                    .HasColumnType("time(7)") // Định nghĩa kiểu dữ liệu time(7) cho Duration
+                    .HasColumnType("time(7)")
                     .HasColumnName("duration");
 
-                entity.HasOne(d => d.Booking) // Quan hệ với bảng Booking
+                entity.HasOne(d => d.Booking)
                     .WithMany(p => p.BookingDetails)
                     .HasForeignKey(d => d.BookingId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Cascade) // Change to Cascade
                     .HasConstraintName("FK__Booking_D__booki__571DF1D5");
 
-                entity.HasOne(d => d.Combo) // Quan hệ với bảng Combo
+                entity.HasOne(d => d.Combo)
                     .WithMany(p => p.BookingDetails)
                     .HasForeignKey(d => d.ComboId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK__Booking_D__combo__5535A963");
 
-                entity.HasOne(d => d.Pet) // Quan hệ với bảng Pet
+                entity.HasOne(d => d.Pet)
                     .WithMany(p => p.BookingDetails)
                     .HasForeignKey(d => d.PetId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Booking_D__petID__5441852A");
 
-                entity.HasOne(d => d.Service) // Quan hệ với bảng Service
-.WithMany(p => p.BookingDetails)
+                entity.HasOne(d => d.Service)
+                    .WithMany(p => p.BookingDetails)
                     .HasForeignKey(d => d.ServiceId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK__Booking_D__servi__534D60F1");
@@ -247,7 +266,7 @@ namespace PetSpa.Data
                     .HasColumnName("price");
                 entity.Property(e => e.Status).HasColumnName("status");
                 entity.Property(e => e.Duration)
-                    .HasColumnType("time(7)") // Định nghĩa kiểu dữ liệu time(7) cho Duration
+                    .HasColumnType("time(7)")
                     .HasColumnName("duration");
             });
 
@@ -270,17 +289,17 @@ namespace PetSpa.Data
                 entity.Property(e => e.FullName)
                     .HasMaxLength(255)
                     .IsUnicode(false)
-                    .HasColumnName("fullName");
+                    .HasColumnName("fullName").IsRequired(false);
 
                 entity.Property(e => e.Gender)
                     .HasMaxLength(10)
                     .IsUnicode(false)
-                    .HasColumnName("gender");
+                    .HasColumnName("gender").IsRequired(false);
 
                 entity.Property(e => e.PhoneNumber)
                     .HasMaxLength(15)
                     .IsUnicode(false)
-                    .HasColumnName("phoneNumber");
+                    .HasColumnName("phoneNumber").IsRequired(false);
 
                 entity.Property(e => e.CusRank)
                     .HasMaxLength(50)
@@ -302,20 +321,32 @@ namespace PetSpa.Data
                 entity.HasIndex(e => e.BookingId, "UQ__Invoice__C6D03BECA66EC071").IsUnique();
 
                 entity.Property(e => e.InvoiceId)
-                    .ValueGeneratedNever()
+                    .ValueGeneratedOnAdd()
                     .HasColumnName("invoiceID");
+
                 entity.Property(e => e.BookingId)
-                    .HasMaxLength(50)
-                    .IsUnicode(false)
+                    .IsRequired()
                     .HasColumnName("bookingID");
+
                 entity.Property(e => e.Price)
                     .HasColumnType("decimal(10, 2)")
                     .HasColumnName("price");
 
-                entity.HasOne(d => d.Booking).WithOne(p => p.Invoice)
+                entity.Property(e => e.PaymentId)
+                    .IsRequired()
+                    .HasColumnName("paymentID");
+
+                entity.HasOne(d => d.Bookings)
+                    .WithOne(b => b.Invoice)
                     .HasForeignKey<Invoice>(d => d.BookingId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Invoice__booking__5AEE82B9");
+
+                entity.HasOne(e => e.Payment)
+                    .WithMany(p => p.Invoices)
+                    .HasForeignKey(e => e.PaymentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Invoice_Payment");
             });
 
             modelBuilder.Entity<Manager>(entity =>
@@ -335,7 +366,7 @@ namespace PetSpa.Data
                     .IsUnicode(false)
                     .HasColumnName("Id");
 
-                entity.Property(e => e.AdminId) // Thêm cột AdminId
+                entity.Property(e => e.AdminId)
                     .HasColumnName("adminID");
 
                 entity.Property(e => e.FullName)
@@ -353,30 +384,30 @@ namespace PetSpa.Data
                     .IsUnicode(false)
                     .HasColumnName("phoneNumber");
 
-                entity.HasOne(d => d.User) // Quan hệ với bảng AspNetUsers
+                entity.HasOne(d => d.User)
                     .WithOne()
                     .HasForeignKey<Manager>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Manager_AspNetUsers");
 
-                entity.HasOne(d => d.Admins) // Quan hệ với bảng Admin
+                entity.HasOne(d => d.Admins)
                     .WithMany(p => p.Managers)
                     .HasForeignKey(d => d.AdminId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Manager_Admin");
 
-                entity.HasMany(d => d.Staffs) // Quan hệ với bảng Staff
+                entity.HasMany(d => d.Staffs)
                     .WithOne(p => p.Manager)
                     .HasForeignKey(d => d.ManagerManaId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Staff_Manager_ManagerManaId");
-                entity.HasMany(d => d.Vouchers) // Quan hệ với bảng Voucher
-                                    .WithOne(p => p.Managers)
-                                    .HasForeignKey(d => d.ManaId)
-                                    .OnDelete(DeleteBehavior.ClientSetNull)
-                                    .HasConstraintName("FK_Voucher_Manager");
+                entity.HasMany(d => d.Vouchers)
+                    .WithOne(p => p.Managers)
+                    .HasForeignKey(d => d.ManaId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Voucher_Manager");
 
-                entity.HasMany(d => d.Bookings) // Quan hệ với bảng Booking
+                entity.HasMany(d => d.Bookings)
                     .WithOne(p => p.Manager)
                     .HasForeignKey(d => d.ManaId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
@@ -385,23 +416,34 @@ namespace PetSpa.Data
 
             modelBuilder.Entity<Payment>(entity =>
             {
-                entity.HasKey(e => e.Id);
+                entity.HasKey(e => e.PaymentId).HasName("PK__Payment__123123123");
 
-                entity.Property(e => e.RequiredAmount)
-                    .HasColumnType("decimal(19, 2)");
+                entity.ToTable("Payment");
 
-                entity.Property(e => e.PaidAmount)
-                    .HasColumnType("decimal(19, 2)");
+                entity.Property(e => e.PaymentId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("paymentID");
 
-                entity.HasOne(e => e.Invoice)
-                    .WithMany(i => i.Payments)
-                    .HasForeignKey(e => e.InvoiceId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(e => e.TransactionId)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnName("transactionId");
 
-                entity.HasOne(e => e.Merchant)
-                    .WithMany()
-                    .HasForeignKey(e => e.MerchantId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnName("createdDate");
+                entity.Property(e => e.ExpirationTime)
+                    .HasColumnName("expirationTime");
+
+                entity.Property(e => e.PaymentMethod)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnName("paymentMethod");
+
+                entity.HasMany(e => e.Invoices)
+                    .WithOne(e => e.Payment)
+                    .HasForeignKey(i => i.PaymentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Invoice_Payment");
             });
 
             modelBuilder.Entity<Pet>(entity =>
@@ -439,7 +481,7 @@ namespace PetSpa.Data
                 entity.HasOne(d => d.Cus).WithMany(p => p.Pets)
                     .HasForeignKey(d => d.CusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-.HasConstraintName("FK__Pet__cusID__47DBAE45");
+                    .HasConstraintName("FK__Pet__cusID__47DBAE45");
             });
 
             modelBuilder.Entity<Service>(entity =>
@@ -467,8 +509,10 @@ namespace PetSpa.Data
                     .HasColumnName("serviceName");
                 entity.Property(e => e.Status).HasColumnName("status");
                 entity.Property(e => e.Duration)
-                    .HasColumnType("time(7)") // Định nghĩa kiểu dữ liệu time(7) cho Duration
+                    .HasColumnType("time(7)")
                     .HasColumnName("duration");
+
+                entity.Property(e => e.Points).HasColumnName("points");
                 entity.Property(e => e.Price)
                     .HasColumnType("decimal(10, 2)")
                     .HasColumnName("price");
@@ -509,13 +553,13 @@ namespace PetSpa.Data
                 entity.Property(e => e.ManagerManaId)
                     .HasColumnName("ManagerManaId");
 
-                entity.HasOne(d => d.User) // Quan hệ với bảng AspNetUsers
+                entity.HasOne(d => d.User)
                     .WithOne()
                     .HasForeignKey<Staff>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-.HasConstraintName("FK_Staff_AspNetUsers");
+                    .HasConstraintName("FK_Staff_AspNetUsers");
 
-                entity.HasOne(d => d.Manager) // Quan hệ với bảng Manager
+                entity.HasOne(d => d.Manager)
                     .WithMany(p => p.Staffs)
                     .HasForeignKey(d => d.ManagerManaId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
@@ -569,14 +613,8 @@ namespace PetSpa.Data
                     .HasConstraintName("FK__Voucher__manaID__693CA210");
             });
 
-            modelBuilder.Entity<Merchant>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-            });
-
             OnModelCreatingPartial(modelBuilder);
         }
-
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
 }

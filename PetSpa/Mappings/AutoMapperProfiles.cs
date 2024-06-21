@@ -76,15 +76,20 @@ namespace PetSpa.Mappings
             CreateMap<UpdateServiceRequestDTO, Service>()
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration)))
                 .ForMember(dest => dest.ComboId, opt => opt.MapFrom(src => src.ComboId));
+
             CreateMap<AddBookingRequestDTO, Booking>()
            .ForMember(dest => dest.BookingId, opt => opt.Ignore())
-           .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails));
+           .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails)).ForMember(dest => dest.Customer, opt => opt.Ignore())
+            .ForMember(dest => dest.TotalAmount, opt => opt.Ignore());
             CreateMap<Booking, BookingDTO>()
-             .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails));
+             .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails)).
+             ForMember(dest => dest.Cus, opt => opt.MapFrom(src => src.Customer.FullName)) // Ánh xạ tên khách hàng
+            .ForMember(dest => dest.Cus, opt => opt.MapFrom(src => src.Customer))
+            .ForMember(dest => dest.CusId, opt => opt.MapFrom(src => src.Customer.CusId));
 
             CreateMap<AddBookingDetailRequestDTO, BookingDetail>()
            .ForMember(dest => dest.BookingDetailId, opt => opt.Ignore())
-           .ForMember(dest => dest.Duration, opt => opt.Ignore()); // Ensure Duration is mapped correctly
+           .ForMember(dest => dest.Duration, opt => opt.Ignore());
 
             CreateMap<BookingDetail, BookingDetailDTO>().ReverseMap();
 

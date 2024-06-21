@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PetSpa.CustomActionFilter;
 using PetSpa.Data;
+using PetSpa.Helper;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Booking;
 using PetSpa.Repositories.BookingRepository;
@@ -22,14 +23,16 @@ namespace PetSpa.Controllers
         private readonly IBookingRepository bookingRepository;
         private readonly PetSpaContext petSpaContext;
         private readonly ApiResponseService responseService;
+        private readonly ILogger<BookingController> logger;
 
-        public BookingController(IMapper mapper, ApiResponseService apiResponseService, IBookingRepository bookingRepository, PetSpaContext petSpaContext, ApiResponseService responseService)
+        public BookingController(IMapper mapper, ApiResponseService apiResponseService, IBookingRepository bookingRepository, PetSpaContext petSpaContext, ApiResponseService responseService, ILogger<BookingController> logger)
         {
             this.mapper = mapper;
             this.apiResponseService = apiResponseService;
             this.bookingRepository = bookingRepository;
             this.petSpaContext = petSpaContext;
             this.responseService = responseService;
+            this.logger = logger;
         }
 
         [HttpPost]
@@ -39,14 +42,6 @@ namespace PetSpa.Controllers
             {
                 return BadRequest("Scheduled date cannot be later than the current date. Please choose another date.");
             }
-
-            //var isScheduleTaken = await bookingRepository.IsScheduleTakenAsync(addBookingRequestDTO.BookingSchedule);
-            //if (isScheduleTaken)
-            //{
-            //    return BadRequest("Thời gian này đã được đặt. Vui lòng chọn lịch khác.");
-            //}
-
-
             var managerWithLeastBookings = await bookingRepository.GetManagerWithLeastBookingsAsync();
             if (managerWithLeastBookings == null)
             {
@@ -56,10 +51,17 @@ namespace PetSpa.Controllers
             var bookingDomainModels = mapper.Map<Booking>(addBookingRequestDTO);
             bookingDomainModels.ManaId = managerWithLeastBookings.ManaId;
             bookingDomainModels.StartDate = addBookingRequestDTO.BookingSchedule;
+            bookingDomainModels.PaymentStatus = false;
+            //
             var totalDuration = bookingDomainModels.BookingDetails.Sum(bd => bd.Duration.Ticks);
             var totalDurationTimeSpan = new TimeSpan(totalDuration) + TimeSpan.FromMinutes(20);
             bookingDomainModels.EndDate = bookingDomainModels.StartDate + totalDurationTimeSpan;
-            bookingDomainModels.TotalAmount = bookingDomainModels.BookingDetails.Sum(bd => (bd.Combo?.Price ?? 0) + (bd.Service?.Price ?? 0));
+            bookingDomainModels.TotalAmount = bookingDomainModels.BookingDetails.Sum(bd =>
+            {
+                var comboPrice = bd.ComboId.HasValue ? petSpaContext.Combos.FirstOrDefault(c => c.ComboId == bd.ComboId)?.Price ?? 0 : 0;
+                var servicePrice = bd.ServiceId.HasValue ? petSpaContext.Services.FirstOrDefault(s => s.ServiceId == bd.ServiceId)?.Price ?? 0 : 0;
+                return comboPrice + servicePrice;
+            });
             var startOfDay = new DateTime(bookingDomainModels.StartDate.Year, bookingDomainModels.StartDate.Month, bookingDomainModels.StartDate.Day, 8, 0, 0);
             var endOfDay = new DateTime(bookingDomainModels.EndDate.Year, bookingDomainModels.EndDate.Month, bookingDomainModels.EndDate.Day, 20, 0, 0);
 
@@ -84,11 +86,13 @@ namespace PetSpa.Controllers
             }
 
             await bookingRepository.CreateAsync(bookingDomainModels);
+            var customer = await petSpaContext.Customers.FirstOrDefaultAsync(c => c.CusId == addBookingRequestDTO.CusId);
+            if (customer != null)
+            {
+                bookingDomainModels.Customer = customer;
+            }
             return Ok(mapper.Map<BookingDTO>(bookingDomainModels));
         }
-
-
-
         [HttpGet("available")]
         public IActionResult GetAvailableStaffs([FromQuery] DateTime startTime, [FromQuery] DateTime endTime)
         {

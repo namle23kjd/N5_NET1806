@@ -54,7 +54,7 @@ namespace PetSpa.Controllers
         // Get /api/Customer/{id}
         [HttpGet]
         [Route("{CusId:guid}")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> GetById([FromRoute] Guid CusId)
         {
             try
