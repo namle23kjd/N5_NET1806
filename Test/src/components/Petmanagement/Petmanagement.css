@@ -1,0 +1,35 @@
+.pet-management-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+  }
+  
+  .add-pet-button {
+    margin-bottom: 20px;
+  }
+  
+  .ant-modal-title {
+    font-size: 1.5em;
+    font-weight: bold;
+  }
+  
+  .ant-form-item {
+    margin-bottom: 15px;
+  }
+  
+  .error-message {
+    color: red;
+    margin-top: 10px;
+  }
+  
+  .ant-table-thead > tr > th {
+    background-color: #fafafa;
+    font-weight: bold;
+  }
+  
+  .ant-table-tbody > tr > td {
+    padding: 10px;
+  }
+  
+  .ant-btn-link {
+    padding: 0;
+  }

@@ -1,0 +1,49 @@
+body {
+  background-color: #f9f9f9;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #333;
+  line-height: 1.6;
+}
+
+.blog-details-container {
+  width: 80%;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.blog-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.blog-header-image {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.blog-title {
+  margin: 20px 0 10px;
+  font-size: 2.5em;
+  color: #333;
+}
+
+.blog-meta {
+  color: #666;
+}
+
+.blog-content {
+  margin-top: 20px;
+  font-size: 1.1em;
+  line-height: 1.8;
+  color: #555;
+}
+
+.blog-content p {
+  margin-bottom: 20px;
+}
