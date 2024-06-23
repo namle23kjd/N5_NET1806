@@ -272,6 +272,34 @@ namespace PetSpa.Controllers
             }
             return Ok(mapper.Map<BookingDTO>(bookingDomainModel));
         }
+        [HttpPut("update-time/{bookingId:Guid}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateBookingTime([FromRoute] Guid bookingId, [FromBody] UpdateBookingTimeRequest updateBookingTimeRequest)
+        {
+            if (updateBookingTimeRequest.NewDateTime < DateTime.Now)
+            {
+                return BadRequest("New scheduled date cannot be in the past.");
+            }
+
+            var booking = await bookingRepository.GetByIdAsync(bookingId);
+            if (booking == null)
+            {
+                return NotFound("Booking not found.");
+            }
+
+            // Check if 24 hours have passed since the booking was created
+           
+
+            booking.StartDate = updateBookingTimeRequest.NewDateTime;
+
+            var updatedBooking = await bookingRepository.UpdateAsync(bookingId, booking);
+            if (updatedBooking == null)
+            {
+                return BadRequest("Failed to update booking.");
+            }
+
+            return Ok(responseService.CreateSuccessResponse(mapper.Map<BookingDTO>(updatedBooking)));
+        }
 
         [HttpPut]
         [Route("{BookingId:Guid}")]

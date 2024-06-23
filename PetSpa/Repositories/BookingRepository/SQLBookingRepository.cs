@@ -57,14 +57,9 @@ namespace PetSpa.Repositories.BookingRepository
             var existingBooking = await dbContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == BookingId);
             if (existingBooking == null) return null;
 
-            existingBooking.CusId = booking.CusId;
-            existingBooking.Status = booking.Status;
-            existingBooking.BookingSchedule = booking.BookingSchedule;
-            existingBooking.TotalAmount = booking.TotalAmount;
-            existingBooking.Feedback = booking.Feedback;
+            
             existingBooking.StartDate = booking.StartDate;
-            existingBooking.EndDate = booking.EndDate;
-            existingBooking.CheckAccept = booking.CheckAccept;
+            
 
             await dbContext.SaveChangesAsync();
             return existingBooking;
