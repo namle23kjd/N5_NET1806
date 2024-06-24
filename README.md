@@ -49,9 +49,9 @@ The software is designed to manage jewelry sales for a company operating a singl
 |          | UC-59    | Reset Password             |
 |          | UC-60    | Change Password            |
 |          | UC-61    | Register Account           |
-|          | UC-62    | Add Account                |
-|          | UC-63    | Edit Account               |
-|          | UC-64    | Delete Account             |
+|          | UC-84    | Add Pet                    |
+|          | UC-85    | Edit Pet                   |
+|          | UC-86    | Delete Pet                 |
 | Sprint 2 | UC-66    | Search Account             |
 |          | UC-93    | Grant Permissions          |
 |          | UC-73    | Update Profile             |
@@ -63,9 +63,9 @@ The software is designed to manage jewelry sales for a company operating a singl
 |          | UC-79    | Add Service                |
 |          | UC-80    | Edit Service               |
 |          | UC-81    | Delete Service             |
-|          | UC-84    | Add Pet                    |
-|          | UC-85    | Edit Pet                   |
-|          | UC-86    | Delete Pet                 |
+|          | UC-62    | Add Account                |
+|          | UC-63    | Edit Account               |
+|          | UC-64    | Delete Account             |
 |          | UC-88    | Add Combo                  |
 |          | UC-89    | Edit Combo                 |
 |          | UC-90    | Delete Combo               |
@@ -86,9 +86,9 @@ The software is designed to manage jewelry sales for a company operating a singl
 |-------------|---------------|------------------------|
 | Ha Huy Hoang     | UC-57   | Login                  |
 | Ha Huy Hoang     | UC-60   | Change Password        |
-| Tran Phan Phuc Nguyen    | UC-62    | Add Account                |
-| Tran Phan Phuc Nguyen    | UC-63    | Edit Account               |
+| Tran Phan Phuc Nguyen    | UC-84    | Add Pet                    |
+| Tran Phan Phuc Nguyen    | UC-85    | Edit Pet                   |
 | Nguyen Ba Minh Duc       | UC-61    | Register Account           |
 | Nguyen Ba Minh Duc       | UC-59    | Reset Password             |
 | Pham Tien Dat   | UC-58    | Logout                     |
-| Pham Tien Dat   | UC-64    | Delete Account             |
+| Pham Tien Dat   | UC-86    | Delete Pet                 |
