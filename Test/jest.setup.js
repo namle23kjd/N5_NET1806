@@ -1,4 +1,6 @@
+/* eslint-disable no-undef */
 import '@testing-library/jest-dom';
+import fetchMock from "jest-fetch-mock";
 Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: jest.fn().mockImplementation(query => ({
@@ -12,3 +14,8 @@ Object.defineProperty(window, 'matchMedia', {
       dispatchEvent: jest.fn(),
     })),
   });
+
+
+
+fetchMock.enableMocks();
+require("jest-fetch-mock").enableMocks();

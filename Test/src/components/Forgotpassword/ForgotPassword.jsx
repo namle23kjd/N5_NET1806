@@ -1,18 +1,20 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import COVER_IMAGE from "../../assets/images/background/1.png";
+import React from "react";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log(email);
-    console.log("ccccccc");
-    var item = { email };
+    const item = { email };
+
     try {
       let response = await fetch(
         "https://localhost:7150/api/Auth/forgot-password",
@@ -27,17 +29,18 @@ function ForgotPassword() {
       );
 
       if (response.ok) {
-        setMessage("Kiểm tra email để nhận hướng dẫn đặt lại mật khẩu");
+        setMessage("Check your email for password reset instructions.");
       } else {
-        setMessage("Email không tồn tại hoặc có lỗi xảy ra");
+        setMessage("Email not found or an error occurred.");
       }
     } catch (error) {
-      setMessage("Có lỗi xảy ra");
+      setMessage("An error occurred.");
       console.error(error);
     } finally {
-      setIsLoading(false); // Kết thúc quá trình gửi
+      setIsLoading(false);
     }
   };
+
   return (
     <div
       className="flex items-center justify-center h-screen"

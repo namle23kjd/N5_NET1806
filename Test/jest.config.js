@@ -6,6 +6,14 @@ export default {
     '^.+\\.jsx?$': 'babel-jest'
   },
   moduleNameMapper: {
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
-  }
+    "\\.(jpg|jpeg|png|gif|webp|svg)$": "<rootDir>/src/mock/fileMock.js",
+  },
+  moduleFileExtensions: ["js", "jsx", "json", "node"],
+  // moduleNameMapper: {
+  //   '\\.(css|less|scss|sass)$': 'identity-obj-proxy'
+  // }
 };
+
+
+
+
