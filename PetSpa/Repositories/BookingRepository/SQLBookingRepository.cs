@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
+using PetSpa.Models.DTO.Booking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,14 +28,13 @@ namespace PetSpa.Repositories.BookingRepository
         public async Task<List<Booking>> GetAllAsync()
         {
             return await dbContext.Bookings
+                .AsNoTracking()
                 .Include(b => b.BookingDetails)
                 .ThenInclude(bd => bd.Combo)
                 .Include(b => b.BookingDetails)
                 .ThenInclude(bd => bd.Service)
                 .Include(b => b.Customer)
                 .Include(b => b.Manager)
-                .Include(b => b.Invoice)
-                .Include(b => b.Voucher)
                 .ToListAsync();
         }
 
@@ -47,8 +47,6 @@ namespace PetSpa.Repositories.BookingRepository
                 .ThenInclude(bd => bd.Service)
                 .Include(b => b.Customer)
                 .Include(b => b.Manager)
-                .Include(b => b.Invoice)
-                .Include(b => b.Voucher)
                 .FirstOrDefaultAsync(b => b.BookingId == BookingId);
         }
 
@@ -57,7 +55,6 @@ namespace PetSpa.Repositories.BookingRepository
             var existingBooking = await dbContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == BookingId);
             if (existingBooking == null) return null;
 
-            existingBooking.CusId = booking.CusId;
             existingBooking.Status = booking.Status;
             existingBooking.BookingSchedule = booking.BookingSchedule;
             existingBooking.TotalAmount = booking.TotalAmount;
@@ -65,7 +62,6 @@ namespace PetSpa.Repositories.BookingRepository
             existingBooking.StartDate = booking.StartDate;
             existingBooking.EndDate = booking.EndDate;
             existingBooking.CheckAccept = booking.CheckAccept;
-
             await dbContext.SaveChangesAsync();
             return existingBooking;
         }
@@ -73,7 +69,7 @@ namespace PetSpa.Repositories.BookingRepository
 
         public async Task<bool> IsScheduleTakenAsync(DateTime bookingSchedule)
         {
-            return await dbContext.Bookings.AnyAsync(b => b.BookingSchedule == bookingSchedule && b.Status);
+            return await dbContext.Bookings.AnyAsync(b => b.BookingSchedule == bookingSchedule && b.Status == BookingStatus.InProgress);
 
         }
 
@@ -88,7 +84,7 @@ namespace PetSpa.Repositories.BookingRepository
         {
             return await dbContext.Bookings
                 .Include(b => b.BookingDetails)
-                .Where(b => b.Status == true)
+                .Where(b => b.Status == BookingStatus.Completed)
                 .ToListAsync();
         }
 
@@ -205,6 +201,42 @@ namespace PetSpa.Repositories.BookingRepository
             }
         }
 
+        public async Task<List<Booking>> GetBookingsByStatusAsync(BookingStatus status)
+        {
+            return await dbContext.Bookings
+                    .Include(b => b.BookingDetails)
+                    .Where(b => b.Status == status)
+                    .ToListAsync();
+        }
 
+        public async Task<List<Booking>> GetBookingsByApprovalStatusAsync(bool isApproved)
+        {
+            return await dbContext.Bookings
+                    .Include(b => b.BookingDetails)
+                    .Where(b => b.CheckAccept == isApproved)
+                    .ToListAsync();
+        }
+
+        public async Task<Booking?> GetCurrentBookingForStaffAsync(Guid staffId)
+        {
+            return await dbContext.BookingDetails
+                         .Include(bd => bd.Booking)
+                         .Where(bd => bd.StaffId == staffId && bd.Booking.Status == BookingStatus.InProgress)
+                         .Select(bd => bd.Booking)
+                         .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<Booking>> GetBookingHistoryForStaffAsync(Guid staffId)
+        {
+            return await dbContext.Bookings
+            .Include(b => b.BookingDetails)
+                .ThenInclude(bd => bd.Combo)
+            .Include(b => b.BookingDetails)
+                .ThenInclude(bd => bd.Service)
+            .Include(b => b.Manager)
+            .Where(b => b.BookingDetails.Any(bd => bd.StaffId == staffId))
+            .ToListAsync();
+            ;
+        }
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PetSpa.Models.Domain;
+using PetSpa.Models.DTO.Booking;
 using System;
 using System.Collections.Generic;
 
@@ -145,7 +146,12 @@ namespace PetSpa.Data
                     .HasColumnType("text")
                     .HasColumnName("feedback");
 
-                entity.Property(e => e.Status).HasColumnName("status");
+                entity.Property(e => e.Status)
+                    .HasColumnName("status")
+                    .HasConversion<int?>() // Store the enum as an integer in the database
+                    .HasDefaultValue(BookingStatus.NotStarted);
+
+
                 entity.Property(e => e.PaymentStatus).HasColumnName("paymentstatus");
 
                 entity.Property(e => e.TotalAmount)
@@ -206,7 +212,7 @@ namespace PetSpa.Data
                     .IsRequired(false);
 
                 entity.Property(e => e.StaffId)
-                    .HasColumnName("staffID");
+                    .HasColumnName("staffID").IsRequired(false);
 
                 entity.Property(e => e.ComboId)
                     .HasColumnName("comboID")

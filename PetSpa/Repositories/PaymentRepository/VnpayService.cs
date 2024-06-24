@@ -31,7 +31,7 @@ namespace PetSpa.Repositories.PaymentRepository
             pay.AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"]);
             pay.AddRequestData("vnp_OrderInfo", $"{model.Name} {model.OrderDescription} {model.Amount}");
             pay.AddRequestData("vnp_OrderType", model.OrderType);
-            pay.AddRequestData("vnp_ReturnUrl", urlCallBack);
+            pay.AddRequestData("vnp_ReturnUrl", string.IsNullOrEmpty(model.ReturnUrl) ? urlCallBack : model.ReturnUrl);
             pay.AddRequestData("vnp_TxnRef", transactionId);
             if (_configuration.GetValue<int>("Vnpay:TransactionTimeout") > 0)
             {

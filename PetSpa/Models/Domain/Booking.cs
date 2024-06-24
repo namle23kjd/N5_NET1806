@@ -1,11 +1,12 @@
 ﻿using PetSpa.Models.Domain;
+using PetSpa.Models.DTO.Booking;
 
 public partial class Booking
 {
     public Guid BookingId { get; set; }
     public Guid CusId { get; set; }
     public Guid ManaId { get; set; }
-    public bool Status { get; set; }
+    public BookingStatus? Status { get; set; }
     public decimal? TotalAmount { get; set; }
     public DateTime? BookingSchedule { get; set; }
     public string? Feedback { get; set; }

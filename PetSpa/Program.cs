@@ -86,7 +86,8 @@ namespace PetSpa
             builder.Services.AddControllers().AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.DateFormatString = "yyyy-MM-dd";
+                options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
             });
             builder.Services.AddControllers().AddJsonOptions(options =>
             {

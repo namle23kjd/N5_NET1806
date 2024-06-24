@@ -114,8 +114,14 @@ namespace PetSpa.Controllers
                             }
 
                             await transaction.CommitAsync();
+                            var returnUrl = Request.Query["vnp_ReturnUrl"];
+                            if (!string.IsNullOrEmpty(returnUrl))
+                            {
+                                return Redirect(returnUrl);
+                            }
                             return Ok(new { PaymentId = payment.PaymentId, TransactionId = payment.TransactionId });
-                        }
+                        
+                    }
                         else
                         {
                             _logger.LogError("Payment not found for TransactionId: {TransactionId}", response.TransactionId);
