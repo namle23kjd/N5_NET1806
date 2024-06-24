@@ -98,7 +98,7 @@ The software is designed to manage jewelry sales for a company operating a singl
 |-------------|---------------|------------------------|
 | Ha Huy Hoang     | UC-73    | Update Profile             |
 | Ha Huy Hoang     | UC-74    | View Profile               |
-| Ga Huy Hoang     | UC-77    | Delete Staff               |
+| Ha Huy Hoang     | UC-77    | Delete Staff               |
 | Tran Phan Phuc Nguyen    | UC-78    | View Service               |
 | Tran Phan Phuc Nguyen    | UC-79    | Add Service                |
 | Nguyen Ba Minh Duc       | UC-80    | Edit Service               |
