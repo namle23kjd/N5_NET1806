@@ -44,54 +44,54 @@ The software is designed to manage jewelry sales for a company operating a singl
 ### Table 1: User Stories of Each Sprint
 | Sprint   | User Story ID | Description                |
 |----------|----------------|----------------------------|
-| Sprint 1 | UC-57    | Login                      |
-|          | UC-58    | Logout                     |
-|          | UC-59    | Reset Password             |
-|          | UC-60    | Change Password            |
-|          | UC-61    | Register Account           |
-|          | UC-84    | Add Pet                    |
-|          | UC-85    | Edit Pet                   |
-|          | UC-86    | Delete Pet                 |
-| Sprint 2 | UC-78    | View Service               |
-|          | UC-79    | Add Service                |
-|          | UC-80    | Edit Service               |
-|          | UC-81    | Delete Service             |
-|          | UC-73    | Update Profile             |
-|          | UC-74    | View Profile               |
-|          | UC-75    | Add Staff                  |
-|          | UC-76    | Edit Staff                 |
-|          | UC-77    | Delete Staff               |
-| Sprint 3 | UC-66    | Search Account             |
-|          | UC-62    | Add Account                |
-|          | UC-63    | Edit Account               |
-|          | UC-64    | Delete Account             |
-|          | UC-88    | Add Combo                  |
-|          | UC-89    | Edit Combo                 |
-|          | UC-90    | Delete Combo               |
-|          | UC-91    | View Combo                 |
-|          | UC-93    | Grant Permissions          |
-| Sprint 4 | UC-67    | Create Appointment         |
-|          | UC-68    | Cancel Appointment         |
-|          | UC-69    | Update Appointment         |
-|          | UC-70    | View Booking history       |
-|          | UC-72    | Evaluate The Service       |
-|          | UC-72    | Staff Dashboard            |
-|          | UC-49    | Save Payment               |
-|          | UC-50    | View Payment History       |
-|          | UC-50    | View Transaction History   |
-|          | UC-92    | Assign Task                |
+| Sprint 1 | UC-01    | Login                      |
+|          | UC-02    | Logout                     |
+|          | UC-03    | Reset Password             |
+|          | UC-04    | Change Password            |
+|          | UC-05    | Register Account           |
+|          | UC-06    | Add Pet                    |
+|          | UC-07    | Edit Pet                   |
+|          | UC-08    | Delete Pet                 |
+| Sprint 2 | UC-09    | View Service               |
+|          | UC-10    | Add Service                |
+|          | UC-11    | Edit Service               |
+|          | UC-12    | Delete Service             |
+|          | UC-13    | Update Profile             |
+|          | UC-14    | View Profile               |
+|          | UC-15    | Add Staff                  |
+|          | UC-16    | Edit Staff                 |
+|          | UC-17    | Delete Staff               |
+| Sprint 3 | UC-18    | Search Account             |
+|          | UC-19    | Add Account                |
+|          | UC-20    | Edit Account               |
+|          | UC-21    | Delete Account             |
+|          | UC-22    | Add Combo                  |
+|          | UC-23    | Edit Combo                 |
+|          | UC-24    | Delete Combo               |
+|          | UC-25    | View Combo                 |
+|          | UC-26    | Grant Permissions          |
+| Sprint 4 | UC-27    | Create Appointment         |
+|          | UC-28    | Cancel Appointment         |
+|          | UC-29    | Update Appointment         |
+|          | UC-30    | View Booking history       |
+|          | UC-31    | Evaluate The Service       |
+|          | UC-32    | Staff Dashboard            |
+|          | UC-33    | Save Payment               |
+|          | UC-34    | View Payment History       |
+|          | UC-35    | View Transaction History   |
+|          | UC-36    | Assign Task                |
 
 ### Table 2: Member Assignment for Sprint 1
 | Member Name | User Story ID | Description            |
 |-------------|---------------|------------------------|
-| Ha Huy Hoang     | UC-57   | Login                  |
-| Ha Huy Hoang     | UC-60   | Change Password        |
-| Tran Phan Phuc Nguyen    | UC-84    | Add Pet                    |
-| Tran Phan Phuc Nguyen    | UC-85    | Edit Pet                   |
-| Nguyen Ba Minh Duc       | UC-61    | Register Account           |
-| Nguyen Ba Minh Duc       | UC-59    | Reset Password             |
-| Pham Tien Dat   | UC-58    | Logout                     |
-| Pham Tien Dat   | UC-86    | Delete Pet                 |
+| Ha Huy Hoang     | UC-01   | Login                  |
+| Ha Huy Hoang     | UC-04   | Change Password        |
+| Tran Phan Phuc Nguyen    | UC-06    | Add Pet                    |
+| Tran Phan Phuc Nguyen    | UC-07    | Edit Pet                   |
+| Nguyen Ba Minh Duc       | UC-05    | Register Account           |
+| Nguyen Ba Minh Duc       | UC-03    | Reset Password             |
+| Pham Tien Dat   | UC-02    | Logout                     |
+| Pham Tien Dat   | UC-08    | Delete Pet                 |
 
 ### Table 3: Member Assignment for Sprint 2
 | Member Name | User Story ID | Description            |
