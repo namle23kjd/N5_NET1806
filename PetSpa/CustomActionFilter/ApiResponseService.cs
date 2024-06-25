@@ -44,6 +44,10 @@ namespace PetSpa.CustomActionFilter
             };
             return new ObjectResult(response) { StatusCode = statusCode };
         }
+        public IActionResult CreateBadRequestResponse(string message)
+        {
+            return CreateResponse(false, (object?)null, message, 400);
+        }
 
         public IActionResult CreateUnauthorizedResponse()
         {
@@ -59,12 +63,27 @@ namespace PetSpa.CustomActionFilter
         {
             return CreateResponse(false, (object?)null, "Payment required", 404);
         }
+        public IActionResult CreateConflictResponse(string message)
+        {
+            return CreateResponse(false, (object?)null, message, 409);
+        }
 
         public IActionResult CreateCreatedResponse<T>(string actionName, object routeValues, T data)
         {
             var response = CreateSuccessResponse(data);
             return new CreatedAtActionResult(actionName, null, routeValues, response);
         }
+
+        public IActionResult CreateInternalServerErrorResponse(string message = "An error occurred on the server")
+        {
+            return CreateResponse(false, (object?)null, message, 500);
+        }
+
+        public IActionResult CreateServiceUnavailableResponse(string message = "Service is unavailable")
+        {
+            return CreateResponse(false, (object?)null, message, 503);
+        }
+
     }
 }
 

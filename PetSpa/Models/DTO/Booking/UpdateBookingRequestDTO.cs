@@ -4,7 +4,7 @@
     {
         public Guid CusId { get; set; }
         public Guid StaffId { get; set; }
-        public bool Status { get; set; }
+        public BookingStatus Status { get; set; }
         public DateOnly? StartDate { get; set; }
 
         public DateOnly? EndDate { get; set; }

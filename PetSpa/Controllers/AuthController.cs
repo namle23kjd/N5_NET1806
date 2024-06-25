@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using PetSpa.CustomActionFilter;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
@@ -44,7 +45,13 @@ namespace PetSpa.Controllers
 
 
 
-
+        private static string GenerateRandomPassword(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
 
         [HttpPost("google")]
 
@@ -61,26 +68,18 @@ namespace PetSpa.Controllers
 
                 if (user != null)
                 {
-                    bool hasPassword = await _userManager.HasPasswordAsync(user);
-                    if (!hasPassword)
+                    var cus = await petSpaContext.Customers.FirstOrDefaultAsync(x => x.Id == user.Id);
+                    var data = new PetSpa.Models.DTO.ApiResponseDTO.Data
                     {
-                        var cus = await petSpaContext.Customers.FirstOrDefaultAsync(x => x.Id == user.Id);
-                        var data = new PetSpa.Models.DTO.ApiResponseDTO.Data
+                        User = new User
                         {
-                            User = new User
-                            {
-                                Id = cus.CusId != null? cus.CusId : user.Id,
-                                Email = user.Email,
-                                Name = user.Email,
-                            },
-                            Token = tokenRepository.CreateJWTToken(user, "Customer", 15)
-                        };
-                        return Ok(_apiResponse.LoginSuccessResponse(data, "Login Succeeded"));
-                    }
-                    else
-                    {
-                        return BadRequest(_apiResponse.CreateErrorResponse("Email is already registered with a password"));
-                    }
+                            Id = cus?.CusId ?? user.Id,
+                            Email = user.Email,
+                            Name = user.Email,
+                        },
+                        Token = tokenRepository.CreateJWTToken(user, "Customer", 15)
+                    };
+                    return Ok(_apiResponse.LoginSuccessResponse(data, "Login Succeeded"));
                 }
                 else
                 {
@@ -89,7 +88,10 @@ namespace PetSpa.Controllers
                         UserName = email.Email,
                         Email = email.Email
                     };
-                    var createResult = await _userManager.CreateAsync(newUser);
+
+                    // Generate a random password for the new user
+                    var randomPassword = GenerateRandomPassword(8)+"@A2a";
+                    var createResult = await _userManager.CreateAsync(newUser, randomPassword);
 
                     if (createResult.Succeeded)
                     {
@@ -99,17 +101,45 @@ namespace PetSpa.Controllers
                             var createdUser = await _userManager.FindByEmailAsync(email.Email);
                             if (createdUser != null)
                             {
-                                var newCus = await petSpaContext.Customers.FirstOrDefaultAsync(x => x.Id == createdUser.Id);
+                                var newCus = new Customer
+                                {
+                                    Id = createdUser.Id,
+                                    CusRank = "bronze"
+                                   
+                                    // Set other properties as necessary
+                                };
+                                await petSpaContext.Customers.AddAsync(newCus);
+                                await petSpaContext.SaveChangesAsync();
+
+                                var savedCus = await petSpaContext.Customers.FirstOrDefaultAsync(x => x.Id == createdUser.Id);
+                                if (savedCus == null)
+                                {
+                                    return BadRequest(_apiResponse.CreateErrorResponse("Error retrieving saved customer"));
+                                }
+                                var callbackUrl = $"{randomPassword}"; // Đường link frontend
+
+                                // **Sử dụng HTML trong email**
+                                var emailBody = $@" Xin chào {newUser.Email}
+                             Password,link here:{callbackUrl} ";
+
+                                var message = new Message(new string[] { createdUser.Email }, "Password", emailBody);
+                                _emailSender.SendEmail(message);
+                                var response = _apiResponse.CreateSuccessResponse("Send email successfully");
+
                                 var data = new PetSpa.Models.DTO.ApiResponseDTO.Data
                                 {
                                     User = new User
                                     {
-                                        Id = newCus.CusId,
+                                        Id = savedCus.CusId,
                                         Email = createdUser.Email,
                                         Name = createdUser.UserName,
                                     },
                                     Token = tokenRepository.CreateJWTToken(createdUser, "Customer", 15)
                                 };
+
+
+                                // **Sử dụng HTML trong email**
+                                
                                 return Ok(_apiResponse.LoginSuccessResponse(data, "Register Succeeded"));
                             }
                             else
@@ -130,10 +160,12 @@ namespace PetSpa.Controllers
             }
             catch (Exception ex)
             {
-                await Console.Out.WriteLineAsync(ex.Message);
+               
                 return StatusCode(500, new { message = $"An error occurred: {ex.Message}" });
             }
         }
+
+
 
 
 
@@ -176,7 +208,7 @@ namespace PetSpa.Controllers
                         petSpaContext.Customers.Add(customer);
                         if (await petSpaContext.SaveChangesAsync() > 0)
                         {
-                            
+
 
                             var data = new PetSpa.Models.DTO.ApiResponseDTO.Data
                             {
@@ -255,7 +287,7 @@ namespace PetSpa.Controllers
                     if (roles != null && roles.Any())
                     {
                         // Tạo Token
-                      var cus = await  petSpaContext.Customers.FirstOrDefaultAsync(x => x.Id == user.Id);
+                        var cus = await petSpaContext.Customers.FirstOrDefaultAsync(x => x.Id == user.Id);
                         var data = new PetSpa.Models.DTO.ApiResponseDTO.Data
                         {
                             User = new User
@@ -312,7 +344,7 @@ namespace PetSpa.Controllers
             return BadRequest(_apiResponse.CreateErrorResponse("User not found "));
         }
 
-            [HttpPost("forgot-password")]
+        [HttpPost("forgot-password")]
         //[Route("{email}")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest Fotgotpassword)
         {

@@ -28,6 +28,7 @@ using PetSpa.Repositories.StaffRepository;
 using PetSpa.Repositories.CustomerRepository;
 using Hangfire;
 using System.Reflection;
+using PetSpa.Repositories.PaymentRepository;
 
 namespace PetSpa
 {
@@ -40,7 +41,7 @@ namespace PetSpa
             // Add services to the container.
             var logger = new LoggerConfiguration()
                 .WriteTo.Console()
-                .WriteTo.File("Logs/Pet_Spa.txt", rollingInterval: RollingInterval.Minute)
+                .WriteTo.File("Logs/Pet_Spa.txt", rollingInterval: RollingInterval.Day)
                 .MinimumLevel.Information()
                 .CreateLogger();
 
@@ -51,7 +52,7 @@ namespace PetSpa
             builder.Services.Configure<IdentityOptions>(options => options.SignIn.RequireConfirmedEmail = true);
             builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
             {
-                options.TokenLifespan = TimeSpan.FromMinutes(15); // Token lifespan 15 minutes
+                options.TokenLifespan = TimeSpan.FromMinutes(3); // Token lifespan 15 minutes
             });
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Smtp"));
 
@@ -85,7 +86,8 @@ namespace PetSpa
             builder.Services.AddControllers().AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.DateFormatString = "yyyy-MM-dd";
+                options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
             });
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
@@ -121,23 +123,33 @@ namespace PetSpa
                     Scheme = JwtBearerDefaults.AuthenticationScheme
                 });
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
                 {
+                    new OpenApiSecurityScheme
                     {
-                        new OpenApiSecurityScheme
+                        Reference = new OpenApiReference
                         {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = JwtBearerDefaults.AuthenticationScheme
-                            },
-                Scheme = "Oauth2",
-                Name = JwtBearerDefaults.AuthenticationScheme,
-                In = ParameterLocation.Header
+                            Type = ReferenceType.SecurityScheme,
+                            Id = JwtBearerDefaults.AuthenticationScheme
                         },
-                        new List<string>()
-                    }
+                        Scheme = "Oauth2",
+                        Name = JwtBearerDefaults.AuthenticationScheme,
+                        In = ParameterLocation.Header
+                    },
+                    new List<string>()
+                }
 
-                });
+            });
+            });
+
+            // Thêm In-Memory Cache
+            builder.Services.AddDistributedMemoryCache();
+
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Thời gian timeout của session
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
             });
 
             // Register repositories and services
@@ -153,6 +165,7 @@ namespace PetSpa
             builder.Services.AddScoped<IManagerRepository, SQLManagerRepositorycs>();
             builder.Services.AddScoped<IServiceRepository, SQLServiceRepository>();
             builder.Services.AddScoped<IStaffRepository, SQLStaffRepository>();
+            builder.Services.AddScoped<IVnPayService, VnpayService>();
             builder.Services.AddScoped<ICustomerRepository, SQLCustomerRepository>();
             builder.Services.AddScoped<BookingStatusChecker>();
 
@@ -180,6 +193,8 @@ namespace PetSpa
             app.UseCors("AllowAllOrigins");
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseSession();
+
             app.UseHangfireDashboard();
             app.UseHangfireServer();
 

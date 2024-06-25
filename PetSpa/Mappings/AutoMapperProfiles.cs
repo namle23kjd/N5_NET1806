@@ -12,6 +12,7 @@ using PetSpa.Models.DTO.Pet;
 using PetSpa.Models.DTO.RegisterDTO;
 using PetSpa.Models.DTO.Service;
 using PetSpa.Models.DTO.Staff;
+using PetSpa.Models.DTO.UserDTO;
 
 namespace PetSpa.Mappings
 {
@@ -59,14 +60,12 @@ namespace PetSpa.Mappings
             CreateMap<UpdatePetRequestDTO, Pet>().ReverseMap();
             CreateMap<Combo, ComboDTO>()
                             .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.ToString())); // Chuyển đổi TimeSpan thành chuỗi
-
             CreateMap<AddComboRequestDTO, Combo>()
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration)));
-
             CreateMap<UpdateComboRequestDTO, Combo>()
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration)));
 
-            CreateMap<Service, ServiceDTO>()
+           CreateMap<Service, ServiceDTO>()
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.ToString())); // Chuyển đổi TimeSpan thành chuỗi
 
             CreateMap<AddServiceRequest, Service>()
@@ -76,21 +75,32 @@ namespace PetSpa.Mappings
             CreateMap<UpdateServiceRequestDTO, Service>()
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.Parse(src.Duration)))
                 .ForMember(dest => dest.ComboId, opt => opt.MapFrom(src => src.ComboId));
+
             CreateMap<AddBookingRequestDTO, Booking>()
            .ForMember(dest => dest.BookingId, opt => opt.Ignore())
-           .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails));
+           .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails)).ForMember(dest => dest.Customer, opt => opt.Ignore())
+            .ForMember(dest => dest.TotalAmount, opt => opt.Ignore());
+
             CreateMap<Booking, BookingDTO>()
-             .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails));
+             .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails)).
+             ForMember(dest => dest.Cus, opt => opt.MapFrom(src => src.Customer.FullName)) // Ánh xạ tên khách hàng
+            .ForMember(dest => dest.Cus, opt => opt.MapFrom(src => src.Customer))
+            .ForMember(dest => dest.CusId, opt => opt.MapFrom(src => src.Customer.CusId));
 
             CreateMap<AddBookingDetailRequestDTO, BookingDetail>()
            .ForMember(dest => dest.BookingDetailId, opt => opt.Ignore())
-           .ForMember(dest => dest.Duration, opt => opt.Ignore()); // Ensure Duration is mapped correctly
+           .ForMember(dest => dest.Duration, opt => opt.Ignore()).
+           ForMember(dest => dest.StaffId, opt => opt.MapFrom(src => src.StaffId.HasValue ? src.StaffId : (Guid?)null));
 
             CreateMap<BookingDetail, BookingDetailDTO>().ReverseMap();
-
             CreateMap<UpdateBookingRequestDTO, Booking>().ReverseMap();
             CreateMap<UpdateBookingDetailDTO, BookingDetail>().ReverseMap();
             CreateMap<CompleteBookingRequestDTO, Booking>().ReverseMap();
+
+            CreateMap<ApplicationUser, UserDTO>()
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName ?? string.Empty))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email ?? string.Empty))
+            .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber ?? string.Empty));
         }
     }
 }

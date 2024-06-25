@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Hangfire;
+using PetSpa.Models.DTO.Booking;
 
 
 namespace PetSpa.Repositories.BookingRepository
@@ -19,17 +20,33 @@ namespace PetSpa.Repositories.BookingRepository
 
         public async Task CheckAndUpdateBookingStatus()
         {
-            var bookings = await _context.Bookings
+            var now = DateTime.Now;
+
+            // Kiểm tra các booking chưa bắt đầu và thời gian bắt đầu đã đến hoặc quá hạn
+            var bookingsToStart = await _context.Bookings
                 .Include(b => b.BookingDetails)
-                .Where(b => b.Status == false && b.EndDate <= DateTime.Now)
+                .Where(b => b.Status == BookingStatus.NotStarted && b.StartDate <= now)
                 .ToListAsync();
 
-            foreach (var booking in bookings)
+            // Cập nhật trạng thái thành InProgress
+            foreach (var booking in bookingsToStart)
             {
-                booking.Status = true;
+                booking.Status = BookingStatus.InProgress;
+            }
+
+            // Kiểm tra các booking đang thực hiện và đã hết hạn
+            var bookingsInProgress = await _context.Bookings
+                .Include(b => b.BookingDetails)
+                .Where(b => b.Status == BookingStatus.InProgress && b.EndDate <= now)
+                .ToListAsync();
+
+            // Cập nhật trạng thái thành Completed
+            foreach (var booking in bookingsInProgress)
+            {
+                booking.Status = BookingStatus.Completed;
                 foreach (var detail in booking.BookingDetails)
                 {
-                    detail.Status = true;
+                    detail.Status = true; // Hoặc sử dụng enum tương ứng nếu có
                 }
             }
 
