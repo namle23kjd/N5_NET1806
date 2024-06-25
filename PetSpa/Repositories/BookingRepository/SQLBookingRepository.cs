@@ -59,9 +59,11 @@ namespace PetSpa.Repositories.BookingRepository
             existingBooking.BookingSchedule = booking.BookingSchedule;
             existingBooking.TotalAmount = booking.TotalAmount;
             existingBooking.Feedback = booking.Feedback;
-            existingBooking.StartDate = booking.StartDate;
+            existingBooking.Feedback = booking.Feedback;
             existingBooking.EndDate = booking.EndDate;
             existingBooking.CheckAccept = booking.CheckAccept;
+            existingBooking.CheckAccept = booking.CheckAccept;
+
             await dbContext.SaveChangesAsync();
             return existingBooking;
         }
