@@ -18,5 +18,10 @@ namespace PetSpa.Repositories.BookingRepository
         (List<Staff>, string) GetAvailableStaffs(DateTime startTime, DateTime endTime, int? periodMonths = null, Guid? staffId = null);
         Task<Booking?> GetCurrentBookingForStaffAsync(Guid staffId);
         Task<List<Booking>> GetBookingHistoryForStaffAsync(Guid staffId);
+
+        Task<decimal> GetAllToTalForMonthAsync(DateTime? startDate);
+        Task<decimal> GetAllToTalAsync();
+
+        Task<List<DailyRevenueDTO>> GetDailyRevenueForCurrentMonthAsync(DateTime? startDate);
     }
 }

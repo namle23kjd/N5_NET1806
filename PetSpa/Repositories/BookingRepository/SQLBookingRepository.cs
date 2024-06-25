@@ -238,5 +238,81 @@ namespace PetSpa.Repositories.BookingRepository
             .ToListAsync();
             ;
         }
+
+        public async Task<decimal> GetAllToTalForMonthAsync(DateTime? startDate)
+        {
+            var now = DateTime.Now;
+            var startOfMonth = new DateTime(now.Year, now.Month, 1);
+
+            DateTime effectiveStartDate = startDate.HasValue && startDate.Value >= startOfMonth && startDate.Value <= now
+                ? startDate.Value
+                : now;
+
+            var totalAmount = await dbContext.Payments
+                .Where(p => p.CreatedDate >= effectiveStartDate && p.CreatedDate <= now)
+                .Join(dbContext.Bookings,
+                    payment => payment.PaymentId,
+                    booking => booking.PaymentId,
+                    (payment, booking) => booking.TotalAmount ?? 0)
+                .SumAsync();
+
+            return totalAmount;
+        }
+
+        public async Task<decimal> GetAllToTalAsync()
+        {
+            return await dbContext.Payments
+            .Join(dbContext.Bookings,
+                payment => payment.PaymentId,
+                booking => booking.PaymentId,
+                (payment, booking) => booking.TotalAmount ?? 0)
+            .SumAsync();
+        }
+
+        public async Task<List<DailyRevenueDTO>> GetDailyRevenueForCurrentMonthAsync(DateTime? startDate)
+        {
+            var now = DateTime.Now.Date;
+            var startOfMonth = new DateTime(now.Year, now.Month, 1);
+
+            if (!startDate.HasValue)
+            {
+                // Nếu không có ngày bắt đầu, chỉ trả về doanh thu của ngày hiện tại
+                var dailyRevenuesToday = await dbContext.Payments
+                    .Where(p => p.CreatedDate.Date == now)
+                    .Join(dbContext.Bookings,
+                        payment => payment.PaymentId,
+                        booking => booking.PaymentId,
+                        (payment, booking) => new { payment.CreatedDate, booking.TotalAmount })
+                    .GroupBy(p => p.CreatedDate.Date)
+                    .Select(g => new DailyRevenueDTO
+                    {
+                        Date = g.Key,
+                        TotalAmount = g.Sum(b => b.TotalAmount ?? 0)
+                    })
+                    .ToListAsync();
+
+                return dailyRevenuesToday;
+            }
+
+            DateTime effectiveStartDate = startDate.Value.Date >= startOfMonth && startDate.Value.Date <= now
+                ? startDate.Value.Date
+                : startOfMonth;
+
+            var dailyRevenues = await dbContext.Payments
+                .Where(p => p.CreatedDate >= effectiveStartDate && p.CreatedDate < now.AddDays(1))
+                .Join(dbContext.Bookings,
+                    payment => payment.PaymentId,
+                    booking => booking.PaymentId,
+                    (payment, booking) => new { payment.CreatedDate, booking.TotalAmount })
+                .GroupBy(p => p.CreatedDate.Date)
+                .Select(g => new DailyRevenueDTO
+                {
+                    Date = g.Key,
+                    TotalAmount = g.Sum(b => b.TotalAmount ?? 0)
+                })
+                .ToListAsync();
+
+            return dailyRevenues;
+        }
     }
 }

@@ -65,9 +65,34 @@ namespace PetSpa.Controllers
             var totalDuration = bookingDomainModels.BookingDetails.Sum(bd => bd.Duration.Ticks);
             var totalDurationTimeSpan = new TimeSpan(totalDuration) + TimeSpan.FromMinutes(20);
             bookingDomainModels.EndDate = bookingDomainModels.StartDate + totalDurationTimeSpan;
-            bookingDomainModels.TotalAmount = bookingDomainModels.BookingDetails.Sum(bd => (bd.Combo?.Price ?? 0) + (bd.Service?.Price ?? 0));
+            bookingDomainModels.TotalAmount = bookingDomainModels.BookingDetails.Sum(bd =>
+            {
+                var comboPrice = bd.ComboId.HasValue ? petSpaContext.Combos.FirstOrDefault(c => c.ComboId == bd.ComboId)?.Price ?? 0 : 0;
+                var servicePrice = bd.ServiceId.HasValue ? petSpaContext.Services.FirstOrDefault(s => s.ServiceId == bd.ServiceId)?.Price ?? 0 : 0;
+                return comboPrice + servicePrice;
+            });
             bookingDomainModels.Status = BookingStatus.NotStarted;
             bookingDomainModels.PaymentStatus = false;
+
+            // Optimize price calculation
+            var comboIds = bookingDomainModels.BookingDetails
+                .Where(bd => bd.ComboId.HasValue)
+                .Select(bd => bd.ComboId.Value)
+                .ToList();
+
+            var serviceIds = bookingDomainModels.BookingDetails
+                .Where(bd => bd.ServiceId.HasValue)
+                .Select(bd => bd.ServiceId.Value)
+                .ToList();
+
+            var combos = await petSpaContext.Combos
+                .Where(c => comboIds.Contains(c.ComboId))
+                .ToDictionaryAsync(c => c.ComboId, c => c.Price);
+
+            var services = await petSpaContext.Services
+                .Where(s => serviceIds.Contains(s.ServiceId))
+                .ToDictionaryAsync(s => s.ServiceId, s => s.Price);
+
 
             foreach (var detail in bookingDomainModels.BookingDetails)
             {
@@ -466,6 +491,21 @@ namespace PetSpa.Controllers
                 logger.LogError(ex, "An error occurred while accepting booking.");
                 return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while accepting booking"));
             }
+        }
+
+        [HttpGet("total-revenue/current-month")]
+        public async Task<IActionResult> GetTotalRevenueForCurrentMonth([FromQuery] DateTime? startDate)
+        {
+            var totalAmount = await bookingRepository.GetAllToTalForMonthAsync(startDate);
+            var dailyRevenues = await bookingRepository.GetDailyRevenueForCurrentMonthAsync(startDate);
+            return Ok(new { TotalAmount = totalAmount, DailyRevenues = dailyRevenues });
+        }
+
+        [HttpGet("total-revenue/from-start")]
+        public async Task<IActionResult> GetTotalRevenueFromStart()
+        {
+            var totalAmount = await bookingRepository.GetAllToTalAsync();
+            return Ok(new { TotalAmount = totalAmount });
         }
     }
 }
