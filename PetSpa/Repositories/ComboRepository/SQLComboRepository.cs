@@ -23,7 +23,6 @@ namespace PetSpa.Repositories.ComboRepository
         public async Task<List<Combo>> GetAllAsync()
         {
             return await dbContext.Combos
-                .Include(c => c.BookingDetails)
                 .Include(c => c.Services)
                 .Where(c => c.Status == true) // Only get combos with Status true
                 .ToListAsync();
@@ -31,8 +30,7 @@ namespace PetSpa.Repositories.ComboRepository
 
         public async Task<Combo?> GetByIdAsync(Guid ComboId)
         {
-            return await dbContext.Combos
-                .Include(c => c.BookingDetails)
+            return await dbContext.Combos               
                 .Include(c => c.Services)
                 .FirstOrDefaultAsync(x => x.ComboId == ComboId && x.Status == true); // Only get if Status true
         }

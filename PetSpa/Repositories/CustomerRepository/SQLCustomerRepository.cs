@@ -20,9 +20,7 @@ namespace PetSpa.Repositories.CustomerRepository
         {
             return await _dbContext.Customers
                 .Include(c => c.User)
-                .Include(c => c.Bookings)
                 .Include(c => c.Pets)
-                .Include(c => c.Vouchers)
                 .ToListAsync();
         }
 
@@ -30,9 +28,7 @@ namespace PetSpa.Repositories.CustomerRepository
         {
             return await _dbContext.Customers
                 .Include(c => c.User)
-                .Include(c => c.Bookings)
                 .Include(c => c.Pets)
-                .Include(c => c.Vouchers)
                 .FirstOrDefaultAsync(x => x.CusId == CusId);
         }
 

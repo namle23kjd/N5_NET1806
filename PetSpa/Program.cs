@@ -28,10 +28,8 @@ using PetSpa.Repositories.StaffRepository;
 using PetSpa.Repositories.CustomerRepository;
 using Hangfire;
 using System.Reflection;
-using PetSpa.Payment;
-using Newtonsoft.Json.Converters;
-using System.Text.Json.Serialization;
-using System.Text.Json;
+using PetSpa.Repositories.PaymentRepository;
+using PetSpa.Repositories.UsersRepository;
 
 namespace PetSpa
 {
@@ -44,7 +42,7 @@ namespace PetSpa
             // Add services to the container.
             var logger = new LoggerConfiguration()
                 .WriteTo.Console()
-                .WriteTo.File("Logs/Pet_Spa.txt", rollingInterval: RollingInterval.Minute)
+                .WriteTo.File("Logs/Pet_Spa.txt", rollingInterval: RollingInterval.Day)
                 .MinimumLevel.Information()
                 .CreateLogger();
 
@@ -55,7 +53,7 @@ namespace PetSpa
             builder.Services.Configure<IdentityOptions>(options => options.SignIn.RequireConfirmedEmail = true);
             builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
             {
-                options.TokenLifespan = TimeSpan.FromMinutes(15); // Token lifespan 15 minutes
+                options.TokenLifespan = TimeSpan.FromMinutes(3); // Token lifespan 15 minutes
             });
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Smtp"));
 
@@ -71,44 +69,37 @@ namespace PetSpa
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-  .AddJwtBearer(options =>
-  {
-      options.TokenValidationParameters = new TokenValidationParameters
-      {
-          ValidateIssuer = true,
-          ValidateAudience = true,
-          ValidateLifetime = true,
-          ValidateIssuerSigningKey = true,
-          ValidIssuer = builder.Configuration["Jwt:Issuer"],
-          ValidAudience = builder.Configuration["Jwt:Audience"],
-          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-      };
-  });
-
-            builder.Services.Configure<IdentityOptions>(options =>
+            }).AddJwtBearer(options =>
             {
-                options.Password.RequireDigit = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequiredLength = 6;
-                options.Password.RequiredUniqueChars = 1;
-
-                options.User.RequireUniqueEmail = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                };
             });
 
             // Other services
+            builder.Services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            });
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
             });
             builder.Services.AddHttpContextAccessor();
-            builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
             builder.Services.AddHangfire(config => config.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddHangfireServer();
             builder.Services.AddLogging();
-
+            //APlicationUsser
+            
             // CORS
             builder.Services.AddCors(options =>
             {
@@ -133,27 +124,34 @@ namespace PetSpa
                     Scheme = JwtBearerDefaults.AuthenticationScheme
                 });
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
                 {
+                    new OpenApiSecurityScheme
                     {
-                        new OpenApiSecurityScheme
+                        Reference = new OpenApiReference
                         {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = JwtBearerDefaults.AuthenticationScheme
-                            },
-                Scheme = "Oauth2",
-                Name = JwtBearerDefaults.AuthenticationScheme,
-                In = ParameterLocation.Header
+                            Type = ReferenceType.SecurityScheme,
+                            Id = JwtBearerDefaults.AuthenticationScheme
                         },
-                        new List<string>()
-                    }
+                        Scheme = "Oauth2",
+                        Name = JwtBearerDefaults.AuthenticationScheme,
+                        In = ParameterLocation.Header
+                    },
+                    new List<string>()
+                }
 
-                });
+            });
             });
 
-            builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPayConfig"));
-            builder.Services.AddSingleton<VNPayService>();
+            // Thêm In-Memory Cache
+            builder.Services.AddDistributedMemoryCache();
+
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Thời gian timeout của session
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
 
             // Register repositories and services
             builder.Services.AddScoped<ApiResponseService>();
@@ -168,9 +166,12 @@ namespace PetSpa
             builder.Services.AddScoped<IManagerRepository, SQLManagerRepositorycs>();
             builder.Services.AddScoped<IServiceRepository, SQLServiceRepository>();
             builder.Services.AddScoped<IStaffRepository, SQLStaffRepository>();
+            builder.Services.AddScoped<IVnPayService, VnpayService>();
             builder.Services.AddScoped<ICustomerRepository, SQLCustomerRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<BookingStatusChecker>();
-
+            builder.Services.AddScoped<RoleManager<IdentityRole<Guid>>>();
+            builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
             // Add email config
             var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<EmailSettings>();
             builder.Services.AddSingleton(emailConfig);
@@ -195,6 +196,8 @@ namespace PetSpa
             app.UseCors("AllowAllOrigins");
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseSession();
+
             app.UseHangfireDashboard();
             app.UseHangfireServer();
 

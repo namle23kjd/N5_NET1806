@@ -14,7 +14,7 @@ namespace PetSpa.Models.DTO.Booking
 
         public Guid StaffId { get; set; }
 
-        public bool Status { get; set; }
+        public BookingStatus Status { get; set; }
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
@@ -25,7 +25,8 @@ namespace PetSpa.Models.DTO.Booking
 
         public string? Feedback { get; set; }
         public bool CheckAccept { get; set; }
-        public List<BookingDetailDTO>? BookingDetails { get; set; }
+        public string CustomerName { get; set; }
+        public List<BookingDetailDTO>? BookingDetails { get; set; } = new List<BookingDetailDTO>();
 
         public virtual CustomerDTO Cus { get; set; } 
 

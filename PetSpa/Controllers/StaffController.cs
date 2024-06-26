@@ -10,7 +10,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
+using PetSpa.Repositories.BookingRepository;
+using PetSpa.Models.DTO.Booking;
 
 namespace PetSpa.Controllers
 {
@@ -23,20 +24,21 @@ namespace PetSpa.Controllers
         private readonly ApiResponseService _apiResponseService;
         private readonly ILogger<StaffController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IBookingRepository _bookingRepository;
 
-        public StaffController(IMapper mapper, IStaffRepository staffRepository, ApiResponseService apiResponseService, ILogger<StaffController> logger, UserManager<ApplicationUser> userManager)
+        public StaffController(IMapper mapper, IStaffRepository staffRepository, ApiResponseService apiResponseService, ILogger<StaffController> logger, UserManager<ApplicationUser> userManager, IBookingRepository _bookingRepository)
         {
             this._mapper = mapper;
             this._staffRepository = staffRepository;
             this._apiResponseService = apiResponseService;
             this._logger = logger;
             this._userManager = userManager;
+            this._bookingRepository = _bookingRepository;
         }
 
         //Get Staff
         //Get : /api/Staff
         [HttpGet]
-        [Authorize(Roles = "Admin,Customer,Manager,Staff")]
 
         public async Task<IActionResult> GetAll()
         {
@@ -154,5 +156,43 @@ namespace PetSpa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
             }
         }
+
+        
+        //Lấy thông tin booking mà nhân viên đang làm
+        [HttpGet("{staffId:guid}/current-booking")]
+        public async Task<IActionResult> GetCurrentBookingForStaff(Guid staffId)
+        {
+            try
+            {
+                var booking = await _bookingRepository.GetCurrentBookingForStaffAsync(staffId);
+                if(booking == null)
+                {
+                    return NotFound(_apiResponseService.CreateErrorResponse("No Curent Booking Found For The Staff"));
+                }
+                return Ok(_apiResponseService.CreateSuccessResponse(_mapper.Map<BookingDTO>(booking), "Current booking retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An Error Occured While Getting Current Booking For the Staff");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("An Error Occured While Getting Booking For The Staff"));
+
+            }
+
+        }
+        [HttpGet("{staffId:guid}/booking-history")]
+        public async Task<IActionResult> GetBookingHistoryForStaf(Guid staffId)
+        {
+            try 
+            {
+                var bookings = await _bookingRepository.GetBookingHistoryForStaffAsync(staffId);
+                return Ok(_apiResponseService.CreateSuccessResponse(_mapper.Map<List<BookingDTO>>(bookings), "Booking history retrieved successfully"));
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex, "An Error Occurred While Getting Booking History For The Staff");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("An Error Occurred While Getting Booking History For The Staff"));
+            }
+
+        }
+
     }
 }
