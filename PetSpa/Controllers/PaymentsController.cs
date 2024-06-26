@@ -82,7 +82,6 @@ namespace PetSpa.Controllers
             }
         }
 
-
         [HttpGet("payment-callback")]
         public async Task<IActionResult> PaymentCallback()
         {
@@ -120,8 +119,7 @@ namespace PetSpa.Controllers
                                 return Redirect(returnUrl);
                             }
                             return Ok(new { PaymentId = payment.PaymentId, TransactionId = payment.TransactionId });
-                        
-                    }
+                        }
                         else
                         {
                             _logger.LogError("Payment not found for TransactionId: {TransactionId}", response.TransactionId);
@@ -138,37 +136,6 @@ namespace PetSpa.Controllers
                 }
             }
 
-            //using (var transaction = await _context.Database.BeginTransactionAsync())
-            //{
-            //    try
-            //    {
-            //        var failedPayment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == response.TransactionId);
-            //        if (failedPayment != null)
-            //        {
-            //            var failedBookings = await _context.Bookings.Include(b => b.BookingDetails)
-            //                                                        .Where(b => b.PaymentId == failedPayment.PaymentId)
-            //                                                        .ToListAsync();
-            //            if (failedBookings.Any())
-            //            {
-            //                foreach (var failedBooking in failedBookings)
-            //                {
-            //                    _context.BookingDetails.RemoveRange(failedBooking.BookingDetails);
-            //                    _context.Bookings.Remove(failedBooking);
-            //                }
-            //            }
-            //            _context.Payments.Remove(failedPayment);
-            //            await _context.SaveChangesAsync();
-            //        }
-
-            //        await transaction.CommitAsync();
-            //        return BadRequest(response);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        await transaction.RollbackAsync();
-            //        return StatusCode(500, $"Internal server error: {ex.Message}");
-            //    }
-            //}
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
@@ -192,15 +159,17 @@ namespace PetSpa.Controllers
                     }
 
                     await transaction.CommitAsync();
-                    return BadRequest(new { PaymentId = failedPayment.PaymentId, TransactionId = failedPayment.TransactionId });
+                    return BadRequest(new { PaymentId = failedPayment?.PaymentId, TransactionId = failedPayment?.TransactionId });
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Error processing failed payment callback");
                     return StatusCode(500, $"Internal server error: {ex.Message}");
                 }
             }
         }
+
         [HttpDelete("{paymentId:int}")]
         public async Task<IActionResult> DeletePayment(int paymentId)
         {
@@ -215,7 +184,5 @@ namespace PetSpa.Controllers
 
             return Ok("Payment and related bookings deleted successfully");
         }
-
     }
 }
-

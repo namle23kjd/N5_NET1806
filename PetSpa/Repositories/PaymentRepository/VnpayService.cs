@@ -9,11 +9,12 @@ namespace PetSpa.Repositories.PaymentRepository
         private readonly IConfiguration _configuration;
         private readonly PetSpaContext _context;
 
-        public VnpayService( IConfiguration configuration, PetSpaContext _context)
+        public VnpayService(IConfiguration configuration, PetSpaContext context)
         {
-            this._configuration = configuration;
-            this._context = _context;
+            _configuration = configuration;
+            _context = context;
         }
+
         public string CreatePaymentUrl(PaymentInformationModel model, HttpContext context, string transactionId)
         {
             var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(_configuration["TimeZoneId"]);
@@ -31,7 +32,7 @@ namespace PetSpa.Repositories.PaymentRepository
             pay.AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"]);
             pay.AddRequestData("vnp_OrderInfo", $"{model.Name} {model.OrderDescription} {model.Amount}");
             pay.AddRequestData("vnp_OrderType", model.OrderType);
-            pay.AddRequestData("vnp_ReturnUrl", urlCallBack);
+            pay.AddRequestData("vnp_ReturnUrl", string.IsNullOrEmpty(model.ReturnUrl) ? urlCallBack : model.ReturnUrl);
             pay.AddRequestData("vnp_TxnRef", transactionId);
             if (_configuration.GetValue<int>("Vnpay:TransactionTimeout") > 0)
             {
@@ -42,7 +43,6 @@ namespace PetSpa.Repositories.PaymentRepository
 
             return paymentUrl;
         }
-
 
         public PaymentResponseModel PaymentExecute(IQueryCollection collections)
         {
