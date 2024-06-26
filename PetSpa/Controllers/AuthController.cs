@@ -272,7 +272,7 @@ namespace PetSpa.Controllers
         //Post: /api/Auth/Login
         [HttpPost]
         [Route("Login")]
-        [Authorize(Roles = "Admin,Customer,Staff,Manager")]
+       
 
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
         {
