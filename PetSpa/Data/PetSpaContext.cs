@@ -22,7 +22,7 @@ namespace PetSpa.Data
         public virtual DbSet<Customer> Customers { get; set; }
         public virtual DbSet<Invoice> Invoices { get; set; }
         public virtual DbSet<Manager> Managers { get; set; }
-        public virtual DbSet<PaymentT> Payments { get; set; }
+        public virtual DbSet<Payment> Payments { get; set; }
         public virtual DbSet<Pet> Pets { get; set; }
         public virtual DbSet<Service> Services { get; set; }
         public virtual DbSet<Staff> Staff { get; set; }
@@ -33,7 +33,7 @@ namespace PetSpa.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
-            { 
+            {
                 //optionsBuilder.UseSqlServer("Server=DESKTOP-S41VFN3\\PIEDTEAM;Database=Pet__SPAManagement;User Id=sa;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
                 optionsBuilder.UseSqlServer("Server=DESKTOP-LJMA02H\\PIEDTEAM;Database=Pet_Spa;User Id=SA;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
                 //Server = HOANGNE\\SQLEXPRESS; Database = Pet_Spa; User Id = SA; Password = 12345; Trusted_Connection = True; TrustServerCertificate = True
@@ -50,34 +50,34 @@ namespace PetSpa.Data
             var ManagerRoleId = Guid.NewGuid();
 
             var roles = new List<IdentityRole<Guid>> {
-                new IdentityRole<Guid>{
-                    Id = CustomerRoleId,
-                    ConcurrencyStamp = CustomerRoleId.ToString(),
-                    Name = "Customer",
-                    NormalizedName = "CUSTOMER"
-                },
-                new IdentityRole<Guid>
-                {
-                    Id = StaffRoleId,
-                    ConcurrencyStamp = StaffRoleId.ToString(),
-                    Name = "Staff",
-                    NormalizedName = "STAFF"
-                },
-                new IdentityRole<Guid>
-                {
-                    Id = AdminRoleId,
-                    ConcurrencyStamp = AdminRoleId.ToString(),
-                    Name = "Admin",
-                    NormalizedName = "ADMIN"
-                },
-                new IdentityRole<Guid>
-                {
-                    Id = ManagerRoleId,
-                    ConcurrencyStamp = ManagerRoleId.ToString(),
-                    Name = "Manager",
-                    NormalizedName = "MANAGER"
-                }
-            };
+        new IdentityRole<Guid>{
+            Id = CustomerRoleId,
+            ConcurrencyStamp = CustomerRoleId.ToString(),
+            Name = "Customer",
+            NormalizedName = "CUSTOMER"
+        },
+        new IdentityRole<Guid>
+        {
+            Id = StaffRoleId,
+            ConcurrencyStamp = StaffRoleId.ToString(),
+            Name = "Staff",
+            NormalizedName = "STAFF"
+        },
+        new IdentityRole<Guid>
+        {
+            Id = AdminRoleId,
+            ConcurrencyStamp = AdminRoleId.ToString(),
+            Name = "Admin",
+            NormalizedName = "ADMIN"
+        },
+        new IdentityRole<Guid>
+        {
+            Id = ManagerRoleId,
+            ConcurrencyStamp = ManagerRoleId.ToString(),
+            Name = "Manager",
+            NormalizedName = "MANAGER"
+        }
+    };
             modelBuilder.Entity<IdentityRole<Guid>>().HasData(roles);
 
             modelBuilder.Entity<Admin>(entity =>
@@ -421,7 +421,7 @@ namespace PetSpa.Data
                     .HasConstraintName("FK_Booking_Manager");
             });
 
-            modelBuilder.Entity<PaymentT>(entity =>
+            modelBuilder.Entity<Payment>(entity =>
             {
                 entity.HasKey(e => e.PaymentId).HasName("PK__Payment__123123123");
 
@@ -601,6 +601,7 @@ namespace PetSpa.Data
                     .HasColumnName("discount");
                 entity.Property(e => e.ExpiryDate).HasColumnName("expiryDate");
                 entity.Property(e => e.IssueDate).HasColumnName("issueDate");
+                entity.Property(e => e.ManaId).HasColumnName("manaID");
                 entity.Property(e => e.Status).HasColumnName("status");
 
                 entity.HasOne(d => d.Bookings).WithOne(p => p.Voucher)
@@ -612,6 +613,11 @@ namespace PetSpa.Data
                     .HasForeignKey(d => d.CusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Voucher__cusID__68487DD7");
+
+                entity.HasOne(d => d.Managers).WithMany(p => p.Vouchers)
+                    .HasForeignKey(d => d.ManaId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Voucher__manaID__693CA210");
             });
 
             OnModelCreatingPartial(modelBuilder);

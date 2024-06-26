@@ -11,4 +11,5 @@ public partial class Payment
     public DateTime ExpirationTime { get; set; }
     public string PaymentMethod { get; set; }
     public virtual List<Booking> Bookings { get; set; } = new List<Booking>();
+    public virtual List<Invoice> Invoices { get; set; } = new List<Invoice>();
 }

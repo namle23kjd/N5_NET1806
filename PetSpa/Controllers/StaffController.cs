@@ -39,7 +39,6 @@ namespace PetSpa.Controllers
         //Get Staff
         //Get : /api/Staff
         [HttpGet]
-        [Authorize(Roles = "Admin,Customer,Manager,Staff")]
 
         public async Task<IActionResult> GetAll()
         {

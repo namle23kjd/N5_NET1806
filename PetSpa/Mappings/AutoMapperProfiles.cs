@@ -98,9 +98,10 @@ namespace PetSpa.Mappings
             CreateMap<CompleteBookingRequestDTO, Booking>().ReverseMap();
 
             CreateMap<ApplicationUser, UserDTO>()
-            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName ?? string.Empty))
-            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email ?? string.Empty))
-            .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber ?? string.Empty));
+           .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName ?? string.Empty))
+           .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email ?? string.Empty))
+           .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber ?? string.Empty))
+           .ForMember(dest => dest.Roles, opt => opt.Ignore());
         }
     }
 }
