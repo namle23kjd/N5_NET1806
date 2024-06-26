@@ -46,5 +46,15 @@ namespace PetSpa.Repositories.CustomerRepository
             await _dbContext.SaveChangesAsync();
             return existingCustomer;
         }
+
+        public async Task<Customer?> GetByIdBookingAsync(Guid CusId)
+        {
+            return await _dbContext.Customers
+                .Include(c => c.Bookings).ThenInclude(bd => bd.BookingDetails).ThenInclude(se => se.Service)
+                .FirstOrDefaultAsync(x => x.CusId == CusId);
+
+
+
+        }
     }
 }
