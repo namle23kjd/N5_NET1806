@@ -350,6 +350,73 @@ namespace PetSpa.Controllers
             return Ok(mapper.Map<BookingDTO>(updatedBooking));
         }
 
+        [HttpPost("update-time-booking")]
+        public async Task<IActionResult> UpdateBooking([FromBody] UpdateTimeBookingRequestDTO updateBookingRequest)
+        {
+            // Kiểm tra xem NewBookingSchedule có lớn hơn thời gian hiện tại không
+            if (updateBookingRequest.NewBookingSchedule <= DateTime.Now)
+            {
+                return BadRequest("Ngày đặt lịch phải lớn hơn thời gian hiện tại.");
+            }
+
+            // Kiểm tra xem thời gian đặt lịch có nằm trong khung giờ làm việc từ 8h sáng đến 8h tối không
+            var startOfWorkDay = new TimeSpan(8, 0, 0); // 8h sáng
+            var endOfWorkDay = new TimeSpan(20, 0, 0); // 8h tối
+            var bookingTimeOfDay = updateBookingRequest.NewBookingSchedule.TimeOfDay;
+
+            if (bookingTimeOfDay < startOfWorkDay || bookingTimeOfDay > endOfWorkDay)
+            {
+                return BadRequest("Thời gian đặt lịch phải trong khung giờ làm việc từ 8h sáng đến 8h tối.");
+            }
+
+            // Tìm kiếm booking dựa trên bookingId
+            var booking = await petSpaContext.Bookings
+                                             .Include(b => b.BookingDetails)
+                                             .FirstOrDefaultAsync(b => b.BookingId == updateBookingRequest.BookingId);
+
+            if (booking == null)
+            {
+                return NotFound("Booking not found.");
+            }
+
+            // Kiểm tra trạng thái của booking, chỉ cho phép thay đổi nếu booking chưa hoàn thành
+            if (booking.Status == BookingStatus.Completed)
+            {
+                return BadRequest("Booking Đã Hoàn Thành, Không thế Thay đồi!!!");
+            }
+            else if (booking.Status == BookingStatus.InProgress)
+            {
+                return BadRequest("Booking đang trong quá trình thực hiện. Không thể thay đổi!!");
+            }
+
+
+            // Cập nhật StaffId cho từng chi tiết booking và tính lại Duration
+            foreach (var detail in booking.BookingDetails)
+            {
+                detail.StaffId = updateBookingRequest.NewStaffId;
+                detail.Duration = updateBookingRequest.NewBookingSchedule - booking.StartDate; // Cập nhật thời gian mới, bạn cần tính lại duration nếu cần
+            }
+
+            // Cập nhật lại thời gian bắt đầu của booking
+            booking.StartDate = updateBookingRequest.NewBookingSchedule;
+
+            // Tính tổng duration và cập nhật EndDate
+            var totalDurationTicks = booking.BookingDetails.Sum(bd => bd.Duration.Ticks);
+            var totalDurationTimeSpan = new TimeSpan(totalDurationTicks);
+
+            booking.EndDate = booking.StartDate + totalDurationTimeSpan;
+
+            // Đặt lại trạng thái checkAccept thành false
+            booking.CheckAccept = false;
+
+            // Lưu thay đổi vào cơ sở dữ liệu
+            petSpaContext.Bookings.Update(booking);
+            await petSpaContext.SaveChangesAsync();
+
+            return Ok("Booking updated successfully.");
+        }
+
+
         [HttpPut("{BookingId:Guid}/accept")]
         //[Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> AcceptBooking([FromRoute] Guid BookingId, [FromBody] AcceptBookingRequest acceptRequest)
