@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
@@ -26,6 +27,8 @@ namespace PetSpa.Controllers
         // Create Service
         // Post: /api/Service
         [HttpPost]
+        [Authorize(Roles = "Admin,Customer,Manager")]
+
         public async Task<IActionResult> Create([FromBody] AddServiceRequest addServiceRequest)
         {
             if (!ModelState.IsValid)
@@ -43,6 +46,8 @@ namespace PetSpa.Controllers
         // Get Service
         // Get: /api/Service
         [HttpGet]
+        [Authorize(Roles = "Admin,Customer,Manager")]
+
         public async Task<IActionResult> GetAll()
         {
             var serviceDomainModel = await serviceRepository.GetAllAsync();
@@ -75,6 +80,8 @@ namespace PetSpa.Controllers
         // Get: /api/Service/{id}
         [HttpGet]
         [Route("{ServiceId:guid}")]
+        [Authorize(Roles = "Admin,Customer,Manager,Staff")]
+
         public async Task<IActionResult> GetById([FromRoute] Guid ServiceId)
         {
             var serviceDomainModel = await serviceRepository.GetByIdAsync(ServiceId);
@@ -91,6 +98,8 @@ namespace PetSpa.Controllers
         // Put: /api/Service/{ServiceId}
         [HttpPut]
         [Route("{ServiceId:guid}")]
+        [Authorize(Roles = "Admin,Manager")]
+
         public async Task<IActionResult> Update([FromRoute] Guid ServiceId, [FromBody] UpdateServiceRequestDTO updateServiceRequestDTO)
         {
             if (!ModelState.IsValid)
@@ -132,6 +141,7 @@ namespace PetSpa.Controllers
         // Delete Service by ServiceId (Set Status to False)
         [HttpDelete]
         [Route("{ServiceId:guid}")]
+        [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> Delete([FromRoute] Guid ServiceId)
         {
             var serviceDomainModel = await serviceRepository.DeleteAsync(ServiceId);

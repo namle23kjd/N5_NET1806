@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PetSpa.Controllers
 {
@@ -34,6 +35,7 @@ namespace PetSpa.Controllers
 
         // Get All Managers
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -53,6 +55,8 @@ namespace PetSpa.Controllers
         // Get /api/Manager/{id}
         [HttpGet]
         [Route("{ManaId:guid}")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> GetById([FromRoute] Guid ManaId)
         {
             try
@@ -76,6 +80,7 @@ namespace PetSpa.Controllers
         // Create Manager
         // POST: /api/Manager
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateManager([FromBody] AddRequestManagerDTO addManagerRequestDTO)
         {
             if (!ModelState.IsValid)
@@ -128,6 +133,8 @@ namespace PetSpa.Controllers
         // PUT: /api/Manager/{id}
         [HttpPut]
         [Route("{ManaId:guid}")]
+        [Authorize(Roles = "Admin,Manager")]
+
         public async Task<IActionResult> Update([FromRoute] Guid ManaId, UpdateManagerRequestDTO updateManagerRequestDTO)
         {
             try

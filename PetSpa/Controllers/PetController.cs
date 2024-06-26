@@ -23,6 +23,7 @@ namespace PetSpa.Controllers
 
         [HttpGet]
         [ValidateModeAtrribute]
+        //[Authorize(Roles = "Admin,Customer,Manager")]
         public async Task<IActionResult> GetAll()
         {
             var petDomainModels = await _petRepository.GetALLAsync();

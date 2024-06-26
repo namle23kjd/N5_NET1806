@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
@@ -23,6 +24,7 @@ namespace PetSpa.Controllers
         //Post : /api/Images/Upload
         [HttpPost]
         [Route("Upload")]
+        [Authorize(Roles = "Admin,Customer,Manager")]
         public async Task<IActionResult> Upload([FromForm] ImageUploadRequestDTO request)
         {
             ValidateFileUpload(request);

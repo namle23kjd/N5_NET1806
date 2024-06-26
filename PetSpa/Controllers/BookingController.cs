@@ -20,6 +20,7 @@ namespace PetSpa.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[Authorize(Roles = "Admin,Customer,Manager")]
     public class BookingController : ControllerBase
     {
         private readonly IMapper mapper;
@@ -40,6 +41,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpPost]
+        //[Authorize(Roles = "Admin,Customer,Manager")]
         public async Task<IActionResult> Create([FromBody] AddBookingRequestDTO addBookingRequestDTO)
         {
             if (addBookingRequestDTO.BookingSchedule < DateTime.Now)
@@ -275,6 +277,7 @@ namespace PetSpa.Controllers
 
 
         [HttpGet]
+        //[Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -293,6 +296,7 @@ namespace PetSpa.Controllers
 
         [HttpGet]
         [Route("{BookingId:Guid}")]
+        //[Authorize(Roles = "Admin,Customer,Manager")]
         public async Task<IActionResult> GetById([FromRoute] Guid BookingId)
         {
             var bookingDomainModel = await bookingRepository.GetByIdAsync(BookingId);
@@ -333,6 +337,7 @@ namespace PetSpa.Controllers
 
         [HttpPut]
         [Route("{BookingId:Guid}")]
+        //[Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> Update([FromRoute] Guid BookingId, UpdateBookingRequestDTO updateBookingRequestDTO)
         {
             var bookingDomainModel = mapper.Map<Booking>(updateBookingRequestDTO);
@@ -346,6 +351,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpPut("{BookingId:Guid}/accept")]
+        //[Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> AcceptBooking([FromRoute] Guid BookingId, [FromBody] AcceptBookingRequest acceptRequest)
         {
             var booking = await bookingRepository.GetByIdAsync(BookingId);
@@ -363,6 +369,8 @@ namespace PetSpa.Controllers
 
 
         [HttpGet("completed")]
+        //[Authorize(Roles = "Admin,Customer,Manager")]
+
         public async Task<IActionResult> GetCompletedBookings()
         {
             try

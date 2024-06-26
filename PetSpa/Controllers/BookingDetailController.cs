@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
@@ -26,6 +27,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Customer,Manager")]
         public async Task<IActionResult> Create([FromBody] AddBookingDetailRequestDTO addBookingDetailRequestDTO)
         {
             var bookingDetailDomainModel = mapper.Map<BookingDetail>(addBookingDetailRequestDTO);
@@ -34,6 +36,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetAll()
         {
             var bookingDetailsDomainModel = await bookingDetailsRepository.GetAllAsync();
@@ -42,6 +45,7 @@ namespace PetSpa.Controllers
 
         [HttpGet]
         [Route("{BookingDetailId:guid}")]
+        [Authorize(Roles = "Admin,Customer,Manager")]
         public async Task<IActionResult> GetByID([FromRoute] Guid BookingDetailId)
         {
             var bookingDetailDomain = await bookingDetailsRepository.GetByIdAsync(BookingDetailId);
@@ -55,6 +59,7 @@ namespace PetSpa.Controllers
 
         [HttpPut]
         [Route("{BookingDetailId:guid}")]
+        [Authorize(Roles = "Admin,Customer,Manager")]
         public async Task<IActionResult> Update([FromRoute] Guid BookingDetailId, UpdateBookingDetailDTO updateBookingDetailDTO)
         {
             var bookingDetailDomainModels = mapper.Map<BookingDetail>(updateBookingDetailDTO);
