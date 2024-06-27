@@ -6,8 +6,8 @@ namespace PetSpa.Models.Domain
     {
         public string? refreshToken { get; set; }
 
-        public DateTime refreshTokenExpiry { get; set; }          
+        public DateTime refreshTokenExpiry { get; set; }
 
-        
+        public bool Status { get; set; } = true;
     }
 }

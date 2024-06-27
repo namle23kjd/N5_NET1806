@@ -27,7 +27,7 @@ namespace PetSpa.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _userManager.Users.ToListAsync();
+            var users = await _userManager.Users.Where(u => u.Status).ToListAsync(); // Lọc người dùng có Status là true
             var userDtos = _mapper.Map<List<UserDTO>>(users);
 
             foreach (var userDto in userDtos)
@@ -51,7 +51,8 @@ namespace PetSpa.Controllers
             {
                 UserName = registerUserDTO.UserName,
                 Email = registerUserDTO.Email,
-                PhoneNumber = registerUserDTO.PhoneNumber
+                PhoneNumber = registerUserDTO.PhoneNumber,
+                Status = true // Khi tạo mới, đặt Status là true
             };
 
             var result = await _userManager.CreateAsync(user, registerUserDTO.Password);
@@ -115,6 +116,7 @@ namespace PetSpa.Controllers
             }
 
             var usersInRole = await _userManager.GetUsersInRoleAsync(roleName);
+            var activeUsersInRole = usersInRole.Where(u => u.Status).ToList(); // Lọc người dùng có Status là true
 
             var userDTOs = usersInRole.Select(user => new UserRoleDTO
             {
@@ -133,7 +135,7 @@ namespace PetSpa.Controllers
         public async Task<IActionResult> GetRolesByUser(Guid userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
+            if (user == null || !user.Status)
             {
                 return NotFound(new { message = "User not found" });
             }
@@ -149,6 +151,125 @@ namespace PetSpa.Controllers
             };
 
             return Ok(userRoleDTO);
+        }
+
+        // Thay đổi trạng thái người dùng
+        [HttpPost("change-status")]
+        public async Task<IActionResult> ChangeUserStatus(Guid userId, bool status)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            user.Status = status;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "User status updated successfully!" });
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return BadRequest(ModelState);
+        }
+        // Xóa tài khoản (chuyển trạng thái thành false)
+        [HttpDelete("delete-account/{userId}")]
+        public async Task<IActionResult> DeleteAccount(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            user.Status = false;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                return Ok(new { message = "User account deleted successfully!" });
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return BadRequest(ModelState);
+        }
+
+        [HttpPut("update-user")]
+        public async Task<IActionResult> UpdateUser (UpdateUserDTO updateUserDTO)
+        {
+            // Kiểm tra sự tồn tại của email
+            var existingUserWithEmail = await _userManager.Users
+                .Where(u => u.Email == updateUserDTO.Email && u.Id != updateUserDTO.Id)
+                .FirstOrDefaultAsync();
+            if (existingUserWithEmail != null)
+            {
+                return BadRequest("Email already exists.");
+            }
+
+            // Kiểm tra sự tồn tại của tên người dùng
+            var existingUserWithUserName = await _userManager.Users
+                .Where(u => u.UserName == updateUserDTO.UserName && u.Id != updateUserDTO.Id)
+                .FirstOrDefaultAsync();
+            if (existingUserWithUserName != null)
+            {
+                return BadRequest("Username already exists.");
+            }
+
+            // Kiểm tra sự tồn tại của số điện thoại
+            var existingUserWithPhoneNumber = await _userManager.Users
+                .Where(u => u.PhoneNumber == updateUserDTO.PhoneNumber && u.Id != updateUserDTO.Id)
+                .FirstOrDefaultAsync();
+            if (existingUserWithPhoneNumber != null)
+            {
+                return BadRequest("Phone number already exists.");
+            }
+
+            var user = await _userManager.FindByIdAsync(updateUserDTO.Id.ToString());
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            user.UserName = updateUserDTO.UserName;
+            user.Email = updateUserDTO.Email;
+            user.PhoneNumber = updateUserDTO.PhoneNumber;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            // Cập nhật vai trò người dùng
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+            {
+                return BadRequest("Failed to remove current roles.");
+            }
+
+            if (!await _roleManager.RoleExistsAsync(updateUserDTO.Role))
+            {
+                await _roleManager.CreateAsync(new IdentityRole<Guid> { Name = updateUserDTO.Role });
+            }
+
+            var addResult = await _userManager.AddToRoleAsync(user, updateUserDTO.Role);
+            if (!addResult.Succeeded)
+            {
+                return BadRequest("Failed to add new role.");
+            }
+
+            return Ok("User updated successfully.");
         }
     }
 }
