@@ -2,6 +2,7 @@
 {
     public class PaymentInformationModel
     {
+        public Guid CusId { get; set; }
         public List<Guid> BookingIds { get; set; }
         public string OrderType { get; set; }
         public double Amount { get; set; }

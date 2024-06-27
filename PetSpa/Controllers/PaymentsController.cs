@@ -37,6 +37,12 @@ namespace PetSpa.Controllers
                 try
                 {
                     var transactionId = DateTime.Now.Ticks.ToString();
+                    // Kiểm tra xem CusId có hợp lệ không
+                    var customer = await _context.Customers.FindAsync(model.CusId);
+                    if (customer == null)
+                    {
+                        return NotFound($"Customer with ID {model.CusId} not found");
+                    }
 
                     // Tạo Payment entity
                     var payment = new Payment
@@ -44,7 +50,8 @@ namespace PetSpa.Controllers
                         TransactionId = transactionId, // Sử dụng tick làm TransactionId
                         CreatedDate = DateTime.UtcNow,
                         ExpirationTime = DateTime.UtcNow.AddMinutes(3),
-                        PaymentMethod = "VNPay"
+                        PaymentMethod = "VNPay",
+                        CusId = model.CusId // Gán CusId vào Payment
                     };
 
                     _context.Payments.Add(payment);
@@ -183,6 +190,37 @@ namespace PetSpa.Controllers
             await _context.SaveChangesAsync();
 
             return Ok("Payment and related bookings deleted successfully");
+        }
+
+        [HttpGet("history-customerId")]
+        public async Task<IActionResult> GetPaymentHistory(Guid CustomerId)
+        {
+            var customer = await _context.Customers.Include(c => c.Payments)
+                                            .ThenInclude(p => p.Bookings)
+                                                .ThenInclude(b => b.BookingDetails)
+                                                    .ThenInclude(bd => bd.Service)
+                                            .Include(c => c.Payments)
+                                                .ThenInclude(p => p.Bookings)
+                                                    .ThenInclude(b => b.BookingDetails)
+                                                        .ThenInclude(bd => bd.Combo)
+                                            .FirstOrDefaultAsync(c => c.CusId == CustomerId);
+
+            if (customer == null)
+            {
+                return NotFound(new { message = "Customer not found" });
+            }
+
+            var paymentHistory = customer.Payments.Select(p => new PaymentHistoryDTO
+            {
+                CustomerName = p.Customer.FullName,
+                PaymentMethod = p.PaymentMethod,
+                CreatedDate = p.CreatedDate,
+                ExpirationTime = p.ExpirationTime,
+                ServicesOrCombos = p.Bookings.SelectMany(b => b.BookingDetails.Select(bd => bd.ServiceId.HasValue ? bd.Service.ServiceName : bd.Combo.ComboType)).ToList(),
+                TotalAmount = p.Bookings.Sum(b => b.TotalAmount ?? 0)
+            }).ToList();
+
+            return Ok(paymentHistory);
         }
     }
 }

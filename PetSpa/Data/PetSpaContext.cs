@@ -318,6 +318,12 @@ namespace PetSpa.Data
                     .HasForeignKey<Customer>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Customer_AspNetUsers");
+
+                entity.HasMany(d => d.Payments)
+                    .WithOne(p => p.Customer)
+                    .HasForeignKey(d => d.CusId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Customer_Payment");
             });
 
             modelBuilder.Entity<Invoice>(entity =>
@@ -445,6 +451,16 @@ namespace PetSpa.Data
                     .IsRequired()
                     .HasMaxLength(50)
                     .HasColumnName("paymentMethod");
+
+                entity.Property(e => e.CusId)
+                  .IsRequired()
+                  .HasColumnName("cusID");
+
+                entity.HasOne(e => e.Customer)
+                    .WithMany(c => c.Payments)
+                    .HasForeignKey(e => e.CusId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Payment_Customer");
 
                 entity.HasMany(e => e.Invoices)
                     .WithOne(e => e.Payment)
@@ -608,11 +624,6 @@ namespace PetSpa.Data
                     .HasForeignKey<Voucher>(d => d.BookingId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Voucher__booking__6A30C649");
-
-                entity.HasOne(d => d.Customers).WithMany(p => p.Vouchers)
-                    .HasForeignKey(d => d.CusId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Voucher__cusID__68487DD7");
 
                 entity.HasOne(d => d.Managers).WithMany(p => p.Vouchers)
                     .HasForeignKey(d => d.ManaId)

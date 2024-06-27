@@ -8,6 +8,7 @@ using PetSpa.Models.DTO.Combo;
 using PetSpa.Models.DTO.Customer;
 using PetSpa.Models.DTO.Invoice;
 using PetSpa.Models.DTO.Manager;
+using PetSpa.Models.DTO.PaymentDTO;
 using PetSpa.Models.DTO.Pet;
 using PetSpa.Models.DTO.RegisterDTO;
 using PetSpa.Models.DTO.Service;
@@ -47,8 +48,7 @@ namespace PetSpa.Mappings
             CreateMap<Customer, CustomerDTO>()
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
                 .ForMember(dest => dest.Bookings, opt => opt.MapFrom(src => src.Bookings))
-                .ForMember(dest => dest.Pets, opt => opt.MapFrom(src => src.Pets))
-                .ForMember(dest => dest.Vouchers, opt => opt.MapFrom(src => src.Vouchers));
+                .ForMember(dest => dest.Pets, opt => opt.MapFrom(src => src.Pets));
             CreateMap<UpdateCustomerRequestDTO, Customer>().ReverseMap();
             CreateMap<UpdateCustomerRequestByAdminDTO, Customer>().ReverseMap();
             CreateMap<AddAdminRequestDTO, Admin>().ReverseMap();
@@ -105,6 +105,25 @@ namespace PetSpa.Mappings
            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email ?? string.Empty))
            .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber ?? string.Empty))
            .ForMember(dest => dest.Roles, opt => opt.Ignore());
+
+            CreateMap<Payment, PaymentDTO>()
+            .ForMember(dest => dest.CusId, opt => opt.MapFrom(src => src.CusId))
+            .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src => src.TransactionId))
+            .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate))
+            .ForMember(dest => dest.ExpirationTime, opt => opt.MapFrom(src => src.ExpirationTime))
+            .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod))
+            .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName));
+
+            CreateMap<PaymentDTO, Payment>();
+
+            CreateMap<Payment, PaymentHistoryDTO>()
+            .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName))
+            .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod))
+            .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate))
+            .ForMember(dest => dest.ExpirationTime, opt => opt.MapFrom(src => src.ExpirationTime))
+            .ForMember(dest => dest.ServicesOrCombos, opt => opt.MapFrom(src => src.Bookings.SelectMany(b => b.BookingDetails.Select(bd => bd.ServiceId.HasValue ? bd.Service.ServiceName : bd.Combo.ComboType)).ToList()))
+            .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.Bookings.Sum(b => b.TotalAmount ?? 0)));
         }
     }
+    
 }
