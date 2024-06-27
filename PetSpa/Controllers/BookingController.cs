@@ -371,8 +371,8 @@ namespace PetSpa.Controllers
 
             // Tìm kiếm booking dựa trên bookingId
             var booking = await petSpaContext.Bookings
-                                             .Include(b => b.BookingDetails)
-                                             .FirstOrDefaultAsync(b => b.BookingId == updateBookingRequest.BookingId);
+                                              .Include(b => b.BookingDetails)
+                                              .FirstOrDefaultAsync(b => b.BookingId == updateBookingRequest.BookingId);
 
             if (booking == null)
             {
@@ -389,22 +389,91 @@ namespace PetSpa.Controllers
                 return BadRequest("Booking đang trong quá trình thực hiện. Không thể thay đổi!!");
             }
 
+            // Chuyển đổi StartDate thành DateTime trước khi tính toán
+            var bookingStartDate = booking.StartDate;
+
+            // Tính toán Duration
+            TimeSpan duration = updateBookingRequest.NewBookingSchedule - bookingStartDate;
+
+            // Nếu cần giữ nguyên duration thì tính duration từ StartDate cũ
+            var originalDuration = booking.EndDate - booking.StartDate;
 
             // Cập nhật StaffId cho từng chi tiết booking và tính lại Duration
             foreach (var detail in booking.BookingDetails)
             {
                 detail.StaffId = updateBookingRequest.NewStaffId;
-                detail.Duration = updateBookingRequest.NewBookingSchedule - booking.StartDate; // Cập nhật thời gian mới, bạn cần tính lại duration nếu cần
+                detail.Duration = detail.Duration; // Nếu bạn cần tính lại duration chi tiết từ thông tin khác, bạn có thể tính lại ở đây
             }
 
             // Cập nhật lại thời gian bắt đầu của booking
             booking.StartDate = updateBookingRequest.NewBookingSchedule;
 
-            // Tính tổng duration và cập nhật EndDate
-            var totalDurationTicks = booking.BookingDetails.Sum(bd => bd.Duration.Ticks);
-            var totalDurationTimeSpan = new TimeSpan(totalDurationTicks);
+            // Tính tổng duration và cập nhật EndDate dựa trên originalDuration
+            booking.EndDate = booking.StartDate + originalDuration;
 
-            booking.EndDate = booking.StartDate + totalDurationTimeSpan;
+            // Đặt lại trạng thái checkAccept thành false
+            booking.CheckAccept = false;
+
+            // Lưu thay đổi vào cơ sở dữ liệu
+            petSpaContext.Bookings.Update(booking);
+            await petSpaContext.SaveChangesAsync();
+
+            return Ok("Booking updated successfully.");
+        }
+
+        [HttpPost("update-time-booking-nostaff")]
+        public async Task<IActionResult> UpdateBookingNoTime([FromBody] UpdateTimeBookingNoStaffRequest updateTimeBookingNoStaffRequest)
+        {
+            // Kiểm tra xem NewBookingSchedule có lớn hơn thời gian hiện tại không
+            if (updateTimeBookingNoStaffRequest.NewBookingSchedule <= DateTime.Now)
+            {
+                return BadRequest("Ngày đặt lịch phải lớn hơn thời gian hiện tại.");
+            }
+
+            // Kiểm tra xem thời gian đặt lịch có nằm trong khung giờ làm việc từ 8h sáng đến 8h tối không
+            var startOfWorkDay = new TimeSpan(8, 0, 0); // 8h sáng
+            var endOfWorkDay = new TimeSpan(20, 0, 0); // 8h tối
+            var bookingTimeOfDay = updateTimeBookingNoStaffRequest.NewBookingSchedule.TimeOfDay;
+
+            if (bookingTimeOfDay < startOfWorkDay || bookingTimeOfDay > endOfWorkDay)
+            {
+                return BadRequest("Thời gian đặt lịch phải trong khung giờ làm việc từ 8h sáng đến 8h tối.");
+            }
+
+            // Tìm kiếm booking dựa trên bookingId
+            var booking = await petSpaContext.Bookings
+                                              .Include(b => b.BookingDetails)
+                                              .FirstOrDefaultAsync(b => b.BookingId == updateTimeBookingNoStaffRequest.BookingId);
+
+            if (booking == null)
+            {
+                return NotFound("Booking not found.");
+            }
+
+            // Kiểm tra trạng thái của booking, chỉ cho phép thay đổi nếu booking chưa hoàn thành
+            if (booking.Status == BookingStatus.Completed)
+            {
+                return BadRequest("Booking Đã Hoàn Thành, Không thế Thay đồi!!!");
+            }
+            else if (booking.Status == BookingStatus.InProgress)
+            {
+                return BadRequest("Booking đang trong quá trình thực hiện. Không thể thay đổi!!");
+            }
+
+            // Chuyển đổi StartDate thành DateTime trước khi tính toán
+            var bookingStartDate = booking.StartDate;
+
+            // Tính toán Duration
+            TimeSpan duration = updateTimeBookingNoStaffRequest.NewBookingSchedule - bookingStartDate;
+
+            // Nếu cần giữ nguyên duration thì tính duration từ StartDate cũ
+            var originalDuration = booking.EndDate - booking.StartDate;
+
+            // Cập nhật lại thời gian bắt đầu của booking
+            booking.StartDate = updateTimeBookingNoStaffRequest.NewBookingSchedule;
+
+            // Tính tổng duration và cập nhật EndDate dựa trên originalDuration
+            booking.EndDate = booking.StartDate + originalDuration;
 
             // Đặt lại trạng thái checkAccept thành false
             booking.CheckAccept = false;
@@ -609,6 +678,85 @@ namespace PetSpa.Controllers
         {
             var totalAmount = await bookingRepository.GetAllToTalAsync();
             return Ok(new { TotalAmount = totalAmount });
+        }
+
+
+        [HttpGet("accepted-bookings")]
+        public async Task<IActionResult> GetAcceptedBookings()
+        {
+            var acceptedBookings = await petSpaContext.Bookings
+        .Include(b => b.BookingDetails)
+        .Where(b => b.CheckAccept)
+        .Select(b => new
+        {
+            b.BookingId,
+            b.CusId,
+            StaffId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().StaffId : null,
+            ServiceId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().ServiceId : null,
+            ComboId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().ComboId : null,
+            b.Status,
+            b.CheckAccept,
+            b.TotalAmount,
+            b.StartDate,
+            b.EndDate
+        })
+        .ToListAsync();
+
+            var result = acceptedBookings.Select(b => new BookingDTO
+            {
+                BookingId = b.BookingId,
+                CusId = b.CusId,
+                StaffId = b.StaffId ?? Guid.Empty,
+                ServiceId = b.ServiceId,
+                ComboId = b.ComboId,
+                Status = (BookingStatus)b.Status,
+                CheckAccept = b.CheckAccept,
+                TotalAmount = b.TotalAmount,
+                StartDate = b.StartDate,
+                EndDate = b.EndDate
+            }).ToList();
+
+            return Ok(result);
+        }
+
+
+
+        [HttpGet("pending-bookings")]
+        public async Task<IActionResult> GetBookingNotAccpects()
+        {
+            var pendingBookings = await petSpaContext.Bookings
+        .Include(b => b.BookingDetails)
+        .Where(b => !b.CheckAccept)
+        .Select(b => new
+        {
+            b.BookingId,
+            b.CusId,
+            StaffId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().StaffId : null,
+            ServiceId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().ServiceId : null,
+            ComboId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().ComboId : null,
+            b.Status,
+            b.CheckAccept,
+            b.TotalAmount,
+            b.StartDate,
+            b.EndDate
+        })
+        .ToListAsync();
+
+            var result = pendingBookings.Select(b => new BookingDTO
+            {
+                BookingId = b.BookingId,
+                CusId = b.CusId,
+                StaffId = b.StaffId ?? Guid.Empty,
+                ServiceId = b.ServiceId,
+                ComboId = b.ComboId,
+                Status = (BookingStatus)b.Status,
+                CheckAccept = b.CheckAccept,
+                TotalAmount = b.TotalAmount,
+                StartDate = b.StartDate,
+                EndDate = b.EndDate
+            }).ToList();
+
+            return Ok(result);
         }
     }
 }

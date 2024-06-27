@@ -85,7 +85,10 @@ namespace PetSpa.Mappings
              .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.BookingDetails)).
              ForMember(dest => dest.Cus, opt => opt.MapFrom(src => src.Customer.FullName)) // Ánh xạ tên khách hàng
             .ForMember(dest => dest.Cus, opt => opt.MapFrom(src => src.Customer))
-            .ForMember(dest => dest.CusId, opt => opt.MapFrom(src => src.Customer.CusId));
+            .ForMember(dest => dest.CusId, opt => opt.MapFrom(src => src.Customer.CusId))
+            .ForMember(dest => dest.ServiceId , opt => opt.MapFrom(src => src.BookingDetails.FirstOrDefault().ServiceId))
+            .ForMember(dest => dest.ComboId, opt => opt.MapFrom(src => src.BookingDetails.FirstOrDefault().ComboId))
+            .ForMember(dest => dest.StaffId, opt => opt.MapFrom(src => src.BookingDetails.FirstOrDefault().StaffId));
 
             CreateMap<AddBookingDetailRequestDTO, BookingDetail>()
            .ForMember(dest => dest.BookingDetailId, opt => opt.Ignore())
