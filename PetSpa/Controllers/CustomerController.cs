@@ -50,6 +50,7 @@ namespace PetSpa.Controllers
             }
         }
 
+
         // Get Customer By ID
         // Get /api/Customer/{id}
         [HttpGet]
@@ -60,6 +61,30 @@ namespace PetSpa.Controllers
             try
             {
                 var customerDomainModel = await _customerRepository.GetByIdAsync(CusId);
+
+                if (customerDomainModel == null)
+                {
+                    return NotFound(_apiResponseService.CreateErrorResponse("Customer not found"));
+                }
+
+                var customerDTO = _mapper.Map<CustomerDTO>(customerDomainModel);
+                return Ok(_apiResponseService.CreateSuccessResponse(customerDTO, "Customer retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting customer by ID.");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
+            }
+        }
+
+        [HttpGet]
+        [Route("{cusId:guid}/bookings")]
+        //[Authorize]
+        public async Task<IActionResult> GetBookingsById([FromRoute] Guid cusId)
+        {
+            try
+            {
+                var customerDomainModel = await _customerRepository.GetByIdBookingAsync(cusId);
 
                 if (customerDomainModel == null)
                 {

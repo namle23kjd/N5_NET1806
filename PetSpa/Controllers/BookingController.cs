@@ -75,7 +75,7 @@ namespace PetSpa.Controllers
             });
             bookingDomainModels.Status = BookingStatus.NotStarted;
             bookingDomainModels.PaymentStatus = false;
-
+            bookingDomainModels.BookingSchedule = DateTime.Now;
             // Optimize price calculation
             var comboIds = bookingDomainModels.BookingDetails
                 .Where(bd => bd.ComboId.HasValue)
@@ -307,7 +307,7 @@ namespace PetSpa.Controllers
             return Ok(mapper.Map<BookingDTO>(bookingDomainModel));
         }
         [HttpPut("update-time/{bookingId:Guid}")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> UpdateBookingTime([FromRoute] Guid bookingId, [FromBody] UpdateBookingTimeRequest updateBookingTimeRequest)
         {
             if (updateBookingTimeRequest.NewDateTime < DateTime.Now)
@@ -353,13 +353,13 @@ namespace PetSpa.Controllers
         [HttpPost("update-time-booking")]
         public async Task<IActionResult> UpdateBooking([FromBody] UpdateTimeBookingRequestDTO updateBookingRequest)
         {
-            // Kiểm tra xem NewBookingSchedule có lớn hơn thời gian hiện tại không
+            
             if (updateBookingRequest.NewBookingSchedule <= DateTime.Now)
             {
                 return BadRequest("Ngày đặt lịch phải lớn hơn thời gian hiện tại.");
             }
 
-            // Kiểm tra xem thời gian đặt lịch có nằm trong khung giờ làm việc từ 8h sáng đến 8h tối không
+            
             var startOfWorkDay = new TimeSpan(8, 0, 0); // 8h sáng
             var endOfWorkDay = new TimeSpan(20, 0, 0); // 8h tối
             var bookingTimeOfDay = updateBookingRequest.NewBookingSchedule.TimeOfDay;
@@ -389,14 +389,6 @@ namespace PetSpa.Controllers
                 return BadRequest("Booking đang trong quá trình thực hiện. Không thể thay đổi!!");
             }
 
-            // Chuyển đổi StartDate thành DateTime trước khi tính toán
-            var bookingStartDate = booking.StartDate;
-
-            // Tính toán Duration
-            TimeSpan duration = updateBookingRequest.NewBookingSchedule - bookingStartDate;
-
-            // Nếu cần giữ nguyên duration thì tính duration từ StartDate cũ
-            var originalDuration = booking.EndDate - booking.StartDate;
 
             // Cập nhật StaffId cho từng chi tiết booking và tính lại Duration
             foreach (var detail in booking.BookingDetails)
@@ -408,11 +400,11 @@ namespace PetSpa.Controllers
             // Cập nhật lại thời gian bắt đầu của booking
             booking.StartDate = updateBookingRequest.NewBookingSchedule;
 
-            // Tính tổng duration và cập nhật EndDate dựa trên originalDuration
-            booking.EndDate = booking.StartDate + originalDuration;
+            // Tính tổng duration và cập nhật EndDate
+            var totalDurationTicks = booking.BookingDetails.Sum(bd => bd.Duration.Ticks);
+            var totalDurationTimeSpan = new TimeSpan(totalDurationTicks);
 
-            // Đặt lại trạng thái checkAccept thành false
-            booking.CheckAccept = false;
+            booking.EndDate = booking.StartDate + totalDurationTimeSpan;
 
             // Lưu thay đổi vào cơ sở dữ liệu
             petSpaContext.Bookings.Update(booking);
@@ -481,7 +473,6 @@ namespace PetSpa.Controllers
             // Lưu thay đổi vào cơ sở dữ liệu
             petSpaContext.Bookings.Update(booking);
             await petSpaContext.SaveChangesAsync();
-
             return Ok("Booking updated successfully.");
         }
 

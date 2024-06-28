@@ -173,17 +173,24 @@ namespace PetSpa.Controllers
         //Post : /api/Auth/Register
         [HttpPost]
         [Route("Register")]
-        [Authorize(Roles = "Customer")]
-
+    
         public async Task<IActionResult> Register([FromBody] RegisterPequestDto registerRequestDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+
             var userResult = await _userManager.FindByEmailAsync(registerRequestDto.Email);
             if (userResult == null)
             {
+                // Kiểm tra số điện thoại đã được đăng ký chưa
+                var userByPhoneNumber = await _userManager.FindByNameAsync(registerRequestDto.PhoneNumber);
+                if (userByPhoneNumber != null)
+                {
+                    return BadRequest(_apiResponse.CreateErrorResponse("Phone number is already registered"));
+                }
+
                 var applicationUser = new ApplicationUser
                 {
                     UserName = registerRequestDto.Email,
@@ -211,8 +218,6 @@ namespace PetSpa.Controllers
                         petSpaContext.Customers.Add(customer);
                         if (await petSpaContext.SaveChangesAsync() > 0)
                         {
-
-
                             var data = new PetSpa.Models.DTO.ApiResponseDTO.Data
                             {
                                 User = new User
@@ -223,12 +228,13 @@ namespace PetSpa.Controllers
                                 },
                                 Token = tokenRepository.CreateJWTToken(user, "Customer", 15)
                             };
+
                             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                             var callbackUrl = $"http://localhost:5173/comfirmed-email?token={token}&email={user.Email}"; // Đường link frontend
 
                             // **Sử dụng HTML trong email**
                             var emailBody = $@" Hello {user.UserName}
-                   VerifyEmail,link here:{callbackUrl} ";
+           VerifyEmail,link here:{callbackUrl} ";
 
                             var message = new Message(new string[] { user.Email }, "Verify", emailBody);
                             _emailSender.SendEmail(message);
@@ -239,9 +245,10 @@ namespace PetSpa.Controllers
                     }
 
                     var errors = identityResult.Errors.Select(e => e.Description).ToList();
-                    return BadRequest(_apiResponse.CreateErrorResponse("Error resgiter"));
+                    return BadRequest(_apiResponse.CreateErrorResponse("Error register"));
                 }
             }
+
             return BadRequest(_apiResponse.CreateErrorResponse("Email is already registered"));
 
         }
@@ -272,7 +279,7 @@ namespace PetSpa.Controllers
         //Post: /api/Auth/Login
         [HttpPost]
         [Route("Login")]
-        [Authorize(Roles = "Admin,Customer,Staff,Manager")]
+       
 
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
         {

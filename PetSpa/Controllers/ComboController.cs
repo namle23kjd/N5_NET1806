@@ -47,7 +47,7 @@ namespace PetSpa.Controllers
         // Get Combo
         // Get: api/combo
         [HttpGet]
-        [Authorize(Roles = "Admin,Manager,Staff")]
+       
         public async Task<IActionResult> GetAll()
         {
             var comboDomainModel = await comboRespository.GetAllAsync();
