@@ -46,19 +46,19 @@ namespace PetSpa.Controllers
         {
             if (addBookingRequestDTO.BookingSchedule < DateTime.Now)
             {
-                return BadRequest("Ngày đặt lịch không được trễ hơn ngày hiện tại. Vui lòng chọn ngày khác.");
+                return BadRequest("Booking date cannot be later than the current date. Please select another date.");
             }
 
             var isScheduleTaken = await bookingRepository.IsScheduleTakenAsync(addBookingRequestDTO.BookingSchedule);
             if (isScheduleTaken)
             {
-                return BadRequest("Thời gian này đã được đặt. Vui lòng chọn lịch khác.");
+                return BadRequest("This time slot has already been booked. Please select another schedule.");
             }
 
             var managerWithLeastBookings = await bookingRepository.GetManagerWithLeastBookingsAsync();
             if (managerWithLeastBookings == null)
             {
-                return BadRequest("Không tìm thấy quản lý.");
+                return BadRequest("Manager not found.");
             }
 
             var bookingDomainModels = mapper.Map<Booking>(addBookingRequestDTO);
@@ -353,21 +353,6 @@ namespace PetSpa.Controllers
         [HttpPost("update-time-booking")]
         public async Task<IActionResult> UpdateBooking([FromBody] UpdateTimeBookingRequestDTO updateBookingRequest)
         {
-            
-            if (updateBookingRequest.NewBookingSchedule <= DateTime.Now)
-            {
-                return BadRequest("Ngày đặt lịch phải lớn hơn thời gian hiện tại.");
-            }
-
-            
-            var startOfWorkDay = new TimeSpan(8, 0, 0); // 8h sáng
-            var endOfWorkDay = new TimeSpan(20, 0, 0); // 8h tối
-            var bookingTimeOfDay = updateBookingRequest.NewBookingSchedule.TimeOfDay;
-
-            if (bookingTimeOfDay < startOfWorkDay || bookingTimeOfDay > endOfWorkDay)
-            {
-                return BadRequest("Thời gian đặt lịch phải trong khung giờ làm việc từ 8h sáng đến 8h tối.");
-            }
 
             // Tìm kiếm booking dựa trên bookingId
             var booking = await petSpaContext.Bookings
@@ -416,12 +401,6 @@ namespace PetSpa.Controllers
         [HttpPost("update-time-booking-nostaff")]
         public async Task<IActionResult> UpdateBookingNoTime([FromBody] UpdateTimeBookingNoStaffRequest updateTimeBookingNoStaffRequest)
         {
-            // Kiểm tra xem NewBookingSchedule có lớn hơn thời gian hiện tại không
-            if (updateTimeBookingNoStaffRequest.NewBookingSchedule <= DateTime.Now)
-            {
-                return BadRequest("Ngày đặt lịch phải lớn hơn thời gian hiện tại.");
-            }
-
             // Kiểm tra xem thời gian đặt lịch có nằm trong khung giờ làm việc từ 8h sáng đến 8h tối không
             var startOfWorkDay = new TimeSpan(8, 0, 0); // 8h sáng
             var endOfWorkDay = new TimeSpan(20, 0, 0); // 8h tối
@@ -749,5 +728,22 @@ namespace PetSpa.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("cancel-booking")]
+        public async Task<IActionResult> CancelBooking([FromBody] CancelBookingRequest cancelBookingRequest)
+        {
+            var booking = await petSpaContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == cancelBookingRequest.BookingId);
+
+            if (booking == null)
+            {
+                return NotFound(new { message = "Booking not found" });
+            }
+
+            booking.Status = BookingStatus.Canceled;
+            await petSpaContext.SaveChangesAsync();
+
+            return Ok(new { message = "Booking canceled successfully" });
+        }
+
     }
 }
