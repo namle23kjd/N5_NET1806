@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
+using PetSpa.Models.DTO.Booking;
 using PetSpa.Models.DTO.PaymentDTO;
 using PetSpa.Repositories.PaymentRepository;
 using System;
@@ -196,14 +197,14 @@ namespace PetSpa.Controllers
         public async Task<IActionResult> GetPaymentHistory(Guid CustomerId)
         {
             var customer = await _context.Customers.Include(c => c.Payments)
-                                            .ThenInclude(p => p.Bookings)
-                                                .ThenInclude(b => b.BookingDetails)
-                                                    .ThenInclude(bd => bd.Service)
-                                            .Include(c => c.Payments)
-                                                .ThenInclude(p => p.Bookings)
-                                                    .ThenInclude(b => b.BookingDetails)
-                                                        .ThenInclude(bd => bd.Combo)
-                                            .FirstOrDefaultAsync(c => c.CusId == CustomerId);
+                                    .ThenInclude(p => p.Bookings)
+                                        .ThenInclude(b => b.BookingDetails)
+                                            .ThenInclude(bd => bd.Service)
+                                    .Include(c => c.Payments)
+                                        .ThenInclude(p => p.Bookings)
+                                            .ThenInclude(b => b.BookingDetails)
+                                                .ThenInclude(bd => bd.Combo)
+                                    .FirstOrDefaultAsync(c => c.CusId == CustomerId);
 
             if (customer == null)
             {
@@ -212,12 +213,25 @@ namespace PetSpa.Controllers
 
             var paymentHistory = customer.Payments.Select(p => new PaymentHistoryDTO
             {
-                CustomerName = p.Customer.FullName,
+                CustomerName = customer.FullName,
                 PaymentMethod = p.PaymentMethod,
                 CreatedDate = p.CreatedDate,
                 ExpirationTime = p.ExpirationTime,
-                ServicesOrCombos = p.Bookings.SelectMany(b => b.BookingDetails.Select(bd => bd.ServiceId.HasValue ? bd.Service.ServiceName : bd.Combo.ComboType)).ToList(),
-                TotalAmount = p.Bookings.Sum(b => b.TotalAmount ?? 0)
+                TotalAmount = p.Bookings.Sum(b => b.TotalAmount ?? 0),
+                BookingDetails = p.Bookings.SelectMany(b => b.BookingDetails).Select(bd => new BookingDetailHistoryDTO
+                {
+                    BookingId = bd.BookingId,
+                    PetId = bd.PetId,
+                    ScheduleDate = bd.Booking.StartDate,
+                    ComboId = bd.ComboId,
+                    ServiceId = bd.ServiceId,
+                    StaffId = bd.StaffId,
+                    ServicePrice = bd.ServiceId.HasValue ? bd.Service.Price : bd.Combo.Price,
+                    CheckAccept = bd.Booking.CheckAccept,
+                    Status = bd.Booking.Status ?? BookingStatus.NotStarted,
+                    Feedback = bd.Booking.Feedback,
+                    BookingSchedule = bd.Booking.BookingSchedule
+                }).ToList()
             }).ToList();
 
             return Ok(paymentHistory);

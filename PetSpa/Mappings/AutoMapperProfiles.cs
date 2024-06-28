@@ -121,8 +121,21 @@ namespace PetSpa.Mappings
             .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod))
             .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate))
             .ForMember(dest => dest.ExpirationTime, opt => opt.MapFrom(src => src.ExpirationTime))
-            .ForMember(dest => dest.ServicesOrCombos, opt => opt.MapFrom(src => src.Bookings.SelectMany(b => b.BookingDetails.Select(bd => bd.ServiceId.HasValue ? bd.Service.ServiceName : bd.Combo.ComboType)).ToList()))
-            .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.Bookings.Sum(b => b.TotalAmount ?? 0)));
+            .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.Bookings.Sum(b => b.TotalAmount ?? 0)))
+            .ForMember(dest => dest.BookingDetails, opt => opt.MapFrom(src => src.Bookings.SelectMany(b => b.BookingDetails)));
+
+            CreateMap<BookingDetail, BookingDetailHistoryDTO>()
+            .ForMember(dest => dest.BookingId, opt => opt.MapFrom(src => src.BookingId))
+            .ForMember(dest => dest.PetId, opt => opt.MapFrom(src => src.PetId))
+            .ForMember(dest => dest.ScheduleDate, opt => opt.MapFrom(src => src.Booking.StartDate))
+            .ForMember(dest => dest.ComboId, opt => opt.MapFrom(src => src.ComboId))
+            .ForMember(dest => dest.ServiceId, opt => opt.MapFrom(src => src.ServiceId))
+            .ForMember(dest => dest.StaffId, opt => opt.MapFrom(src => src.StaffId))
+            .ForMember(dest => dest.ServicePrice, opt => opt.MapFrom(src => src.ServiceId.HasValue ? src.Service.Price : src.Combo.Price))
+            .ForMember(dest => dest.CheckAccept, opt => opt.MapFrom(src => src.Booking.CheckAccept))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Booking.Status))
+            .ForMember(dest => dest.Feedback, opt => opt.MapFrom(src => src.Booking.Feedback))
+            .ForMember(dest => dest.BookingSchedule, opt => opt.MapFrom(src => src.Booking.BookingSchedule));
         }
     }
     
