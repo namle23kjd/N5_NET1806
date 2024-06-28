@@ -135,5 +135,26 @@ namespace PetSpa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
             }
         }
+
+        [HttpDelete("delete-customer")]
+        public async Task<IActionResult> DeleteCustomer(Guid cusId)
+        {
+            try 
+            {
+                var customerDomainModel = await _customerRepository.DeleteAsync(cusId);
+                if (!customerDomainModel)
+                {
+                    return NotFound(_apiResponseService.CreateErrorResponse("Customer not found"));
+                }
+
+                return Ok(_apiResponseService.CreateSuccessResponse("Customer deleted successfull"));
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while deleting customer. ");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
+            }
+        }
+
     }
 }
