@@ -52,11 +52,14 @@ namespace PetSpa.Controllers
                         CreatedDate = DateTime.UtcNow,
                         ExpirationTime = DateTime.UtcNow.AddMinutes(3),
                         PaymentMethod = "VNPay",
-                        CusId = model.CusId // Gán CusId vào Payment
+                        CusId = model.CusId, // Gán CusId vào Payment
+                        TotalPayment = 0m // Khởi tạo TotalPayment bằng 0
                     };
 
                     _context.Payments.Add(payment);
                     await _context.SaveChangesAsync(); // Lưu Payment trước để lấy PaymentId
+
+                    decimal totalAmount = 0m;
 
                     // Cập nhật trạng thái của các booking
                     foreach (var bookingId in model.BookingIds)
@@ -67,12 +70,27 @@ namespace PetSpa.Controllers
                         {
                             return NotFound($"Booking with ID {bookingId} not found");
                         }
+                        // Áp dụng giảm giá dựa trên hạng của khách hàng
+                        if (customer.CusRank == "Silver")
+                        {
+                            booking.TotalAmount = booking.TotalAmount * 0.95m; // Giảm 5%
+                        }
+                        else if (customer.CusRank == "Gold")
+                        {
+                            booking.TotalAmount = booking.TotalAmount * 0.90m; // Giảm 10%
+                        }
 
                         booking.PaymentId = payment.PaymentId;
                         booking.PaymentStatus = false;
+                        totalAmount += booking.TotalAmount ?? 0m; // Tính tổng số tiền của tất cả các booking
                     }
 
-                    await _context.SaveChangesAsync(); // Lưu Booking sau khi cập nhật PaymentId
+                    payment.TotalPayment = totalAmount; // Cập nhật TotalPayment của Payment
+                    customer.TotalSpent += totalAmount; // Cập nhật TotalSpent của khách hàng
+                    customer.UpdateCusRank(); // Cập nhật CusRank của khách hàng nếu cần
+                    _context.Customers.Update(customer); // Cập nhật khách hàng trong cơ sở dữ liệu
+
+                    await _context.SaveChangesAsync(); // Lưu Booking sau khi cập nhật PaymentId và Payment sau khi cập nhật TotalPayment
 
                     var paymentUrl = _vnPayService.CreatePaymentUrl(model, HttpContext, transactionId);
 
@@ -90,6 +108,7 @@ namespace PetSpa.Controllers
             }
         }
 
+
         [HttpGet("payment-callback")]
         public async Task<IActionResult> PaymentCallback()
         {
@@ -103,9 +122,11 @@ namespace PetSpa.Controllers
                     try
                     {
                         // Xử lý cập nhật trạng thái thanh toán
+                        _logger.LogInformation("Searching for payment with TransactionId: {TransactionId}", response.TransactionId);
                         var payment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == response.TransactionId);
                         if (payment != null)
                         {
+                            _logger.LogInformation("Payment found: {PaymentId}", payment.PaymentId);
                             payment.PaymentMethod = response.PaymentMethod;
 
                             var bookings = await _context.Bookings.Include(b => b.BookingDetails)
@@ -113,9 +134,21 @@ namespace PetSpa.Controllers
                                                                   .ToListAsync();
                             if (bookings.Any())
                             {
+                                _logger.LogInformation("Bookings found for PaymentId: {PaymentId}", payment.PaymentId);
                                 foreach (var booking in bookings)
                                 {
                                     booking.PaymentStatus = true; // Đặt trạng thái là true khi thanh toán thành công
+                                }
+
+                                // Tính tổng số tiền đã chi tiêu và cập nhật vào TotalSpent
+                                var totalSpent = bookings.Sum(b => b.TotalAmount ?? 0);
+                                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.CusId == payment.CusId);
+                                if (customer != null)
+                                {
+                                    _logger.LogInformation("Customer found: {CusId}", customer.CusId);
+                                    customer.TotalSpent += totalSpent;
+                                    customer.UpdateCusRank(); // Cập nhật CusRank nếu cần thiết
+                                    _context.Customers.Update(customer);
                                 }
                                 await _context.SaveChangesAsync();
                             }
@@ -124,6 +157,7 @@ namespace PetSpa.Controllers
                             var returnUrl = Request.Query["vnp_ReturnUrl"];
                             if (!string.IsNullOrEmpty(returnUrl))
                             {
+                                _logger.LogInformation("Redirecting to ReturnUrl: {ReturnUrl}", returnUrl);
                                 return Redirect(returnUrl);
                             }
                             return Ok(new { PaymentId = payment.PaymentId, TransactionId = payment.TransactionId });
@@ -162,6 +196,14 @@ namespace PetSpa.Controllers
                                 _context.Bookings.Remove(failedBooking);
                             }
                         }
+                        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.CusId == failedPayment.CusId);
+                        if (customer != null)
+                        {
+                            // Trừ tổng số tiền của failed payment khỏi TotalSpent của customer
+                            customer.TotalSpent -= failedPayment.TotalPayment ?? 0;
+                            customer.UpdateCusRank(); // Cập nhật CusRank nếu cần thiết
+                            _context.Customers.Update(customer);
+                        }
                         _context.Payments.Remove(failedPayment);
                         await _context.SaveChangesAsync();
                     }
@@ -181,17 +223,56 @@ namespace PetSpa.Controllers
         [HttpDelete("{paymentId:int}")]
         public async Task<IActionResult> DeletePayment(int paymentId)
         {
-            var payment = await _context.Payments.FirstOrDefaultAsync(p => p.PaymentId == paymentId);
-            if (payment == null)
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                return NotFound($"Payment with ID {paymentId} not found");
+                try
+                {
+                    var payment = await _context.Payments.FirstOrDefaultAsync(p => p.PaymentId == paymentId);
+                    if (payment == null)
+                    {
+                        return NotFound($"Payment with ID {paymentId} not found");
+                    }
+
+                    // Tìm khách hàng tương ứng với payment này
+                    var customer = await _context.Customers.FirstOrDefaultAsync(c => c.CusId == payment.CusId);
+                    if (customer != null)
+                    {
+                        // Trừ số tiền của payment khỏi TotalSpent của customer
+                        customer.TotalSpent -= payment.TotalPayment ?? 0;
+
+                        // Cập nhật CusRank nếu cần thiết
+                        customer.UpdateCusRank();
+
+                        // Cập nhật customer trong context
+                        _context.Customers.Update(customer);
+                    }
+
+                    // Xóa các bookings liên quan đến payment này
+                    var relatedBookings = await _context.Bookings.Where(b => b.PaymentId == payment.PaymentId).ToListAsync();
+                    if (relatedBookings.Any())
+                    {
+                        _context.Bookings.RemoveRange(relatedBookings);
+                    }
+
+                    _context.Payments.Remove(payment);
+
+                    // Lưu các thay đổi vào database
+                    await _context.SaveChangesAsync();
+
+                    // Commit transaction
+                    await transaction.CommitAsync();
+
+                    return Ok("Payment and related bookings deleted successfully");
+                }
+                catch (Exception ex)
+                {
+                    // Rollback transaction nếu có lỗi
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, $"Internal server error: {ex.Message}");
+                }
             }
-
-            _context.Payments.Remove(payment);
-            await _context.SaveChangesAsync();
-
-            return Ok("Payment and related bookings deleted successfully");
         }
+
 
         [HttpGet("history-customerId")]
         public async Task<IActionResult> GetPaymentHistory(Guid CustomerId)

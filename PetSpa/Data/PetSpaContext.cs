@@ -317,6 +317,10 @@ namespace PetSpa.Data
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasColumnName("cusRank");
+                entity.Property(e => e.TotalSpent)
+                  .HasColumnType("decimal(18, 2)")
+                  .HasDefaultValue(0)
+                  .HasColumnName("totalSpent");
 
                 entity.HasOne(d => d.User)
                     .WithOne()
@@ -460,6 +464,10 @@ namespace PetSpa.Data
                 entity.Property(e => e.CusId)
                   .IsRequired()
                   .HasColumnName("cusID");
+
+                entity.Property(e => e.TotalPayment) // Thêm dòng này
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("TotalPayment");
 
                 entity.HasOne(e => e.Customer)
                     .WithMany(c => c.Payments)

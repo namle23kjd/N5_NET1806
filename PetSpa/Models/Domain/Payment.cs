@@ -11,6 +11,7 @@ public partial class Payment
     public DateTime CreatedDate { get; set; } = DateTime.Now;
     public DateTime ExpirationTime { get; set; }
     public string PaymentMethod { get; set; }
+    public decimal? TotalPayment { get; set; } // Thêm dòng này
     public virtual Customer Customer { get; set; } = null!;
     public virtual List<Booking> Bookings { get; set; } = new List<Booking>();
     public virtual List<Invoice> Invoices { get; set; } = new List<Invoice>();

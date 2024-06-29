@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PetSpa.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateBookingStatusEnum : Migration
+    public partial class UpdateTotalPayment : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -244,6 +244,7 @@ namespace PetSpa.Migrations
                     gender = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
                     phoneNumber = table.Column<string>(type: "varchar(15)", unicode: false, maxLength: 15, nullable: true),
                     cusRank = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
+                    totalSpent = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m),
                     AdminId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
@@ -297,7 +298,8 @@ namespace PetSpa.Migrations
                     transactionId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     createdDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     expirationTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    paymentMethod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                    paymentMethod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    TotalPayment = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -509,10 +511,10 @@ namespace PetSpa.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("37a63d77-4739-4832-8c17-8f07f4bc5104"), "37a63d77-4739-4832-8c17-8f07f4bc5104", "Staff", "STAFF" },
-                    { new Guid("9c222746-b6d3-467a-bd25-810d11c05e0b"), "9c222746-b6d3-467a-bd25-810d11c05e0b", "Manager", "MANAGER" },
-                    { new Guid("a852053d-12b8-4539-ad9f-2ddfe9cc2fb3"), "a852053d-12b8-4539-ad9f-2ddfe9cc2fb3", "Customer", "CUSTOMER" },
-                    { new Guid("ff8485aa-f463-4db2-986d-6ff816c58d24"), "ff8485aa-f463-4db2-986d-6ff816c58d24", "Admin", "ADMIN" }
+                    { new Guid("5296b001-5da6-4035-a40e-c3e94997395f"), "5296b001-5da6-4035-a40e-c3e94997395f", "Customer", "CUSTOMER" },
+                    { new Guid("bcd01c15-f6c5-421a-aef9-40e716887694"), "bcd01c15-f6c5-421a-aef9-40e716887694", "Manager", "MANAGER" },
+                    { new Guid("d689e284-0a43-4c70-a60d-47d1f5824765"), "d689e284-0a43-4c70-a60d-47d1f5824765", "Staff", "STAFF" },
+                    { new Guid("e4409f00-f61a-44f9-80e3-f14a5d9d667a"), "e4409f00-f61a-44f9-80e3-f14a5d9d667a", "Admin", "ADMIN" }
                 });
 
             migrationBuilder.CreateIndex(
