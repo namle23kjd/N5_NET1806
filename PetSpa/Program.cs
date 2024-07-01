@@ -171,6 +171,7 @@ namespace PetSpa
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<BookingStatusChecker>();
             builder.Services.AddScoped<RoleManager<IdentityRole<Guid>>>();
+            builder.Services.AddScoped<UserManager<ApplicationUser>>();
             builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
             // Add email config
             var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<EmailSettings>();

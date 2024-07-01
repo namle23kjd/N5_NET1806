@@ -100,10 +100,10 @@ namespace PetSpa.Mappings
             CreateMap<CompleteBookingRequestDTO, Booking>().ReverseMap();
 
             CreateMap<ApplicationUser, UserDTO>()
-           .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName ?? string.Empty))
-           .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email ?? string.Empty))
-           .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber ?? string.Empty))
-           .ForMember(dest => dest.Roles, opt => opt.Ignore());
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName ?? string.Empty))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email ?? string.Empty))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber ?? string.Empty))
+                .ForMember(dest => dest.Roles, opt => opt.Ignore());
 
             CreateMap<Payment, PaymentDTO>()
             .ForMember(dest => dest.CusId, opt => opt.MapFrom(src => src.CusId))
@@ -140,6 +140,24 @@ namespace PetSpa.Mappings
             .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName))
             .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.BookingDetails.FirstOrDefault().Service.ServiceName))
             .ForMember(dest => dest.PetName, opt => opt.MapFrom(src => src.BookingDetails.FirstOrDefault().Pet.PetName));
+
+            CreateMap<Customer, UserDTO>()
+               .ForMember(dest => dest.UserName, opt => opt.Ignore())
+               .ForMember(dest => dest.Email, opt => opt.Ignore())
+               .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+               .ForMember(dest => dest.Roles, opt => opt.Ignore());
+
+            CreateMap<Staff, UserDTO>()
+                .ForMember(dest => dest.UserName, opt => opt.Ignore())
+                .ForMember(dest => dest.Email, opt => opt.Ignore())
+                .ForMember(dest => dest.PhoneNumber, opt => opt.Ignore())
+                .ForMember(dest => dest.Roles, opt => opt.Ignore());
+
+            CreateMap<Manager, UserDTO>()
+                .ForMember(dest => dest.UserName, opt => opt.Ignore())
+                .ForMember(dest => dest.Email, opt => opt.Ignore())
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.Roles, opt => opt.Ignore());
         }
     }
     

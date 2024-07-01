@@ -292,7 +292,7 @@ namespace PetSpa.Data
 
                 entity.Property(e => e.FullName)
                     .HasMaxLength(255)
-                    .IsUnicode(false)
+                    .IsUnicode(true)
                     .HasColumnName("fullName").IsRequired(false);
 
                 entity.Property(e => e.Gender)
@@ -382,13 +382,13 @@ namespace PetSpa.Data
 
                 entity.Property(e => e.FullName)
                     .HasMaxLength(255)
-                    .IsUnicode(false)
-                    .HasColumnName("fullName");
+                    .IsUnicode(true)
+                    .HasColumnName("fullName").IsRequired(false);
 
                 entity.Property(e => e.Gender)
                     .HasMaxLength(10)
                     .IsUnicode(false)
-                    .HasColumnName("gender");
+                    .HasColumnName("gender").IsRequired(false);
 
                 entity.Property(e => e.PhoneNumber)
                     .HasMaxLength(15)
@@ -550,7 +550,7 @@ namespace PetSpa.Data
 
                 entity.Property(e => e.FullName)
                     .HasMaxLength(255)
-                    .IsUnicode(false)
+                    .IsUnicode(true)
                     .HasColumnName("fullName");
 
                 entity.Property(e => e.Gender)

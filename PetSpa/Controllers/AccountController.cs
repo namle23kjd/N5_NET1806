@@ -19,14 +19,13 @@ namespace PetSpa.Controllers
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly PetSpaContext context;
 
-        public AccountController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole<Guid>> roleManager, PetSpaContext context)
+        public AccountController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole<Guid>> roleManager, PetSpaContext context, IUserRepository userRepository)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             this._mapper = mapper;
             this._roleManager = roleManager;
             this.context = context;
         }
-
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -75,9 +74,8 @@ namespace PetSpa.Controllers
                     case "customer":
                         var customer = new Customer
                         {
+                            CusId = Guid.NewGuid(),
                             Id = user.Id,
-                            FullName = registerUserDTO.FullName,
-                            Gender = registerUserDTO.Gender,
                             PhoneNumber = registerUserDTO.PhoneNumber,
                             CusRank = "Bronze", // Đặt hạng mặc định là Bronze
                             TotalSpent = 0
@@ -88,9 +86,8 @@ namespace PetSpa.Controllers
                     case "staff":
                         var staff = new Staff
                         {
+                            StaffId = Guid.NewGuid(),
                             Id = user.Id,
-                            FullName = registerUserDTO.FullName,
-                            Gender = registerUserDTO.Gender
                         };
                         context.Staff.Add(staff);
                         break;
@@ -98,6 +95,7 @@ namespace PetSpa.Controllers
                     case "admin":
                         var admin = new Admin
                         {
+                            AdminId = Guid.NewGuid(),
                             Id = user.Id
                         };
                         context.Admins.Add(admin);
@@ -106,9 +104,8 @@ namespace PetSpa.Controllers
                     case "manager":
                         var manager = new Manager
                         {
+                            ManaId = Guid.NewGuid(),
                             Id = user.Id,
-                            FullName = registerUserDTO.FullName,
-                            Gender = registerUserDTO.Gender,
                             PhoneNumber = registerUserDTO.PhoneNumber
                         };
                         context.Managers.Add(manager);
