@@ -157,9 +157,6 @@ namespace PetSpa.Data
                     .HasConversion<int?>() // Store the enum as an integer in the database
                     .HasDefaultValue(BookingStatus.NotStarted);
 
-
-                entity.Property(e => e.PaymentStatus).HasColumnName("paymentstatus");
-
                 entity.Property(e => e.TotalAmount)
                     .HasColumnType("decimal(10, 2)")
                     .HasColumnName("totalAmount");

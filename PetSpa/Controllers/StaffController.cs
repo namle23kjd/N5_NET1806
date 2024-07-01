@@ -162,21 +162,18 @@ namespace PetSpa.Controllers
         [HttpGet("{staffId:guid}/current-booking")]
         public async Task<IActionResult> GetCurrentBookingForStaff(Guid staffId)
         {
-            try
+            var bookings = await _staffRepository.GetBookingsByStatusAsync(staffId, BookingStatus.Completed);
+            var bookingDtos = bookings.Select(b => new StaffBookingDTO
             {
-                var booking = await _bookingRepository.GetCurrentBookingForStaffAsync(staffId);
-                if(booking == null)
-                {
-                    return NotFound(_apiResponseService.CreateErrorResponse("No Curent Booking Found For The Staff"));
-                }
-                return Ok(_apiResponseService.CreateSuccessResponse(_mapper.Map<BookingDTO>(booking), "Current booking retrieved successfully"));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An Error Occured While Getting Current Booking For the Staff");
-                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("An Error Occured While Getting Booking For The Staff"));
-
-            }
+                BookingId = b.BookingId,
+                CustomerName = b.Customer.FullName,
+                ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "N/A",
+                PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "N/A",
+                StartDate = b.StartDate,
+                EndDate = b.EndDate,
+                Status = (BookingStatus)b.Status
+            }).ToList();
+            return Ok(bookingDtos);
 
         }
         [HttpGet("{staffId:guid}/booking-history")]
@@ -192,6 +189,40 @@ namespace PetSpa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("An Error Occurred While Getting Booking History For The Staff"));
             }
 
+        }
+
+        [HttpGet("{staffId}/completed-bookings")]
+        public async Task<IActionResult> GetCompletedBookings(Guid staffId)
+        {
+            var bookings = await _staffRepository.GetBookingsByStatusAsync(staffId, BookingStatus.Completed);
+            var bookingDtos = bookings.Select(b => new StaffBookingDTO
+            {
+                BookingId = b.BookingId,
+                CustomerName = b.Customer.FullName ?? "Unknown",
+                ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "Unknown",
+                PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
+                StartDate = b.StartDate,
+                EndDate = b.EndDate,
+                Status = (BookingStatus)b.Status
+            }).ToList();
+            return Ok(bookingDtos);
+        }
+
+        [HttpGet("{staffId}/pending-bookings")]
+        public async Task<IActionResult> GetPendingBookings(Guid staffId)
+        {
+            var bookings = await _staffRepository.GetBookingsByStatusAsync(staffId, BookingStatus.NotStarted);
+            var bookingDtos = bookings.Select(b => new StaffBookingDTO
+            {
+                BookingId = b.BookingId,
+                CustomerName = b.Customer.FullName ?? "Unknown",
+                ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "Unknown",
+                PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
+                StartDate = b.StartDate,
+                EndDate = b.EndDate,
+                Status = (BookingStatus)b.Status
+            }).ToList();
+            return Ok(bookingDtos);
         }
 
     }

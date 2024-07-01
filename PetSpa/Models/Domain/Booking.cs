@@ -12,8 +12,6 @@ public partial class Booking
     public string? Feedback { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-
-    public bool PaymentStatus { get; set; }
     public bool CheckAccept { get; set; }
     public int? PaymentId { get; set; }
     public Guid? InvoiceId { get; set; }

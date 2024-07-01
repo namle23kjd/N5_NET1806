@@ -138,6 +138,11 @@ namespace PetSpa.Mappings
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Booking.Status))
             .ForMember(dest => dest.Feedback, opt => opt.MapFrom(src => src.Booking.Feedback))
             .ForMember(dest => dest.BookingSchedule, opt => opt.MapFrom(src => src.Booking.BookingSchedule));
+
+            CreateMap<Booking, StaffBookingDTO>()
+            .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName))
+            .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.BookingDetails.FirstOrDefault().Service.ServiceName))
+            .ForMember(dest => dest.PetName, opt => opt.MapFrom(src => src.BookingDetails.FirstOrDefault().Pet.PetName));
         }
     }
     

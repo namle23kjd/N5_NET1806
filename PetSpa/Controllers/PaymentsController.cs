@@ -121,7 +121,6 @@ namespace PetSpa.Controllers
                 {
                     try
                     {
-                        // Xử lý cập nhật trạng thái thanh toán
                         _logger.LogInformation("Searching for payment with TransactionId: {TransactionId}", response.TransactionId);
                         var payment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == response.TransactionId);
                         if (payment != null)
@@ -170,7 +169,6 @@ namespace PetSpa.Controllers
                     }
                     catch (Exception ex)
                     {
-                        // Rollback transaction nếu có lỗi
                         await transaction.RollbackAsync();
                         _logger.LogError(ex, "Error processing successful payment callback");
                         return StatusCode(500, $"Internal server error: {ex.Message}");
@@ -192,10 +190,12 @@ namespace PetSpa.Controllers
                         {
                             foreach (var failedBooking in failedBookings)
                             {
+                                failedBooking.PaymentStatus = false; // Đặt trạng thái là false khi thanh toán thất bại
                                 _context.BookingDetails.RemoveRange(failedBooking.BookingDetails);
                                 _context.Bookings.Remove(failedBooking);
                             }
                         }
+
                         var customer = await _context.Customers.FirstOrDefaultAsync(c => c.CusId == failedPayment.CusId);
                         if (customer != null)
                         {
@@ -204,6 +204,7 @@ namespace PetSpa.Controllers
                             customer.UpdateCusRank(); // Cập nhật CusRank nếu cần thiết
                             _context.Customers.Update(customer);
                         }
+
                         _context.Payments.Remove(failedPayment);
                         await _context.SaveChangesAsync();
                     }

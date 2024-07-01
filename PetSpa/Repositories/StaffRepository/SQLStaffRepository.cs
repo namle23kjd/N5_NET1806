@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
+using PetSpa.Models.DTO.Booking;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -52,6 +53,18 @@ namespace PetSpa.Repositories.StaffRepository
             await _dbContext.Staff.AddAsync(staff);
             await _dbContext.SaveChangesAsync();
             return staff;
+        }
+
+        public async Task<List<Booking>> GetBookingsByStatusAsync(Guid staffId, BookingStatus status)
+        {
+            return await _dbContext.Bookings
+        .Include(b => b.Customer)
+        .Include(b => b.BookingDetails)
+            .ThenInclude(bd => bd.Service)
+        .Include(b => b.BookingDetails)
+            .ThenInclude(bd => bd.Pet)
+        .Where(b => b.BookingDetails.Any(bd => bd.StaffId == staffId) && b.Status == status)
+        .ToListAsync();
         }
     }
 }

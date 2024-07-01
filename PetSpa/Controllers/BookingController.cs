@@ -46,21 +46,23 @@ namespace PetSpa.Controllers
         {
             if (addBookingRequestDTO.BookingSchedule < DateTime.Now)
             {
+                logger.LogWarning("Booking date cannot be later than the current date. BookingSchedule: {BookingSchedule}", addBookingRequestDTO.BookingSchedule);
                 return BadRequest("Booking date cannot be later than the current date. Please select another date.");
             }
 
             var isScheduleTaken = await bookingRepository.IsScheduleTakenAsync(addBookingRequestDTO.BookingSchedule);
             if (isScheduleTaken)
             {
+                logger.LogWarning("This time slot has already been booked. BookingSchedule: {BookingSchedule}", addBookingRequestDTO.BookingSchedule);
                 return BadRequest("This time slot has already been booked. Please select another schedule.");
             }
 
             var managerWithLeastBookings = await bookingRepository.GetManagerWithLeastBookingsAsync();
             if (managerWithLeastBookings == null)
             {
+
                 return BadRequest("Manager not found.");
             }
-
             var bookingDomainModels = mapper.Map<Booking>(addBookingRequestDTO);
             bookingDomainModels.ManaId = managerWithLeastBookings.ManaId;
             bookingDomainModels.StartDate = addBookingRequestDTO.BookingSchedule;
@@ -73,6 +75,20 @@ namespace PetSpa.Controllers
                 var servicePrice = bd.ServiceId.HasValue ? petSpaContext.Services.FirstOrDefault(s => s.ServiceId == bd.ServiceId)?.Price ?? 0 : 0;
                 return comboPrice + servicePrice;
             });
+            // Fetch the customer to apply discount based on CusRank
+            var customer = await petSpaContext.Customers.FirstOrDefaultAsync(c => c.CusId == addBookingRequestDTO.CusId);
+            if (customer != null)
+            {
+                if (customer.CusRank == "Silver")
+                {
+                    bookingDomainModels.TotalAmount = bookingDomainModels.TotalAmount * 0.95m; // Giảm 5%
+                }
+                else if (customer.CusRank == "Gold")
+                {
+                    bookingDomainModels.TotalAmount = bookingDomainModels.TotalAmount * 0.90m; // Giảm 10%
+                }
+                bookingDomainModels.Customer = customer;
+            }
             bookingDomainModels.Status = BookingStatus.NotStarted;
             bookingDomainModels.PaymentStatus = false;
             bookingDomainModels.BookingSchedule = DateTime.Now;
@@ -107,12 +123,7 @@ namespace PetSpa.Controllers
 
             await bookingRepository.CreateAsync(bookingDomainModels);
 
-            // Truy xuất tên khách hàng từ CusId
-            var customer = await petSpaContext.Customers.FirstOrDefaultAsync(c => c.CusId == addBookingRequestDTO.CusId);
-            if (customer != null)
-            {
                 bookingDomainModels.Customer = customer;
-            }
             var bookingDTO = mapper.Map<BookingDTO>(bookingDomainModels);
             bookingDTO.CustomerName = customer?.FullName;
             return Ok(apiResponseService.CreateSuccessResponse(bookingDTO, "Booking created successfully"));
@@ -456,24 +467,6 @@ namespace PetSpa.Controllers
         }
 
 
-        [HttpPut("{BookingId:Guid}/accept")]
-        //[Authorize(Roles = "Admin,Manager")]
-        public async Task<IActionResult> AcceptBooking([FromRoute] Guid BookingId, [FromBody] AcceptBookingRequest acceptRequest)
-        {
-            var booking = await bookingRepository.GetByIdAsync(BookingId);
-            if (booking == null)
-            {
-                return NotFound("Booking not found");
-            }
-
-            booking.CheckAccept = acceptRequest.CheckAccept;
-            await bookingRepository.UpdateAsync(BookingId, booking);
-
-            return Ok(mapper.Map<BookingDTO>(booking));
-        }
-
-
-
         [HttpGet("completed")]
         //[Authorize(Roles = "Admin,Customer,Manager")]
 
@@ -595,7 +588,6 @@ namespace PetSpa.Controllers
             }
         }
 
-        // Accept booking
         [HttpPut("accept-booking")]
         public async Task<IActionResult> AcceptBooking([FromBody] AcceptBookingDTO acceptBookingDTO)
         {
@@ -607,22 +599,13 @@ namespace PetSpa.Controllers
                     return NotFound(apiResponseService.CreateErrorResponse("Booking not found"));
                 }
 
-                // Automatically assign a staff if not already assigned
-                if (!booking.BookingDetails.Any(detail => detail.StaffId.HasValue))
+                // Gán StaffId cho tất cả các BookingDetail
+                foreach (var detail in booking.BookingDetails)
                 {
-                    var availableStaffs = bookingRepository.GetAvailableStaffsForStartTime(booking.StartDate, booking.EndDate);
-                    if (!availableStaffs.Any())
-                    {
-                        return BadRequest(apiResponseService.CreateErrorResponse("No available staff found for the booking time"));
-                    }
-
-                    var assignedStaff = availableStaffs.First();
-                    foreach (var detail in booking.BookingDetails)
-                    {
-                        detail.StaffId = assignedStaff.StaffId;
-                    }
+                    detail.StaffId = acceptBookingDTO.StaffId;
                 }
 
+                // Chuyển trạng thái CheckAccept sang true
                 booking.CheckAccept = true;
                 await bookingRepository.UpdateAsync(booking.BookingId, booking);
 
@@ -634,6 +617,7 @@ namespace PetSpa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while accepting booking"));
             }
         }
+
 
         [HttpGet("total-revenue/current-month")]
         public async Task<IActionResult> GetTotalRevenueForCurrentMonth([FromQuery] DateTime? startDate)
