@@ -22,7 +22,6 @@ namespace PetSpa.Repositories.StaffRepository
             return await _dbContext.Staff
                 .Include(s => s.User)
                 .Include(s => s.BookingDetails)
-                .Include(s => s.Manager)
                 .ToListAsync();
         }
 
@@ -31,7 +30,6 @@ namespace PetSpa.Repositories.StaffRepository
             return await _dbContext.Staff
                 .Include(s => s.User)
                 .Include(s => s.BookingDetails)
-                .Include(s => s.Manager)
                 .FirstOrDefaultAsync(x => x.StaffId == StaffID);
         }
 

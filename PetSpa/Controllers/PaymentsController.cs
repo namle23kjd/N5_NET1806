@@ -81,7 +81,7 @@ namespace PetSpa.Controllers
                         }
 
                         booking.PaymentId = payment.PaymentId;
-                        booking.PaymentStatus = false;
+  
                         totalAmount += booking.TotalAmount ?? 0m; // Tính tổng số tiền của tất cả các booking
                     }
 
@@ -134,10 +134,6 @@ namespace PetSpa.Controllers
                             if (bookings.Any())
                             {
                                 _logger.LogInformation("Bookings found for PaymentId: {PaymentId}", payment.PaymentId);
-                                foreach (var booking in bookings)
-                                {
-                                    booking.PaymentStatus = true; // Đặt trạng thái là true khi thanh toán thành công
-                                }
 
                                 // Tính tổng số tiền đã chi tiêu và cập nhật vào TotalSpent
                                 var totalSpent = bookings.Sum(b => b.TotalAmount ?? 0);
@@ -190,7 +186,6 @@ namespace PetSpa.Controllers
                         {
                             foreach (var failedBooking in failedBookings)
                             {
-                                failedBooking.PaymentStatus = false; // Đặt trạng thái là false khi thanh toán thất bại
                                 _context.BookingDetails.RemoveRange(failedBooking.BookingDetails);
                                 _context.Bookings.Remove(failedBooking);
                             }

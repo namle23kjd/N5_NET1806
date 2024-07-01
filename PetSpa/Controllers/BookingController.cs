@@ -90,7 +90,6 @@ namespace PetSpa.Controllers
                 bookingDomainModels.Customer = customer;
             }
             bookingDomainModels.Status = BookingStatus.NotStarted;
-            bookingDomainModels.PaymentStatus = false;
             bookingDomainModels.BookingSchedule = DateTime.Now;
             // Optimize price calculation
             var comboIds = bookingDomainModels.BookingDetails
@@ -716,17 +715,52 @@ namespace PetSpa.Controllers
         [HttpPost("cancel-booking")]
         public async Task<IActionResult> CancelBooking([FromBody] CancelBookingRequest cancelBookingRequest)
         {
-            var booking = await petSpaContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == cancelBookingRequest.BookingId);
-
-            if (booking == null)
+            using (var transaction = await petSpaContext.Database.BeginTransactionAsync())
             {
-                return NotFound(new { message = "Booking not found" });
+                try
+                {
+                    var booking = await petSpaContext.Bookings
+                                                      .Include(b => b.Payments) // Include related Payment
+                                                      .FirstOrDefaultAsync(b => b.BookingId == cancelBookingRequest.BookingId);
+
+                    if (booking == null)
+                    {
+                        return NotFound(new { message = "Booking not found" });
+                    }
+
+                    if (booking.Status == BookingStatus.Canceled)
+                    {
+                        return BadRequest(new { message = "Booking is already canceled" });
+                    }
+
+                    // Update booking status to canceled
+                    booking.Status = BookingStatus.Canceled;
+
+                    // Subtract the booking amount from the payment's total
+                    if (booking.Payments != null)
+                    {
+                        booking.Payments.TotalPayment -= booking.TotalAmount ?? 0;
+
+                        // Subtract the booking amount from the customer's total spent
+                        var customer = await petSpaContext.Customers.FirstOrDefaultAsync(c => c.CusId == booking.CusId);
+                        if (customer != null)
+                        {
+                            customer.TotalSpent -= booking.TotalAmount ?? 0;
+                            customer.UpdateCusRank(); // Update customer rank if needed
+                        }
+                    }
+
+                    await petSpaContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return Ok(new { message = "Booking canceled successfully" });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"Internal server error: {ex.Message}" });
+                }
             }
-
-            booking.Status = BookingStatus.Canceled;
-            await petSpaContext.SaveChangesAsync();
-
-            return Ok(new { message = "Booking canceled successfully" });
         }
 
     }

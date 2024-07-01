@@ -25,7 +25,6 @@ namespace PetSpa.Repositories.ManagerRepository
         {
             return await _dbContext.Managers
                 .Include(m => m.Staffs)
-                .Include(m => m.Vouchers)
                 .Include(m => m.Bookings)
                 .FirstOrDefaultAsync(x => x.ManaId == ManaId);
         }

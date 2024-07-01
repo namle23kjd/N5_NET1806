@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PetSpa.Data;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.UserDTO;
 using PetSpa.Repositories.UsersRepository;
@@ -16,12 +17,14 @@ namespace PetSpa.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
+        private readonly PetSpaContext context;
 
-        public AccountController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole<Guid>> roleManager)
+        public AccountController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole<Guid>> roleManager, PetSpaContext context)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             this._mapper = mapper;
             this._roleManager = roleManager;
+            this.context = context;
         }
 
         [HttpGet]
@@ -66,6 +69,54 @@ namespace PetSpa.Controllers
 
                 await _userManager.AddToRoleAsync(user, registerUserDTO.Role);
 
+                // Tạo đối tượng trong bảng tương ứng với vai trò
+                switch (registerUserDTO.Role.ToLower())
+                {
+                    case "customer":
+                        var customer = new Customer
+                        {
+                            Id = user.Id,
+                            FullName = registerUserDTO.FullName,
+                            Gender = registerUserDTO.Gender,
+                            PhoneNumber = registerUserDTO.PhoneNumber,
+                            CusRank = "Bronze", // Đặt hạng mặc định là Bronze
+                            TotalSpent = 0
+                        };
+                        context.Customers.Add(customer);
+                        break;
+
+                    case "staff":
+                        var staff = new Staff
+                        {
+                            Id = user.Id,
+                            FullName = registerUserDTO.FullName,
+                            Gender = registerUserDTO.Gender
+                        };
+                        context.Staff.Add(staff);
+                        break;
+
+                    case "admin":
+                        var admin = new Admin
+                        {
+                            Id = user.Id
+                        };
+                        context.Admins.Add(admin);
+                        break;
+
+                    case "manager":
+                        var manager = new Manager
+                        {
+                            Id = user.Id,
+                            FullName = registerUserDTO.FullName,
+                            Gender = registerUserDTO.Gender,
+                            PhoneNumber = registerUserDTO.PhoneNumber
+                        };
+                        context.Managers.Add(manager);
+                        break;
+                }
+
+                await context.SaveChangesAsync();
+
                 return Ok(new { message = "User created successfully!" });
             }
 
@@ -76,6 +127,8 @@ namespace PetSpa.Controllers
 
             return BadRequest(ModelState);
         }
+
+
         [HttpPost("change-role")]
         public async Task<IActionResult> ChangeUserRole(ChangUserRoleDTO changeUserRoleDTO)
         {

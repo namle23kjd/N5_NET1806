@@ -107,11 +107,6 @@ namespace PetSpa.Data
                     .HasForeignKey<Admin>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Admin__accID__398D8EEE");
-                entity.HasMany(d => d.Managers)
-                    .WithOne(p => p.Admins)
-                    .HasForeignKey(d => d.AdminId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Manager_Admin");
             });
 
             modelBuilder.Entity<Booking>(entity =>
@@ -385,9 +380,6 @@ namespace PetSpa.Data
                     .IsUnicode(false)
                     .HasColumnName("Id");
 
-                entity.Property(e => e.AdminId)
-                    .HasColumnName("adminID");
-
                 entity.Property(e => e.FullName)
                     .HasMaxLength(255)
                     .IsUnicode(false)
@@ -408,23 +400,6 @@ namespace PetSpa.Data
                     .HasForeignKey<Manager>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Manager_AspNetUsers");
-
-                entity.HasOne(d => d.Admins)
-                    .WithMany(p => p.Managers)
-                    .HasForeignKey(d => d.AdminId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Manager_Admin");
-
-                entity.HasMany(d => d.Staffs)
-                    .WithOne(p => p.Manager)
-                    .HasForeignKey(d => d.ManagerManaId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Staff_Manager_ManagerManaId");
-                entity.HasMany(d => d.Vouchers)
-                    .WithOne(p => p.Managers)
-                    .HasForeignKey(d => d.ManaId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Voucher_Manager");
 
                 entity.HasMany(d => d.Bookings)
                     .WithOne(p => p.Manager)
@@ -583,20 +558,11 @@ namespace PetSpa.Data
                     .IsUnicode(false)
                     .HasColumnName("gender");
 
-                entity.Property(e => e.ManagerManaId)
-                    .HasColumnName("ManagerManaId");
-
                 entity.HasOne(d => d.User)
                     .WithOne()
                     .HasForeignKey<Staff>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Staff_AspNetUsers");
-
-                entity.HasOne(d => d.Manager)
-                    .WithMany(p => p.Staffs)
-                    .HasForeignKey(d => d.ManagerManaId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Staff_Manager_ManagerManaId");
             });
 
             modelBuilder.Entity<Voucher>(entity =>
@@ -634,11 +600,6 @@ namespace PetSpa.Data
                     .HasForeignKey<Voucher>(d => d.BookingId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Voucher__booking__6A30C649");
-
-                entity.HasOne(d => d.Managers).WithMany(p => p.Vouchers)
-                    .HasForeignKey(d => d.ManaId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Voucher__manaID__693CA210");
             });
 
             OnModelCreatingPartial(modelBuilder);
