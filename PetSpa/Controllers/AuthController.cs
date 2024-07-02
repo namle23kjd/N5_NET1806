@@ -200,7 +200,6 @@ namespace PetSpa.Controllers
                             CusRank = "bronze",
                             Id = applicationUser.Id
                         };
-
                         petSpaContext.Customers.Add(customer);
                         if (await petSpaContext.SaveChangesAsync() > 0)
                         {
@@ -277,7 +276,6 @@ namespace PetSpa.Controllers
 
 
                 var checkPasswordResult = await _userManager.CheckPasswordAsync(user, loginRequestDto.Password);
-
                 if (checkPasswordResult)
                 {
                     

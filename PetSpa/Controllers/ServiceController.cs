@@ -80,7 +80,7 @@ namespace PetSpa.Controllers
         // Get: /api/Service/{id}
         [HttpGet]
         [Route("{ServiceId:guid}")]
-        
+        //[Authorize(Roles = "Admin,Customer,Manager,Staff")]
 
         public async Task<IActionResult> GetById([FromRoute] Guid ServiceId)
         {
@@ -141,7 +141,7 @@ namespace PetSpa.Controllers
         // Delete Service by ServiceId (Set Status to False)
         [HttpDelete]
         [Route("{ServiceId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        //[Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> Delete([FromRoute] Guid ServiceId)
         {
             var serviceDomainModel = await serviceRepository.DeleteAsync(ServiceId);
@@ -151,6 +151,48 @@ namespace PetSpa.Controllers
             }
             var service = mapper.Map<ServiceDTO>(serviceDomainModel);
             return Ok(apiResponseService.CreateSuccessResponse(service));
+        }
+
+        [HttpPut("{serviceId:guid}/add-combo")]
+        public async Task<IActionResult> AddComboID([FromRoute] Guid serviceId, [FromBody] Guid comboId)
+        {
+            var updatedService = await serviceRepository.AddComboAsync(serviceId, comboId);
+            if (updatedService == null)
+            {
+                return NotFound("Service not found");
+            }
+
+            var serviceDTO = mapper.Map<ServiceDTO>(updatedService);
+            return Ok(apiResponseService.CreateSuccessResponse(serviceDTO));
+        }
+
+        [HttpPost("{serviceId:guid}/activate")]
+        //[Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> ActivateService([FromRoute] Guid serviceId)
+        {
+            try
+            {
+                var service = await serviceRepository.GetByIdAsync(serviceId);
+                if (service == null)
+                {
+                    return NotFound(apiResponseService.CreateErrorResponse("Service not found"));
+                }
+
+                service.Status = true;
+                var updatedService = await serviceRepository.UpdateAsync(serviceId, service);
+
+                if (updatedService == null)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("Failed to activate service"));
+                }
+
+                var serviceDTO = mapper.Map<ServiceDTO>(updatedService);
+                return Ok(apiResponseService.CreateSuccessResponse(serviceDTO, "Service activated successfully"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while activating service"));
+            }
         }
     }
 }

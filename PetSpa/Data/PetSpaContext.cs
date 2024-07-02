@@ -383,12 +383,12 @@ namespace PetSpa.Data
                 entity.Property(e => e.FullName)
                     .HasMaxLength(255)
                     .IsUnicode(true)
-                    .HasColumnName("fullName");
+                    .HasColumnName("fullName").IsRequired(false);
 
                 entity.Property(e => e.Gender)
                     .HasMaxLength(10)
                     .IsUnicode(false)
-                    .HasColumnName("gender");
+                    .HasColumnName("gender").IsRequired(false);
 
                 entity.Property(e => e.PhoneNumber)
                     .HasMaxLength(15)

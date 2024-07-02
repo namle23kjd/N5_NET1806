@@ -2,6 +2,7 @@
 using PetSpa.Data;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Booking;
+using PetSpa.Models.DTO.Staff;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -63,6 +64,23 @@ namespace PetSpa.Repositories.StaffRepository
             .ThenInclude(bd => bd.Pet)
         .Where(b => b.BookingDetails.Any(bd => bd.StaffId == staffId) && b.Status == status)
         .ToListAsync();
+        }
+
+        public async Task<List<StaffBookingSummaryDTO>> GetStaffBookingsByDateAsync(DateTime date)
+        {
+            var bookings = await _dbContext.BookingDetails
+                .Include(bd => bd.Staff)
+                .Where(bd => bd.Booking.StartDate.Date == date.Date)
+                .GroupBy(bd => new { bd.StaffId, bd.Staff.FullName })
+                .Select(group => new StaffBookingSummaryDTO
+                {
+                    StaffId = (Guid)group.Key.StaffId,
+                    StaffName = group.Key.FullName,
+                    TotalBooking = group.Count()
+                })
+                .ToListAsync();
+
+            return bookings;
         }
     }
 }

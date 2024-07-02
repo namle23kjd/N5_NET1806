@@ -20,14 +20,13 @@ namespace PetSpa.Controllers
         private readonly PetSpaContext context;
         private readonly PetSpaContext petSpaContext;
 
-        public AccountController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole<Guid>> roleManager, PetSpaContext context)
+        public AccountController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole<Guid>> roleManager, PetSpaContext context, IUserRepository userRepository)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             this._mapper = mapper;
             this._roleManager = roleManager;
             this.context = context;
         }
-
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -77,8 +76,7 @@ namespace PetSpa.Controllers
                         {
                             CusId = Guid.NewGuid(),
                             Id = user.Id,
-                            FullName = registerUserDTO.FullName,
-                            Gender = registerUserDTO.Gender,
+                            FullName = user.UserName,
                             PhoneNumber = registerUserDTO.PhoneNumber,
                             CusRank = "Bronze", // Đặt hạng mặc định là Bronze
                             TotalSpent = 0
@@ -91,8 +89,7 @@ namespace PetSpa.Controllers
                         {
                             StaffId = Guid.NewGuid(),
                             Id = user.Id,
-                            FullName = registerUserDTO.FullName,
-                            Gender = registerUserDTO.Gender
+                            FullName = user.UserName,
                         };
                         context.Staff.Add(staff);
                         break;
@@ -111,8 +108,7 @@ namespace PetSpa.Controllers
                         {
                             ManaId = Guid.NewGuid(),
                             Id = user.Id,
-                            FullName = registerUserDTO.FullName,
-                            Gender = registerUserDTO.Gender,
+                            FullName = user.UserName,
                             PhoneNumber = registerUserDTO.PhoneNumber
                         };
                         context.Managers.Add(manager);
