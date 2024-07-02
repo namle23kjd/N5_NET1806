@@ -203,7 +203,7 @@ namespace PetSpa.Controllers
                 PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
                 StartDate = b.StartDate,
                 EndDate = b.EndDate,
-                Status = (BookingStatus)b.Status
+                Status = (BookingStatus)b.Status 
             }).ToList();
             return Ok(bookingDtos);
         }

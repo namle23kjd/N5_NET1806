@@ -9,6 +9,7 @@ using PetSpa.Data;
 using PetSpa.Helper;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Booking;
+using PetSpa.Models.DTO.Staff;
 using PetSpa.Repositories.BookingRepository;
 using PetSpa.Repositories.ServiceRepository;
 using System;
@@ -658,47 +659,6 @@ namespace PetSpa.Controllers
             return Ok(new { TotalAmount = totalAmount });
         }
 
-
-        [HttpGet("accepted-bookings")]
-        public async Task<IActionResult> GetAcceptedBookings()
-        {
-            var acceptedBookings = await petSpaContext.Bookings
-        .Include(b => b.BookingDetails)
-        .Where(b => b.CheckAccept)
-        .Select(b => new
-        {
-            b.BookingId,
-            b.CusId,
-            StaffId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().StaffId : null,
-            ServiceId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().ServiceId : null,
-            ComboId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().ComboId : null,
-            b.Status,
-            b.CheckAccept,
-            b.TotalAmount,
-            b.StartDate,
-            b.EndDate
-        })
-        .ToListAsync();
-
-            var result = acceptedBookings.Select(b => new BookingDTO
-            {
-                BookingId = b.BookingId,
-                CusId = b.CusId,
-                StaffId = b.StaffId ?? Guid.Empty,
-                ServiceId = b.ServiceId,
-                ComboId = b.ComboId,
-                Status = (BookingStatus)b.Status,
-                CheckAccept = b.CheckAccept,
-                TotalAmount = b.TotalAmount,
-                StartDate = b.StartDate,
-                EndDate = b.EndDate
-            }).ToList();
-
-            return Ok(result);
-        }
-
-
-
         [HttpGet("pending-bookings")]
         public async Task<IActionResult> GetBookingNotAccpects()
         {
@@ -787,6 +747,49 @@ namespace PetSpa.Controllers
                 }
             }
         }
+
+        // API to get bookings with checkAccept = true
+        [HttpGet("bookings/accepted")]
+        public async Task<IActionResult> GetAcceptedBookings()
+        {
+            var bookings = await bookingRepository.GetBookingsByCheckAcceptAsync(true);
+            var bookingDtos = bookings.Select(b => new BookingStaffDTO
+            {
+                BookingId = b.BookingId,
+                CustomerName = b.Customer.FullName ?? "Unknown",
+                ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "Unknown",
+                PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
+                StartDate = b.StartDate,
+                EndDate = b.EndDate,
+                Status = (BookingStatus)b.Status,
+                StaffId = b.BookingDetails.FirstOrDefault()?.Staff?.StaffId ?? Guid.Empty,
+                StaffName = b.BookingDetails.FirstOrDefault()?.Staff?.FullName ?? "Unknown",
+                CheckAccept = b.CheckAccept
+            }).ToList();
+            return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Accepted bookings retrieved successfully"));
+        }
+
+        // API to get bookings with checkAccept = false
+        [HttpGet("bookings/not-accepted")]
+        public async Task<IActionResult> GetNotAcceptedBookings()
+        {
+            var bookings = await bookingRepository.GetBookingsByCheckAcceptAsync(false);
+            var bookingDtos = bookings.Select(b => new BookingStaffDTO
+            {
+                BookingId = b.BookingId,
+                CustomerName = b.Customer.FullName ?? "Unknown",
+                ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "Unknown",
+                PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
+                StartDate = b.StartDate,
+                EndDate = b.EndDate,
+                Status = (BookingStatus)b.Status,
+                StaffId = b.BookingDetails.FirstOrDefault()?.Staff?.StaffId ?? Guid.Empty,
+                StaffName = b.BookingDetails.FirstOrDefault()?.Staff?.FullName ?? "Unknown",
+                CheckAccept = b.CheckAccept
+            }).ToList();
+            return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Not accepted bookings retrieved successfully"));
+        }
+
 
     }
 }

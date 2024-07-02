@@ -24,5 +24,7 @@ namespace PetSpa.Repositories.BookingRepository
          Task<Booking?> UpdateFeedbackAsync(Guid BookingId, Booking booking);
 
         Task<List<DailyRevenueDTO>> GetDailyRevenueForCurrentMonthAsync(DateTime? startDate);
+
+        Task<List<Booking>> GetBookingsByCheckAcceptAsync(bool checkAccept);
     }
 }
