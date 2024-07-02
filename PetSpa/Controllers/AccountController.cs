@@ -18,6 +18,7 @@ namespace PetSpa.Controllers
         private readonly IMapper _mapper;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly PetSpaContext context;
+        private readonly PetSpaContext petSpaContext;
 
         public AccountController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole<Guid>> roleManager, PetSpaContext context, IUserRepository userRepository)
         {
@@ -40,7 +41,6 @@ namespace PetSpa.Controllers
             }
 
             return Ok(userDtos);
-
         }
 
         [HttpPost("register")]

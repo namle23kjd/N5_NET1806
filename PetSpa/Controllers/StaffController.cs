@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using PetSpa.Repositories.BookingRepository;
 using PetSpa.Models.DTO.Booking;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PetSpa.Controllers
 {
@@ -160,6 +161,7 @@ namespace PetSpa.Controllers
         
         //Lấy thông tin booking mà nhân viên đang làm
         [HttpGet("{staffId:guid}/current-booking")]
+        [Authorize(Roles ="Staff")]
         public async Task<IActionResult> GetCurrentBookingForStaff(Guid staffId)
         {
             var bookings = await _staffRepository.GetBookingsByStatusAsync(staffId, BookingStatus.Completed);

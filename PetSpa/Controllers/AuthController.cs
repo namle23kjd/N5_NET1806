@@ -172,7 +172,6 @@ namespace PetSpa.Controllers
             var userResult = await _userManager.FindByEmailAsync(registerRequestDto.Email);
             if (userResult == null)
             {
-
                 var userByPhoneNumber = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == registerRequestDto.PhoneNumber);
                 if (userByPhoneNumber != null)
                 {
@@ -269,14 +268,17 @@ namespace PetSpa.Controllers
             var user = await _userManager.FindByEmailAsync(loginRequestDto.Username);
             if (user != null)
             {
+               
                 if (!user.Status)
                 {
                     return BadRequest(_apiResponse.CreateErrorResponse("Your Account is banned"));
                 }
 
+
                 var checkPasswordResult = await _userManager.CheckPasswordAsync(user, loginRequestDto.Password);
                 if (checkPasswordResult)
                 {
+                    
                     // Lấy vai trò cho người dùng này
                     var roles = await _userManager.GetRolesAsync(user);
                     if (roles != null && roles.Any())
