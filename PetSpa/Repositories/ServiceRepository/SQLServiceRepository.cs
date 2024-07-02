@@ -23,8 +23,7 @@ namespace PetSpa.Repositories.ServiceRepository
         public async Task<List<Service>> GetAllAsync()
         {
             return await dbContext.Services
-                .Include(s => s.Combo)
-                .Where(s => s.Status == true) // Only get services with Status true
+                .Include(s => s.Combo) // Only get services with Status true
                 .ToListAsync();
         }
 

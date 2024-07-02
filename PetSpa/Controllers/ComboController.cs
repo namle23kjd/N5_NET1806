@@ -68,7 +68,7 @@ namespace PetSpa.Controllers
         // Get: /api/Combo/{id}
         [HttpGet]
         [Route("{ComboId:guid}")]
-        [Authorize(Roles = "Admin,Customer,Manager,Staff")]
+        
         public async Task<IActionResult> GetById([FromRoute] Guid ComboId)
         {
             var comboDomainModels = await comboRespository.GetByIdAsync(ComboId);

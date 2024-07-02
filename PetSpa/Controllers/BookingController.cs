@@ -119,6 +119,7 @@ namespace PetSpa.Controllers
                 if (detail.ComboId == Guid.Empty) detail.ComboId = null;
                 if (detail.ServiceId == Guid.Empty) detail.ServiceId = null;
             }
+            bookingDomainModels.BookingSchedule = DateTime.Now;
 
             await bookingRepository.CreateAsync(bookingDomainModels);
 
@@ -400,6 +401,31 @@ namespace PetSpa.Controllers
             var totalDurationTimeSpan = new TimeSpan(totalDurationTicks);
 
             booking.EndDate = booking.StartDate + totalDurationTimeSpan;
+
+            // Lưu thay đổi vào cơ sở dữ liệu
+            petSpaContext.Bookings.Update(booking);
+            await petSpaContext.SaveChangesAsync();
+
+            return Ok("Booking updated successfully.");
+        }
+        [HttpPost("update-feedback")]
+        public async Task<IActionResult> UpdateFeedback([FromBody] UpdateFeebackDTO updateBookingRequest)
+        {
+
+            // Tìm kiếm booking dựa trên bookingId
+            var booking = await petSpaContext.Bookings
+                                              .Include(b => b.BookingDetails)
+                                              .FirstOrDefaultAsync(b => b.BookingId == updateBookingRequest.BookingId);
+
+            if (booking == null)
+            {
+                return NotFound("Booking not found.");
+            }
+
+            
+            booking.Feedback = updateBookingRequest.Feedback;
+
+            
 
             // Lưu thay đổi vào cơ sở dữ liệu
             petSpaContext.Bookings.Update(booking);

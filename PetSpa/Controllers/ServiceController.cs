@@ -80,7 +80,7 @@ namespace PetSpa.Controllers
         // Get: /api/Service/{id}
         [HttpGet]
         [Route("{ServiceId:guid}")]
-        [Authorize(Roles = "Admin,Customer,Manager,Staff")]
+        
 
         public async Task<IActionResult> GetById([FromRoute] Guid ServiceId)
         {

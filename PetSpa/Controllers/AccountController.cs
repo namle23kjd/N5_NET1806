@@ -18,6 +18,7 @@ namespace PetSpa.Controllers
         private readonly IMapper _mapper;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly PetSpaContext context;
+        private readonly PetSpaContext petSpaContext;
 
         public AccountController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole<Guid>> roleManager, PetSpaContext context)
         {
@@ -41,7 +42,6 @@ namespace PetSpa.Controllers
             }
 
             return Ok(userDtos);
-
         }
 
         [HttpPost("register")]
@@ -75,6 +75,7 @@ namespace PetSpa.Controllers
                     case "customer":
                         var customer = new Customer
                         {
+                            CusId = Guid.NewGuid(),
                             Id = user.Id,
                             FullName = registerUserDTO.FullName,
                             Gender = registerUserDTO.Gender,
@@ -88,6 +89,7 @@ namespace PetSpa.Controllers
                     case "staff":
                         var staff = new Staff
                         {
+                            StaffId = Guid.NewGuid(),
                             Id = user.Id,
                             FullName = registerUserDTO.FullName,
                             Gender = registerUserDTO.Gender
@@ -98,6 +100,7 @@ namespace PetSpa.Controllers
                     case "admin":
                         var admin = new Admin
                         {
+                            AdminId = Guid.NewGuid(),
                             Id = user.Id
                         };
                         context.Admins.Add(admin);
@@ -106,6 +109,7 @@ namespace PetSpa.Controllers
                     case "manager":
                         var manager = new Manager
                         {
+                            ManaId = Guid.NewGuid(),
                             Id = user.Id,
                             FullName = registerUserDTO.FullName,
                             Gender = registerUserDTO.Gender,
