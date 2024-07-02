@@ -225,5 +225,20 @@ namespace PetSpa.Controllers
             return Ok(bookingDtos);
         }
 
+        [HttpGet("bookings-summary")]
+        public async Task<IActionResult> GetStaffBookingsSummary([FromQuery] DateTime date)
+        {
+            try
+            {
+                var staffBookings = await _staffRepository.GetStaffBookingsByDateAsync(date);
+                return Ok(_apiResponseService.CreateSuccessResponse(staffBookings, "Staff bookings summary retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting staff bookings summary.");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("An error occurred while getting staff bookings summary"));
+            }
+        }
+
     }
 }

@@ -76,6 +76,7 @@ namespace PetSpa.Controllers
                         {
                             CusId = Guid.NewGuid(),
                             Id = user.Id,
+                            FullName = user.UserName,
                             PhoneNumber = registerUserDTO.PhoneNumber,
                             CusRank = "Bronze", // Đặt hạng mặc định là Bronze
                             TotalSpent = 0
@@ -88,6 +89,7 @@ namespace PetSpa.Controllers
                         {
                             StaffId = Guid.NewGuid(),
                             Id = user.Id,
+                            FullName = user.UserName,
                         };
                         context.Staff.Add(staff);
                         break;
@@ -106,6 +108,7 @@ namespace PetSpa.Controllers
                         {
                             ManaId = Guid.NewGuid(),
                             Id = user.Id,
+                            FullName = user.UserName,
                             PhoneNumber = registerUserDTO.PhoneNumber
                         };
                         context.Managers.Add(manager);

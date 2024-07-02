@@ -172,7 +172,8 @@ namespace PetSpa.Controllers
             var userResult = await _userManager.FindByEmailAsync(registerRequestDto.Email);
             if (userResult == null)
             {
-                var userByPhoneNumber = await _userManager.FindByNameAsync(registerRequestDto.PhoneNumber);
+
+                var userByPhoneNumber = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == registerRequestDto.PhoneNumber);
                 if (userByPhoneNumber != null)
                 {
                     return BadRequest(_apiResponse.CreateErrorResponse("Phone number is already registered"));
@@ -268,10 +269,9 @@ namespace PetSpa.Controllers
             var user = await _userManager.FindByEmailAsync(loginRequestDto.Username);
             if (user != null)
             {
-                bool hasPassword = await _userManager.HasPasswordAsync(user);
-                if (!hasPassword)
+                if (!user.Status)
                 {
-                    return BadRequest(_apiResponse.CreateErrorResponse("Tài khoản đã được đăng ký bằng Google. Vui lòng đăng nhập bằng Google."));
+                    return BadRequest(_apiResponse.CreateErrorResponse("Your Account is banned"));
                 }
 
                 var checkPasswordResult = await _userManager.CheckPasswordAsync(user, loginRequestDto.Password);

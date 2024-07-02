@@ -152,5 +152,19 @@ namespace PetSpa.Controllers
             var service = mapper.Map<ServiceDTO>(serviceDomainModel);
             return Ok(apiResponseService.CreateSuccessResponse(service));
         }
+
+        [HttpPut("{serviceId:guid}/add-combo")]
+        public async Task<IActionResult> AddComboID([FromRoute] Guid serviceId, [FromBody] Guid comboId)
+        {
+            var updatedService = await serviceRepository.AddComboAsync(serviceId, comboId);
+            if (updatedService == null)
+            {
+                return NotFound("Service not found");
+            }
+
+            var serviceDTO = mapper.Map<ServiceDTO>(updatedService);
+            return Ok(apiResponseService.CreateSuccessResponse(serviceDTO));
+        }
+
     }
 }

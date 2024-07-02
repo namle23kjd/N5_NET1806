@@ -64,5 +64,15 @@ namespace PetSpa.Repositories.ServiceRepository
             await dbContext.SaveChangesAsync();
             return existService;
         }
+
+        public async Task<Service?> AddComboAsync(Guid ServiceID, Guid ComboID)
+        {
+            var existService = await dbContext.Services.FirstOrDefaultAsync(x => x.ServiceId == ServiceID);
+            if (existService == null) { return null; }
+
+            existService.ComboId = ComboID;
+            await dbContext.SaveChangesAsync();
+            return existService;
+        }
     }
 }
