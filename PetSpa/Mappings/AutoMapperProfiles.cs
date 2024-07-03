@@ -100,6 +100,7 @@ namespace PetSpa.Mappings
             CreateMap<CompleteBookingRequestDTO, Booking>().ReverseMap();
 
             CreateMap<ApplicationUser, UserDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName ?? string.Empty))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email ?? string.Empty))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber ?? string.Empty))
@@ -158,6 +159,11 @@ namespace PetSpa.Mappings
                 .ForMember(dest => dest.Email, opt => opt.Ignore())
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                 .ForMember(dest => dest.Roles, opt => opt.Ignore());
+
+            CreateMap<Staff, StaffBookingSummaryDTO>()
+               .ForMember(dest => dest.StaffId, opt => opt.MapFrom(src => src.StaffId))
+               .ForMember(dest => dest.StaffName, opt => opt.MapFrom(src => src.FullName))
+               .ForMember(dest => dest.TotalBooking, opt => opt.Ignore());
         }
     }
     

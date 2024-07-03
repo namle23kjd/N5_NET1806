@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using PetSpa.Repositories.BookingRepository;
 using PetSpa.Models.DTO.Booking;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PetSpa.Controllers
 {
@@ -160,6 +161,7 @@ namespace PetSpa.Controllers
         
         //Lấy thông tin booking mà nhân viên đang làm
         [HttpGet("{staffId:guid}/current-booking")]
+        [Authorize(Roles ="Staff")]
         public async Task<IActionResult> GetCurrentBookingForStaff(Guid staffId)
         {
             var bookings = await _staffRepository.GetBookingsByStatusAsync(staffId, BookingStatus.Completed);
@@ -203,7 +205,7 @@ namespace PetSpa.Controllers
                 PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
                 StartDate = b.StartDate,
                 EndDate = b.EndDate,
-                Status = (BookingStatus)b.Status
+                Status = (BookingStatus)b.Status 
             }).ToList();
             return Ok(bookingDtos);
         }
@@ -223,6 +225,21 @@ namespace PetSpa.Controllers
                 Status = (BookingStatus)b.Status
             }).ToList();
             return Ok(bookingDtos);
+        }
+
+        [HttpGet("bookings-summary")]
+        public async Task<IActionResult> GetStaffBookingsSummary([FromQuery] DateTime date)
+        {
+            try
+            {
+                var staffBookings = await _staffRepository.GetStaffBookingsByDateAsync(date);
+                return Ok(_apiResponseService.CreateSuccessResponse(staffBookings, "Staff bookings summary retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting staff bookings summary.");
+                return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("An error occurred while getting staff bookings summary"));
+            }
         }
 
     }

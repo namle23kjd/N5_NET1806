@@ -18,6 +18,7 @@ namespace PetSpa.Controllers
         private readonly IMapper _mapper;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly PetSpaContext context;
+        private readonly PetSpaContext petSpaContext;
 
         public AccountController(UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole<Guid>> roleManager, PetSpaContext context, IUserRepository userRepository)
         {
@@ -40,7 +41,6 @@ namespace PetSpa.Controllers
             }
 
             return Ok(userDtos);
-
         }
 
         [HttpPost("register")]
@@ -76,6 +76,7 @@ namespace PetSpa.Controllers
                         {
                             CusId = Guid.NewGuid(),
                             Id = user.Id,
+                            FullName = user.UserName,
                             PhoneNumber = registerUserDTO.PhoneNumber,
                             CusRank = "Bronze", // Đặt hạng mặc định là Bronze
                             TotalSpent = 0,

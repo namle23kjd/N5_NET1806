@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PetSpa.Data;
 
@@ -11,9 +12,11 @@ using PetSpa.Data;
 namespace PetSpa.Migrations
 {
     [DbContext(typeof(PetSpaContext))]
-    partial class PetSpaContextModelSnapshot : ModelSnapshot
+    [Migration("20240701062606_m")]
+    partial class m
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -200,29 +203,29 @@ namespace PetSpa.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("46787474-81d1-46ba-8e9e-ea777bf57046"),
-                            ConcurrencyStamp = "46787474-81d1-46ba-8e9e-ea777bf57046",
+                            Id = new Guid("5389bb91-0609-4818-96a9-3a5a37b4b883"),
+                            ConcurrencyStamp = "5389bb91-0609-4818-96a9-3a5a37b4b883",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = new Guid("9bd02d16-b728-4b70-90b8-087d962983ad"),
-                            ConcurrencyStamp = "9bd02d16-b728-4b70-90b8-087d962983ad",
+                            Id = new Guid("291b2132-eeb1-4c93-b284-c125e4ddf427"),
+                            ConcurrencyStamp = "291b2132-eeb1-4c93-b284-c125e4ddf427",
                             Name = "Staff",
                             NormalizedName = "STAFF"
                         },
                         new
                         {
-                            Id = new Guid("4814f420-5110-4c92-8ce0-c6917d5e7ec1"),
-                            ConcurrencyStamp = "4814f420-5110-4c92-8ce0-c6917d5e7ec1",
+                            Id = new Guid("1ea52f16-349f-4d46-b2a5-e9134dfb76d4"),
+                            ConcurrencyStamp = "1ea52f16-349f-4d46-b2a5-e9134dfb76d4",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = new Guid("bafab390-2024-45eb-84c0-71eb85933400"),
-                            ConcurrencyStamp = "bafab390-2024-45eb-84c0-71eb85933400",
+                            Id = new Guid("98a517bc-dc43-4d04-85d7-994970361e49"),
+                            ConcurrencyStamp = "98a517bc-dc43-4d04-85d7-994970361e49",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         });
