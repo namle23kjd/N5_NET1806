@@ -5,6 +5,7 @@ using PetSpa.CustomActionFilter;
 using PetSpa.Models.Domain;
 using PetSpa.Models.DTO.Combo;
 using PetSpa.Repositories.ComboRepository;
+using PetSpa.Repositories.ServiceRepository;
 
 namespace PetSpa.Controllers
 {
@@ -15,12 +16,14 @@ namespace PetSpa.Controllers
         private readonly IMapper mapper;
         private readonly IComboRespository comboRespository;
         private readonly ApiResponseService apiResponseService;
+        private readonly IServiceRepository serviceRepository;
 
-        public ComboController(IMapper mapper, IComboRespository comboRespository, ApiResponseService apiResponseService)
+        public ComboController(IMapper mapper, IComboRespository comboRespository, ApiResponseService apiResponseService, IServiceRepository serviceRepository)
         {
             this.mapper = mapper;
             this.comboRespository = comboRespository;
             this.apiResponseService = apiResponseService;
+            this.serviceRepository = serviceRepository;
         }
 
         // Create Combo
@@ -111,6 +114,28 @@ namespace PetSpa.Controllers
             // Map DomainModel 
             var combo = mapper.Map<ComboDTO>(comboDomainModels);
             return Ok(apiResponseService.CreateSuccessResponse(combo));
+        }
+
+        [HttpPost("{comboId:guid}/add-services")]
+        public async Task<IActionResult> AddServicesToCombo([FromRoute] Guid comboId, [FromBody] List<Guid> serviceIds)
+        {
+            var combo = await comboRespository.GetByIdAsync(comboId);
+            if (combo == null)
+            {
+                return NotFound(apiResponseService.CreateErrorResponse("Combo not found"));
+            }
+
+            foreach (var serviceId in serviceIds)
+            {
+                var service = await serviceRepository.GetByIdAsync(serviceId);
+                if (service != null)
+                {
+                    service.ComboId = comboId;
+                    await serviceRepository.UpdateAsync(service.ServiceId, service);
+                }
+            }
+
+            return Ok(apiResponseService.CreateSuccessResponse(mapper.Map<ComboDTO>(combo), "Services added to combo successfully"));
         }
     }
 }
