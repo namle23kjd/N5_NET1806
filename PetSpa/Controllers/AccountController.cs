@@ -80,7 +80,8 @@ namespace PetSpa.Controllers
                             PhoneNumber = registerUserDTO.PhoneNumber,
                             CusRank = "Bronze", // Đặt hạng mặc định là Bronze
                             TotalSpent = 0,
-          
+                           
+                            FullName =registerUserDTO.FullName,
                             Gender = registerUserDTO.Gender,
                         };
                         context.Customers.Add(customer);
