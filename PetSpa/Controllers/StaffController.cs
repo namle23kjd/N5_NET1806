@@ -164,7 +164,7 @@ namespace PetSpa.Controllers
         [Authorize(Roles ="Staff")]
         public async Task<IActionResult> GetCurrentBookingForStaff(Guid staffId)
         {
-            var bookings = await _staffRepository.GetBookingsByStatusAsync(staffId, BookingStatus.Completed);
+            var bookings = await _staffRepository.GetBookingsByStatusAsync(staffId, BookingStatus.InProgress);
             var bookingDtos = bookings.Select(b => new StaffBookingDTO
             {
                 BookingId = b.BookingId,

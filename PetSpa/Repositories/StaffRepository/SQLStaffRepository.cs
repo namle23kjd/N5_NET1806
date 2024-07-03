@@ -57,20 +57,20 @@ namespace PetSpa.Repositories.StaffRepository
         public async Task<List<Booking>> GetBookingsByStatusAsync(Guid staffId, BookingStatus status)
         {
             return await _dbContext.Bookings
-        .Include(b => b.Customer)
-        .Include(b => b.BookingDetails)
-            .ThenInclude(bd => bd.Service)
-        .Include(b => b.BookingDetails)
-            .ThenInclude(bd => bd.Pet)
-        .Where(b => b.BookingDetails.Any(bd => bd.StaffId == staffId) && b.Status == status)
-        .ToListAsync();
+            .Include(b => b.Customer)
+            .Include(b => b.BookingDetails)
+                .ThenInclude(bd => bd.Service)
+            .Include(b => b.BookingDetails)
+                .ThenInclude(bd => bd.Pet)
+            .Where(b => b.BookingDetails.Any(bd => bd.StaffId == staffId) && b.Status == status && b.CheckAccept == true)
+            .ToListAsync();
         }
 
         public async Task<List<StaffBookingSummaryDTO>> GetStaffBookingsByDateAsync(DateTime date)
         {
             var bookings = await _dbContext.BookingDetails
                 .Include(bd => bd.Staff)
-                .Where(bd => bd.Booking.StartDate.Date == date.Date)
+                .Where(bd => bd.Booking.StartDate.Date == date.Date && bd.Booking.CheckAccept == true)
                 .GroupBy(bd => new { bd.StaffId, bd.Staff.FullName })
                 .Select(group => new StaffBookingSummaryDTO
                 {
