@@ -475,7 +475,7 @@ namespace PetSpa.Data
                     .HasColumnName("petHeight");
                 entity.Property(e => e.PetName)
                     .HasMaxLength(255)
-                    .IsUnicode(false)
+                    .IsUnicode(true)
                     .HasColumnName("petName");
                 entity.Property(e => e.PetType)
                     .HasMaxLength(50)
