@@ -200,29 +200,29 @@ namespace PetSpa.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("0c0d4537-00c0-4291-a87a-658636d685f0"),
-                            ConcurrencyStamp = "0c0d4537-00c0-4291-a87a-658636d685f0",
+                            Id = new Guid("46787474-81d1-46ba-8e9e-ea777bf57046"),
+                            ConcurrencyStamp = "46787474-81d1-46ba-8e9e-ea777bf57046",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = new Guid("363dda9c-581b-4a57-8c39-2f49e4b954b0"),
-                            ConcurrencyStamp = "363dda9c-581b-4a57-8c39-2f49e4b954b0",
+                            Id = new Guid("9bd02d16-b728-4b70-90b8-087d962983ad"),
+                            ConcurrencyStamp = "9bd02d16-b728-4b70-90b8-087d962983ad",
                             Name = "Staff",
                             NormalizedName = "STAFF"
                         },
                         new
                         {
-                            Id = new Guid("b776ec51-1854-4452-b17b-1fe5ad84da59"),
-                            ConcurrencyStamp = "b776ec51-1854-4452-b17b-1fe5ad84da59",
+                            Id = new Guid("4814f420-5110-4c92-8ce0-c6917d5e7ec1"),
+                            ConcurrencyStamp = "4814f420-5110-4c92-8ce0-c6917d5e7ec1",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = new Guid("5f3d9592-0a8c-461e-9091-eda793302a1e"),
-                            ConcurrencyStamp = "5f3d9592-0a8c-461e-9091-eda793302a1e",
+                            Id = new Guid("bafab390-2024-45eb-84c0-71eb85933400"),
+                            ConcurrencyStamp = "bafab390-2024-45eb-84c0-71eb85933400",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         });
@@ -676,8 +676,8 @@ namespace PetSpa.Migrations
                     b.Property<string>("PetName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(255)")
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(255)")
                         .HasColumnName("petName");
 
                     b.Property<string>("PetType")

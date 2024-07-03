@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PetSpa.Migrations
 {
     /// <inheritdoc />
-    public partial class Unicode : Migration
+    public partial class a : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -318,7 +318,7 @@ namespace PetSpa.Migrations
                     petID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 50, nullable: false),
                     cusID = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 50, nullable: false),
                     petType = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
-                    petName = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: false),
+                    petName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     image = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     petBirthday = table.Column<DateTime>(type: "datetime2", nullable: true),
                     status = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
@@ -512,10 +512,10 @@ namespace PetSpa.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("0c0d4537-00c0-4291-a87a-658636d685f0"), "0c0d4537-00c0-4291-a87a-658636d685f0", "Customer", "CUSTOMER" },
-                    { new Guid("363dda9c-581b-4a57-8c39-2f49e4b954b0"), "363dda9c-581b-4a57-8c39-2f49e4b954b0", "Staff", "STAFF" },
-                    { new Guid("5f3d9592-0a8c-461e-9091-eda793302a1e"), "5f3d9592-0a8c-461e-9091-eda793302a1e", "Manager", "MANAGER" },
-                    { new Guid("b776ec51-1854-4452-b17b-1fe5ad84da59"), "b776ec51-1854-4452-b17b-1fe5ad84da59", "Admin", "ADMIN" }
+                    { new Guid("46787474-81d1-46ba-8e9e-ea777bf57046"), "46787474-81d1-46ba-8e9e-ea777bf57046", "Customer", "CUSTOMER" },
+                    { new Guid("4814f420-5110-4c92-8ce0-c6917d5e7ec1"), "4814f420-5110-4c92-8ce0-c6917d5e7ec1", "Admin", "ADMIN" },
+                    { new Guid("9bd02d16-b728-4b70-90b8-087d962983ad"), "9bd02d16-b728-4b70-90b8-087d962983ad", "Staff", "STAFF" },
+                    { new Guid("bafab390-2024-45eb-84c0-71eb85933400"), "bafab390-2024-45eb-84c0-71eb85933400", "Manager", "MANAGER" }
                 });
 
             migrationBuilder.CreateIndex(
