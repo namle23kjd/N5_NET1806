@@ -59,7 +59,7 @@ namespace PetSpa.Repositories.ServiceRepository
             if (existService == null) { return null; }
 
             // Thay đổi trạng thái từ true thành false
-            existService.Status = false;
+            existService.Status = !existService.Status;
             await dbContext.SaveChangesAsync();
             return existService;
         }
