@@ -99,8 +99,9 @@ The software is designed to manage jewelry sales for a company operating a singl
 | Pham Tien Dat    | UC-19    | Add Account                |
 | Pham Tien Dat    | UC-20    | Edit Account               |
 
-### Table 4: Member Assignment for Sprint 2
+### Table 4: Member Assignment for Sprint 3
 | Member Name | User Story ID | Description            |
+|-------------|---------------|------------------------|
 | Ha Huy Hoang     | UC-27    | Create Appointment         |
 | Ha Huy Hoang     | UC-28    | Cancel Appointment         |
 | Nguyen Ba Minh Duc       | UC-29    | Update Appointment         |
