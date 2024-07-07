@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.pet-management-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.pet-management-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ant-card-head-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.add-pet-button {
+  background-color: #1890ff;
+  border-color: #1890ff;
+  border-radius: 8px;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.add-pet-button:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+}
+
+.ant-table {
+  background-color: white;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background-color: #fafafa;
+}
+
+.ant-modal-content {
+  border-radius: 8px;
+}
+
+.ant-modal-header {
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.ant-modal-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.ant-modal-footer {
+  border-top: none;
+}
+
+.ant-upload-list-item {
+  border-radius: 8px;
+}
+
+.ant-btn {
+  border-radius: 8px;
+}
+
+.ant-input,
+.ant-select-selector,
+.ant-input-number,
+.ant-picker,
+.ant-upload-list-item {
+  border-radius: 8px;
+}
+
+.ant-tooltip-inner {
+  border-radius: 8px;
+}
+
+.ant-select-item-option-content {
+  display: flex;
+  align-items: center;
+}
+
+.ant-select-item-option-content svg {
+  margin-right: 8px;
+}
