@@ -33,6 +33,7 @@ The software is designed to manage jewelry sales for a company operating a singl
   - React Js
   - Tailwind
   - Antd
+- Firebase
 - Github
 - Jira
 
