@@ -62,8 +62,7 @@ The software is designed to manage jewelry sales for a company operating a singl
 |          | UC-19    | Add Account                |
 |          | UC-20    | Edit Account               |
 |          | UC-21    | Delete Account             |
-| Sprint 3 | UC-26    | Grant Permissions          |
-|          | UC-27    | Create Appointment         |
+| Sprint 3 | UC-27    | Create Appointment         |
 |          | UC-28    | Cancel Appointment         |
 |          | UC-29    | Update Appointment         |
 |          | UC-30    | View Booking history       |
@@ -99,3 +98,16 @@ The software is designed to manage jewelry sales for a company operating a singl
 | Nguyen Ba Minh Duc       | UC-18    | Search Account             |
 | Pham Tien Dat    | UC-19    | Add Account                |
 | Pham Tien Dat    | UC-20    | Edit Account               |
+
+### Table 4: Member Assignment for Sprint 2
+| Member Name | User Story ID | Description            |
+| Ha Huy Hoang     | UC-27    | Create Appointment         |
+| Ha Huy Hoang     | UC-28    | Cancel Appointment         |
+| Nguyen Ba Minh Duc       | UC-29    | Update Appointment         |
+| Nguyen Ba Minh Duc       | UC-30    | View Booking history       |
+| Tran Phan Phuc Nguyen    | UC-31    | Evaluate The Service       |
+| Tran Phan Phuc Nguyen    | UC-35    | View Transaction History   |
+| Tran Phan Phuc Nguyen    | UC-36    | Assign Task                |
+| Pham Tien Dat    | UC-37    | Refund                     |
+| Pham Tien Dat    | UC-38    | View staff work schedule   |
+| Pham Tien Dat    | UC-39    | View feedback              |
