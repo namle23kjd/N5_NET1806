@@ -11,7 +11,8 @@
   - [Table 2: Member Assignment for Sprint 1](#table-2-member-assignment-for-sprint-1)
 
 ## Project Description
-The software is designed to manage jewelry sales for a company operating a single store with multiple counters. It handles order creation, invoicing, and warranty slip printing. Products can be inputted via barcode scanning or direct code entry. The software supports pricing calculations based on gold price, labor costs, and stone prices, along with promotional management and customer-specific discounts.
+Pets' Spa Management is an application for managing pet spa services, helping pet owners easily schedule appointments, track the care process, and conveniently and quickly pay for services.
+
 
 ## Major Features (Epics)
 - **Manage Account**: Includes functionalities like login, logout, password reset, create account, edit account, delete account, search account, grant permissions.
