@@ -26,18 +26,15 @@ The software is designed to manage jewelry sales for a company operating a singl
 ## Technologies Used
 - **Backend**:
   - Swagger
-  - Spring Security
   - Sending Email
-  - Sending OTP via mail
-  - Spring Data JPA
-  - MySQL Database
-  - MultipartFile
-  - Barbecue (barcode 1D Generator)
-  - Metal Price API to update gold price
+  - SQL Server
+  - VNPAY
 - **Frontend**:
   - React Js
   - Tailwind
-  - Quill React JS
+  - Antd
+- Github
+- Jira
 
 ## Team Member Assignment Table
 
