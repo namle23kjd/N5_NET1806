@@ -131,7 +131,8 @@ namespace PetSpa.Controllers
         }
 
         [HttpGet("available")]
-        [Authorize]
+        //
+        //[Authorize]
         public async Task<IActionResult> GetAvailableStaffs([FromQuery] DateTime startTime, [FromQuery] Guid serviceCode, [FromQuery] Guid? staffId)
         {
             try
@@ -212,7 +213,7 @@ namespace PetSpa.Controllers
             }
         }
         [HttpGet("availableForPeriod")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> GetAvailableStaffsForPeriod([FromQuery] DateTime startTime, [FromQuery] Guid serviceCode, [FromQuery] Guid? staffId, [FromQuery] int? periodMonths)
         {
             try
@@ -779,6 +780,7 @@ namespace PetSpa.Controllers
             {
                 BookingId = b.BookingId,
                 CustomerName = b.Customer.FullName ?? "Unknown",
+                ServiceId= b.BookingDetails.FirstOrDefault()?.Service?.ServiceId ?? Guid.Empty,
                 ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "Unknown",
                 PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
                 StartDate = b.StartDate,
