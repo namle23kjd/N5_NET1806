@@ -3,7 +3,6 @@
 
 ## Contents
 - [Project Description](#project-description)
-- [Illustrative Images](#illustrative-images)
 - [Major Features (Epics)](#major-features-epics)
 - [Technologies Used](#technologies-used)
 - [Team Member Assignment Table](#team-member-assignment-table)
