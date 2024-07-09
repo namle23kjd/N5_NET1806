@@ -1,56 +1,33 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
-  TextField,
+  Table,
+  Space,
+  Input,
+  Select,
+  Form,
   Button,
-  Container,
   Typography,
-  Paper,
-  Box,
-  IconButton,
-} from "@mui/material";
-import { Edit, Delete, Add, Cancel } from "@mui/icons-material";
-import { styled } from "@mui/material/styles";
-import { Table, Space, Input } from "antd";
+  Layout,
+  Row,
+  Modal,
+  message,
+  Popconfirm,
+} from "antd";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  PieChartOutlined,
+  CloseCircleOutlined,
+} from "@ant-design/icons";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 
+const { Option } = Select;
+const { Title } = Typography;
+const { Content } = Layout;
+
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AF19FF"];
-
-const FormContainer = styled("form")(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  gap: theme.spacing(2),
-  marginBottom: theme.spacing(4),
-}));
-
-const FormField = ({
-  label,
-  name,
-  type = "text",
-  value,
-  onChange,
-  required,
-}) => (
-  <TextField
-    label={label}
-    name={name}
-    type={type}
-    value={value}
-    onChange={onChange}
-    required={required}
-    variant="outlined"
-    fullWidth
-  />
-);
-
-const TableCellActions = styled("div")({
-  display: "flex",
-  justifyContent: "left",
-});
-
-const ActionButton = styled(IconButton)(({ theme }) => ({
-  marginRight: theme.spacing(0),
-}));
 
 const AdminPage = () => {
   const [accounts, setAccounts] = useState([]);
@@ -83,9 +60,15 @@ const AdminPage = () => {
     try {
       const response = await axios.get("https://localhost:7150/api/Account");
       const accountsData = response.data;
-      setAccounts(accountsData);
-      setOriginalAccounts(accountsData);
-      calculateStatistics(accountsData);
+
+      // Filter out accounts with the role "admin"
+      const filteredAccounts = accountsData.filter(
+        (account) =>
+          !account.roles.some((role) => role.toLowerCase() === "admin")
+      );
+      setAccounts(filteredAccounts);
+      setOriginalAccounts(filteredAccounts);
+      calculateStatistics(filteredAccounts);
     } catch (error) {
       console.error(error);
     }
@@ -119,8 +102,7 @@ const AdminPage = () => {
       (account) => account.email === formData.email && account.id !== editId
     );
     const duplicateUserName = accounts.some(
-      (account) =>
-        account.userName === formData.userName && account.id !== editId
+      (account) => account.userName === formData.userName && account.id !== editId
     );
     const duplicatePhoneNumber = accounts.some(
       (account) =>
@@ -146,32 +128,41 @@ const AdminPage = () => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
 
     const submitData = { ...formData, password: "Pet123@@" };
 
-    if (isEditing) {
-      await axios.put(`https://localhost:7150/api/Account/update-user/${editId}`, submitData);
-      setIsEditing(false);
-      setEditId(null);
-    } else {
-      await axios.post("https://localhost:7150/api/Account/register", submitData);
+    try {
+      if (isEditing) {
+        // Remove fullName and gender for update
+        const { fullName, gender, ...updateData } = submitData;
+        await axios.put(
+          `https://localhost:7150/api/Account/update-user/${editId}`,
+          updateData
+        );
+        setIsEditing(false);
+        setEditId(null);
+      } else {
+        await axios.post("https://localhost:7150/api/Account/register", submitData);
+      }
+      message.success(isEditing ? "Account updated successfully" : "Account added successfully");
+      setFormData({
+        userName: "",
+        email: "",
+        phoneNumber: "",
+        role: "",
+        fullName: "",
+        gender: "",
+      });
+      setShowForm(false);
+      fetchAccounts();
+    } catch (error) {
+      message.error("An error occurred. Please try again.");
+      console.error(error);
     }
-    setFormData({
-      userName: "",
-      email: "",
-      phoneNumber: "",
-      role: "",
-      fullName: "",
-      gender: "",
-    });
-    setShowForm(false);
-    fetchAccounts();
   };
 
   const handleEdit = (account) => {
@@ -182,15 +173,19 @@ const AdminPage = () => {
       email: account.email,
       phoneNumber: account.phoneNumber,
       role: account.roles.join(", "),
-      fullName: account.fullName,
-      gender: account.gender,
     });
     setShowForm(true);
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`https://localhost:7150/api/Account/delete-account/${id}`);
-    fetchAccounts();
+    try {
+      await axios.delete(`https://localhost:7150/api/Account/delete-account/${id}`);
+      message.success("Account deleted successfully");
+      fetchAccounts();
+    } catch (error) {
+      message.error("An error occurred. Please try again.");
+      console.error(error);
+    }
   };
 
   const handleAddNew = () => {
@@ -229,14 +224,15 @@ const AdminPage = () => {
     }
   };
 
-  const handleSearchRole = (e) => {
-    const { value } = e.target;
+  const handleSearchRole = (value) => {
     setSearchRole(value);
     if (value === "") {
       setAccounts(originalAccounts);
     } else {
       const filteredData = originalAccounts.filter((account) =>
-        account.roles.some((role) => role.toLowerCase().includes(value.toLowerCase()))
+        account.roles.some((role) =>
+          role.toLowerCase().includes(value.toLowerCase())
+        )
       );
       setAccounts(filteredData);
     }
@@ -272,7 +268,9 @@ const AdminPage = () => {
       dataIndex: "roles",
       key: "role",
       render: (roles) => roles.join(", "),
-      filters: Array.from(new Set(accounts.flatMap((account) => account.roles))).map((role) => ({
+      filters: Array.from(
+        new Set(accounts.flatMap((account) => account.roles))
+      ).map((role) => ({
         text: role,
         value: role,
       })),
@@ -286,14 +284,17 @@ const AdminPage = () => {
       title: "Actions",
       key: "actions",
       render: (text, record) => (
-        <TableCellActions>
-          <ActionButton onClick={() => handleEdit(record)} color="primary">
-            <Edit />
-          </ActionButton>
-          <IconButton onClick={() => handleDelete(record.id)} color="secondary">
-            <Delete />
-          </IconButton>
-        </TableCellActions>
+        <div style={{ display: "flex", gap: "4px" }}>
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          <Popconfirm
+            title="Are you sure delete this account?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </div>
       ),
     },
   ];
@@ -304,134 +305,186 @@ const AdminPage = () => {
   }));
 
   return (
-    <Container>
-      {showForm && (
-        <Container maxWidth="sm" style={{ marginTop: "40px" }}>
-          <Paper elevation={3} style={{ padding: "20px" }}>
-            <Typography variant="h4" gutterBottom align="center">
-              Admin Page
-            </Typography>
-            {error && (
-              <Typography variant="body2" color="error" align="center">
-                {error}
-              </Typography>
-            )}
-            <FormContainer onSubmit={handleSubmit}>
-              <FormField
+    <Layout>
+      <Content style={{ padding: "50px" }}>
+        <Title level={2} align="center">
+          Admin Page
+        </Title>
+        <Row justify="end" style={{ marginBottom: "20px" }}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAddNew}
+            style={{ marginRight: "10px" }}
+          >
+            Add New
+          </Button>
+          <Button
+            type="primary"
+            icon={<PieChartOutlined />}
+            onClick={() => setShowDashboard(!showDashboard)}
+          >
+            {showDashboard ? "Hide Dashboard" : "Show Dashboard"}
+          </Button>
+        </Row>
+        {showForm && (
+          <Modal
+            title={isEditing ? "Edit Account" : "Add Account"}
+            visible={showForm}
+            onCancel={handleCancel}
+            footer={[
+              <Button
+                key="cancel"
+                onClick={handleCancel}
+                icon={<CloseCircleOutlined />}
+              >
+                Cancel
+              </Button>,
+              <Button key="submit" type="primary" onClick={handleSubmit}>
+                {isEditing ? "Update" : "Add"}
+              </Button>,
+            ]}
+          >
+            <Form layout="vertical" initialValues={formData}>
+              <Form.Item
                 label="Username"
                 name="userName"
-                value={formData.userName}
-                onChange={handleInputChange}
-                required
-              />
-              <FormField
+                rules={[{ required: true, message: "Please enter username" }]}
+              >
+                <Input
+                  name="userName"
+                  value={formData.userName}
+                  onChange={handleInputChange}
+                />
+              </Form.Item>
+              <Form.Item
                 label="Email"
                 name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-              <FormField
+                rules={[
+                  { required: true, message: "Please enter email" },
+                  { type: "email", message: "Please enter a valid email" },
+                ]}
+              >
+                <Input
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
+              </Form.Item>
+              <Form.Item
                 label="Phone Number"
                 name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                required
-              />
-              <FormField
+                rules={[{ required: true, message: "Please enter phone number" }]}
+              >
+                <Input
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                />
+              </Form.Item>
+              <Form.Item
                 label="Role"
                 name="role"
-                value={formData.role}
-                onChange={handleInputChange}
-                required
-              />
-              <Box mt={2} display="flex" justifyContent="space-between">
-                <Button type="submit" variant="contained" color="primary">
-                  {isEditing ? "Update" : "Add"}
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  startIcon={<Cancel />}
-                  onClick={handleCancel}
+                rules={[{ required: true, message: "Please select a role" }]}
+              >
+                <Select
+                  value={formData.role}
+                  onChange={(value) =>
+                    handleInputChange({ target: { name: "role", value } })
+                  }
                 >
-                  Cancel
-                </Button>
-              </Box>
-            </FormContainer>
-          </Paper>
-        </Container>
-      )}
-      <Box display="flex" justifyContent="flex-end" mb={2}>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<Add />}
-          onClick={handleAddNew}
-        >
-          Add New
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          style={{ marginLeft: "16px" }}
-          onClick={() => setShowDashboard(!showDashboard)}
-        >
-          {showDashboard ? "Hide Dashboard" : "Show Dashboard"}
-        </Button>
-      </Box>
-      {showDashboard && (
-        <Box mb={4}>
-          <Typography variant="h6" gutterBottom>
-            Dashboard
-          </Typography>
-          <Typography variant="body1">Total Accounts: {totalAccounts}</Typography>
-          <PieChart width={1000} height={400}>
-            <Pie
-              data={data}
-              cx={500}
-              cy={200}
-              labelLine={false}
-              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(2)}%`}
-              outerRadius={150}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </Box>
-      )}
-      <Space
-        style={{
-          marginBottom: 16,
-        }}
-      >
-        <Input
-          placeholder="Search by Phone Number"
-          value={searchPhone}
-          onChange={handleSearchPhone}
-          style={{ width: 200, marginRight: 16 }}
+                  <Option value="customer">Customer</Option>
+                  <Option value="manager">Manager</Option>
+                  <Option value="staff">Staff</Option>
+                </Select>
+              </Form.Item>
+              {!isEditing && (
+                <>
+                  <Form.Item
+                    label="Full Name"
+                    name="fullName"
+                    rules={[{ required: true, message: "Please enter full name" }]}
+                  >
+                    <Input
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    label="Gender"
+                    name="gender"
+                    rules={[{ required: true, message: "Please enter gender" }]}
+                  >
+                    <Input
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                    />
+                  </Form.Item>
+                </>
+              )}
+            </Form>
+          </Modal>
+        )}
+        {showDashboard && (
+          <div style={{ marginBottom: "20px" }}>
+            <Title level={4}>Dashboard</Title>
+            <p>Total Accounts: {totalAccounts}</p>
+            <PieChart width={1000} height={400}>
+              <Pie
+                data={data}
+                cx={500}
+                cy={200}
+                labelLine={false}
+                label={({ name, percent }) =>
+                  `${name}: ${(percent * 100).toFixed(2)}%`
+                }
+                outerRadius={150}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {data.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </div>
+        )}
+        <Space style={{ marginBottom: 16 }}>
+          <Input
+            placeholder="Search by Phone Number"
+            value={searchPhone}
+            onChange={handleSearchPhone}
+            style={{ width: 200, marginRight: 16 }}
+          />
+          <Button
+            onClick={() => {
+              setFilteredInfo({});
+              setSortedInfo({});
+              setAccounts(originalAccounts);
+              setSearchPhone("");
+              setSearchRole("");
+            }}
+          >
+            Clear filters and sorters
+          </Button>
+        </Space>
+        <Table
+          columns={columns}
+          dataSource={accounts}
+          onChange={handleChange}
+          rowKey="id"
+          pagination={{ pageSize: 10 }}
+          bordered
         />
-        <Button onClick={() => { setFilteredInfo({}); setSortedInfo({}); setAccounts(originalAccounts); setSearchPhone(""); setSearchRole(""); }}>
-          Clear filters and sorters
-        </Button>
-      </Space>
-      <Table
-        columns={columns}
-        dataSource={accounts}
-        onChange={handleChange}
-        rowKey="id"
-        pagination={{ pageSize: 10 }}
-        bordered
-        style={{ marginBottom: "20px", backgroundColor: "#fff", borderRadius: "10px" }}
-      />
-    </Container>
+      </Content>
+    </Layout>
   );
 };
 
