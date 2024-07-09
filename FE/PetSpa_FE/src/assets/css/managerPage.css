@@ -1,0 +1,31 @@
+.manager-page .header {
+  background: #001529;
+  padding: 0 16px;
+}
+
+.site-layout-background {
+  background: #fff;
+}
+
+.content {
+  padding: 24px;
+  background: #fff;
+}
+
+.ant-btn-link {
+  color: #1890ff;
+}
+
+.ant-btn-link:hover {
+  color: #40a9ff;
+}
+
+.ant-input-prefix {
+  margin-right: 8px;
+}
+
+.ant-space {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
