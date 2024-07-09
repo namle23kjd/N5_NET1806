@@ -16,11 +16,21 @@ namespace PetSpa.Repositories.CustomerRepository
             this._dbContext = dbContext;
         }
 
+        public async Task<bool> DeleteAsync(Guid CusId)
+        {
+            var customer = await _dbContext.Customers.Include(c => c.User).FirstOrDefaultAsync(x => x.CusId == CusId);
+            if( customer == null) return false;
+            customer.User.Status = false;
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<List<Customer>> GetAllAsync()
         {
             return await _dbContext.Customers
                 .Include(c => c.User)
                 .Include(c => c.Pets)
+                .Where(c => c.User.Status == true) // Lọc những khách hàng có Status là true
                 .ToListAsync();
         }
 
@@ -45,6 +55,13 @@ namespace PetSpa.Repositories.CustomerRepository
             existingCustomer.CusRank = customer.CusRank;
             await _dbContext.SaveChangesAsync();
             return existingCustomer;
+        }
+
+        public async Task<Customer?> GetByIdBookingAsync(Guid CusId)
+        {
+            return await _dbContext.Customers
+                .Include(c => c.Bookings).ThenInclude(bd => bd.BookingDetails).ThenInclude(se => se.Service)
+                .FirstOrDefaultAsync(x => x.CusId == CusId);
         }
     }
 }

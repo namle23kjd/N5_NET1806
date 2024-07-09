@@ -14,10 +14,8 @@ namespace PetSpa.Models.DTO.Staff
 
         public string? FullName { get; set; }
         public string? Gender { get; set; }
-        public Guid ManagerManaId { get; set; }
         public virtual IdentityUser User { get; set; } = null!;
         public virtual ICollection<BookingDetailDTO> BookingDetails { get; set; } = new List<BookingDetailDTO>();
-        public virtual ManagerDTO Manager { get; set; } = null!;
 
     }
 }

@@ -43,10 +43,13 @@ namespace PetSpa.Repositories.BookingRepository
             // Cập nhật trạng thái thành Completed
             foreach (var booking in bookingsInProgress)
             {
-                booking.Status = BookingStatus.Completed;
-                foreach (var detail in booking.BookingDetails)
+                if (booking.Status != BookingStatus.Canceled)
                 {
-                    detail.Status = true; // Hoặc sử dụng enum tương ứng nếu có
+                    booking.Status = BookingStatus.Completed;
+                    foreach (var detail in booking.BookingDetails)
+                    {
+                        detail.Status = true; // Hoặc sử dụng enum tương ứng nếu có
+                    }
                 }
             }
 

@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
+using PetSpa.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace PetSpa.Controllers
 {
@@ -23,14 +25,16 @@ namespace PetSpa.Controllers
         private readonly ApiResponseService _apiResponseService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<ManagerController> _logger;
+        private readonly PetSpaContext _context;
 
-        public ManagerController(IMapper mapper, IManagerRepository managerRepository, ApiResponseService apiResponseService, UserManager<ApplicationUser> userManager, ILogger<ManagerController> logger)
+        public ManagerController(IMapper mapper, IManagerRepository managerRepository, ApiResponseService apiResponseService, UserManager<ApplicationUser> userManager, ILogger<ManagerController> logger, PetSpaContext _context)
         {
             this._mapper = mapper;
             this._managerRepository = managerRepository;
             this._apiResponseService = apiResponseService;
             this._userManager = userManager;
             this._logger = logger;
+            this._context = _context;
         }
 
         // Get All Managers
@@ -155,6 +159,45 @@ namespace PetSpa.Controllers
                 _logger.LogError(ex, "An error occurred while updating manager.");
                 return StatusCode(StatusCodes.Status500InternalServerError, _apiResponseService.CreateErrorResponse("Internal server error"));
             }
+        }
+
+        [HttpPost("update-booking-with-staff")]
+        public async Task<IActionResult> UpdateBookingStaff([FromBody] UpdateBookingWithStaffRequest updateBookingWithStaffRequest)
+        {
+            var booking = await _context.Bookings.Include(b => b.BookingDetails)
+                                         .FirstOrDefaultAsync(b => b.BookingId == updateBookingWithStaffRequest.BookingId);
+            if(booking == null)
+            {
+                return NotFound("Booking Not Found");
+            }
+
+            booking.CheckAccept = false;
+
+            foreach (var details in booking.BookingDetails)
+            {
+                details.StaffId = updateBookingWithStaffRequest.StaffId;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok("Booking updated successfully.");
+        }
+
+        [HttpPost("accept-bookings-by-staff")]
+        public async Task<IActionResult> AccepotBookingByStaff([FromBody] AcceptBookingByStaff acceptBookingByStaff)
+        {
+            var bookings = await _context.Bookings.Include(b => b.BookingDetails)
+                                         .Where(b => b.BookingDetails.Any(bd => bd.StaffId == acceptBookingByStaff.StaffId))
+                                         .ToListAsync();
+            if(bookings.Any())
+            {
+                return NotFound("No bookings found for the given staff.");
+            }
+            foreach (var booking in bookings)
+            {
+                booking.CheckAccept = false;
+            }
+            await  _context.SaveChangesAsync();
+            return Ok("Bookings accepted successfully ");
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PetSpa.Data;
 using PetSpa.Models.Domain;
+using PetSpa.Models.DTO.Booking;
+using PetSpa.Models.DTO.Staff;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -21,7 +23,6 @@ namespace PetSpa.Repositories.StaffRepository
             return await _dbContext.Staff
                 .Include(s => s.User)
                 .Include(s => s.BookingDetails)
-                .Include(s => s.Manager)
                 .ToListAsync();
         }
 
@@ -30,7 +31,6 @@ namespace PetSpa.Repositories.StaffRepository
             return await _dbContext.Staff
                 .Include(s => s.User)
                 .Include(s => s.BookingDetails)
-                .Include(s => s.Manager)
                 .FirstOrDefaultAsync(x => x.StaffId == StaffID);
         }
 
@@ -52,6 +52,35 @@ namespace PetSpa.Repositories.StaffRepository
             await _dbContext.Staff.AddAsync(staff);
             await _dbContext.SaveChangesAsync();
             return staff;
+        }
+
+        public async Task<List<Booking>> GetBookingsByStatusAsync(Guid staffId, BookingStatus status)
+        {
+            return await _dbContext.Bookings
+            .Include(b => b.Customer)
+            .Include(b => b.BookingDetails)
+                .ThenInclude(bd => bd.Service)
+            .Include(b => b.BookingDetails)
+                .ThenInclude(bd => bd.Pet)
+            .Where(b => b.BookingDetails.Any(bd => bd.StaffId == staffId) && b.Status == status && b.CheckAccept == true)
+            .ToListAsync();
+        }
+
+        public async Task<List<StaffBookingSummaryDTO>> GetStaffBookingsByDateAsync(DateTime date)
+        {
+            var bookings = await _dbContext.BookingDetails
+                .Include(bd => bd.Staff)
+                .Where(bd => bd.Booking.StartDate.Date == date.Date && bd.Booking.CheckAccept == true)
+                .GroupBy(bd => new { bd.StaffId, bd.Staff.FullName })
+                .Select(group => new StaffBookingSummaryDTO
+                {
+                    StaffId = (Guid)group.Key.StaffId,
+                    StaffName = group.Key.FullName,
+                    TotalBooking = group.Count()
+                })
+                .ToListAsync();
+
+            return bookings;
         }
     }
 }

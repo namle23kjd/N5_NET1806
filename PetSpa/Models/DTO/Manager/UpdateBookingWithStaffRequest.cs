@@ -1,6 +1,6 @@
-﻿namespace PetSpa.Models.DTO.Booking
+﻿namespace PetSpa.Models.DTO.Manager
 {
-    public class AcceptBookingDTO
+    public class UpdateBookingWithStaffRequest
     {
         public Guid BookingId { get; set; }
         public Guid StaffId { get; set; }

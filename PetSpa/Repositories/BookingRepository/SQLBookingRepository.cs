@@ -67,6 +67,17 @@ namespace PetSpa.Repositories.BookingRepository
             await dbContext.SaveChangesAsync();
             return existingBooking;
         }
+        public async Task<Booking?> UpdateFeedbackAsync(Guid BookingId, Booking booking)
+        {
+            var existingBooking = await dbContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == BookingId);
+            if (existingBooking == null) return null;
+   
+            existingBooking.Feedback = booking.Feedback;
+           
+
+            await dbContext.SaveChangesAsync();
+            return existingBooking;
+        }
 
 
         public async Task<bool> IsScheduleTakenAsync(DateTime bookingSchedule)
@@ -315,6 +326,20 @@ namespace PetSpa.Repositories.BookingRepository
                 .ToListAsync();
 
             return dailyRevenues;
+        }
+
+        public async Task<List<Booking>> GetBookingsByCheckAcceptAsync(bool checkAccept)
+        {
+            return await dbContext.Bookings
+               .Include(b => b.Customer)
+               .Include(b => b.BookingDetails)
+                   .ThenInclude(bd => bd.Service)
+               .Include(b => b.BookingDetails)
+                   .ThenInclude(bd => bd.Pet)
+               .Include(b => b.BookingDetails)
+                   .ThenInclude(bd => bd.Staff)
+               .Where(b => b.CheckAccept == checkAccept)
+               .ToListAsync();
         }
     }
 }

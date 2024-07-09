@@ -18,11 +18,10 @@ namespace PetSpa.Models.DTO.Booking
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-
+        public Guid? ServiceId { get; set; }
+        public Guid? ComboId { get; set; }
         public decimal? TotalAmount { get; set; }
-
         public DateTime BookingSchedule { get; set; }
-
         public string? Feedback { get; set; }
         public bool CheckAccept { get; set; }
         public string CustomerName { get; set; }

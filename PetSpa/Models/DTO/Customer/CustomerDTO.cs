@@ -18,10 +18,11 @@ namespace PetSpa.Models.DTO.Customer
         public string PhoneNumber { get; set; } = null!;
         public string CusRank { get; set; } = null!;
         public Guid AdminId { get; set; } // Thêm thuộc tính này để phản ánh quan hệ với Admin
+        public decimal TotalSpent { get; set; } = 0;
 
         public virtual IdentityUser User { get; set; } = null!; // Quan hệ với bảng AspNetUsers
         public virtual AdminDTO Admins { get; set; } = null!; // Quan hệ với bảng Admin
-
+        public virtual List<Payment> Payments { get; set; } = new List<Payment>();
         public virtual ICollection<BookingDTO> Bookings { get; set; } = new List<BookingDTO>();
         public virtual ICollection<PetDTO> Pets { get; set; } = new List<PetDTO>();
         public virtual ICollection<VoucherDTO> Vouchers { get; set; } = new List<VoucherDTO>();

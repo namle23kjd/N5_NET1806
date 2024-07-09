@@ -13,10 +13,7 @@ namespace PetSpa.Models.DTO.Manager
         public string FullName { get; set; } = null!;
         public string Gender { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
-        public Guid AdminId { get; set; }
-
         public virtual IdentityUser User { get; set; } = null!;
-        public virtual AdminDTO Admins { get; set; } = null!;
         public virtual ICollection<StaffDTO> Staffs { get; set; } = new List<StaffDTO>();
         public virtual ICollection<VoucherDTO> Vouchers { get; set; } = new List<VoucherDTO>();
         public virtual ICollection<BookingDTO> Bookings { get; set; } = new List<BookingDTO>();

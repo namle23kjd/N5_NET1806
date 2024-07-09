@@ -34,8 +34,13 @@ namespace PetSpa.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
+
+                optionsBuilder.UseSqlServer("Server=DESKTOP-LJMA02H\\PIEDTEAM;Database=Pet_Spa;User Id=sa;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
+                // optionsBuilder.UseSqlServer("Server = HOANGNE\\SQLEXPRESS; Database = Pet_Spa; User Id = SA; Password = 1; Trusted_Connection = True; TrustServerCertificate = True");
+
                 //optionsBuilder.UseSqlServer("Server=DESKTOP-S41VFN3\\PIEDTEAM;Database=Pet__SPAManagement;User Id=sa;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
-                optionsBuilder.UseSqlServer("Server=DESKTOP-LJMA02H\\PIEDTEAM;Database=Pet_Spa;User Id=SA;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
+                //optionsBuilder.UseSqlServer("Server = HOANGNE\\SQLEXPRESS; Database = Pet_Spa; User Id = SA; Password = 12345; Trusted_Connection = True; TrustServerCertificate = True");
+
                 //Server = HOANGNE\\SQLEXPRESS; Database = Pet_Spa; User Id = SA; Password = 12345; Trusted_Connection = True; TrustServerCertificate = True
             }
         }
@@ -102,11 +107,6 @@ namespace PetSpa.Data
                     .HasForeignKey<Admin>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Admin__accID__398D8EEE");
-                entity.HasMany(d => d.Managers)
-                    .WithOne(p => p.Admins)
-                    .HasForeignKey(d => d.AdminId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Manager_Admin");
             });
 
             modelBuilder.Entity<Booking>(entity =>
@@ -151,9 +151,6 @@ namespace PetSpa.Data
                     .HasColumnName("status")
                     .HasConversion<int?>() // Store the enum as an integer in the database
                     .HasDefaultValue(BookingStatus.NotStarted);
-
-
-                entity.Property(e => e.PaymentStatus).HasColumnName("paymentstatus");
 
                 entity.Property(e => e.TotalAmount)
                     .HasColumnType("decimal(10, 2)")
@@ -295,7 +292,7 @@ namespace PetSpa.Data
 
                 entity.Property(e => e.FullName)
                     .HasMaxLength(255)
-                    .IsUnicode(false)
+                    .IsUnicode(true)
                     .HasColumnName("fullName").IsRequired(false);
 
                 entity.Property(e => e.Gender)
@@ -312,12 +309,22 @@ namespace PetSpa.Data
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasColumnName("cusRank");
+                entity.Property(e => e.TotalSpent)
+                  .HasColumnType("decimal(18, 2)")
+                  .HasDefaultValue(0)
+                  .HasColumnName("totalSpent");
 
                 entity.HasOne(d => d.User)
                     .WithOne()
                     .HasForeignKey<Customer>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Customer_AspNetUsers");
+
+                entity.HasMany(d => d.Payments)
+                    .WithOne(p => p.Customer)
+                    .HasForeignKey(d => d.CusId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Customer_Payment");
             });
 
             modelBuilder.Entity<Invoice>(entity =>
@@ -373,18 +380,15 @@ namespace PetSpa.Data
                     .IsUnicode(false)
                     .HasColumnName("Id");
 
-                entity.Property(e => e.AdminId)
-                    .HasColumnName("adminID");
-
                 entity.Property(e => e.FullName)
                     .HasMaxLength(255)
-                    .IsUnicode(false)
-                    .HasColumnName("fullName");
+                    .IsUnicode(true)
+                    .HasColumnName("fullName").IsRequired(false);
 
                 entity.Property(e => e.Gender)
                     .HasMaxLength(10)
                     .IsUnicode(false)
-                    .HasColumnName("gender");
+                    .HasColumnName("gender").IsRequired(false);
 
                 entity.Property(e => e.PhoneNumber)
                     .HasMaxLength(15)
@@ -396,23 +400,6 @@ namespace PetSpa.Data
                     .HasForeignKey<Manager>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Manager_AspNetUsers");
-
-                entity.HasOne(d => d.Admins)
-                    .WithMany(p => p.Managers)
-                    .HasForeignKey(d => d.AdminId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Manager_Admin");
-
-                entity.HasMany(d => d.Staffs)
-                    .WithOne(p => p.Manager)
-                    .HasForeignKey(d => d.ManagerManaId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Staff_Manager_ManagerManaId");
-                entity.HasMany(d => d.Vouchers)
-                    .WithOne(p => p.Managers)
-                    .HasForeignKey(d => d.ManaId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Voucher_Manager");
 
                 entity.HasMany(d => d.Bookings)
                     .WithOne(p => p.Manager)
@@ -446,6 +433,20 @@ namespace PetSpa.Data
                     .HasMaxLength(50)
                     .HasColumnName("paymentMethod");
 
+                entity.Property(e => e.CusId)
+                  .IsRequired()
+                  .HasColumnName("cusID");
+
+                entity.Property(e => e.TotalPayment) // Thêm dòng này
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("TotalPayment");
+
+                entity.HasOne(e => e.Customer)
+                    .WithMany(c => c.Payments)
+                    .HasForeignKey(e => e.CusId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Payment_Customer");
+
                 entity.HasMany(e => e.Invoices)
                     .WithOne(e => e.Payment)
                     .HasForeignKey(i => i.PaymentId)
@@ -474,7 +475,7 @@ namespace PetSpa.Data
                     .HasColumnName("petHeight");
                 entity.Property(e => e.PetName)
                     .HasMaxLength(255)
-                    .IsUnicode(false)
+                    .IsUnicode(true)
                     .HasColumnName("petName");
                 entity.Property(e => e.PetType)
                     .HasMaxLength(50)
@@ -549,7 +550,7 @@ namespace PetSpa.Data
 
                 entity.Property(e => e.FullName)
                     .HasMaxLength(255)
-                    .IsUnicode(false)
+                    .IsUnicode(true)
                     .HasColumnName("fullName");
 
                 entity.Property(e => e.Gender)
@@ -557,20 +558,11 @@ namespace PetSpa.Data
                     .IsUnicode(false)
                     .HasColumnName("gender");
 
-                entity.Property(e => e.ManagerManaId)
-                    .HasColumnName("ManagerManaId");
-
                 entity.HasOne(d => d.User)
                     .WithOne()
                     .HasForeignKey<Staff>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Staff_AspNetUsers");
-
-                entity.HasOne(d => d.Manager)
-                    .WithMany(p => p.Staffs)
-                    .HasForeignKey(d => d.ManagerManaId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Staff_Manager_ManagerManaId");
             });
 
             modelBuilder.Entity<Voucher>(entity =>
@@ -608,16 +600,6 @@ namespace PetSpa.Data
                     .HasForeignKey<Voucher>(d => d.BookingId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Voucher__booking__6A30C649");
-
-                entity.HasOne(d => d.Customers).WithMany(p => p.Vouchers)
-                    .HasForeignKey(d => d.CusId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Voucher__cusID__68487DD7");
-
-                entity.HasOne(d => d.Managers).WithMany(p => p.Vouchers)
-                    .HasForeignKey(d => d.ManaId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Voucher__manaID__693CA210");
             });
 
             OnModelCreatingPartial(modelBuilder);

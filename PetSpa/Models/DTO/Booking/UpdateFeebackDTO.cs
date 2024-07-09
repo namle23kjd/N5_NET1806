@@ -1,8 +1,8 @@
 ﻿namespace PetSpa.Models.DTO.Booking
 {
-    public class AcceptBookingDTO
+    public class UpdateFeebackDTO
     {
         public Guid BookingId { get; set; }
-        public Guid StaffId { get; set; }
+        public string Feedback { get; set; }
     }
 }
