@@ -137,7 +137,8 @@ namespace PetSpa.Data
 
                 entity.Property(e => e.CheckAccept)
                     .HasColumnName("checkAccept")
-                    .HasDefaultValue(false);
+                    .HasConversion<int?>()
+                    .HasDefaultValue(CheckAccpectStatus.NotChecked);
 
                 entity.Property(e => e.ManaId)
                     .IsRequired()
@@ -313,6 +314,12 @@ namespace PetSpa.Data
                   .HasColumnType("decimal(18, 2)")
                   .HasDefaultValue(0)
                   .HasColumnName("totalSpent");
+
+                entity.Property(e => e.Banking)
+                .HasMaxLength(255)
+                .IsRequired(false)
+                .IsUnicode(false)
+                .HasColumnName("banking");
 
                 entity.HasOne(d => d.User)
                     .WithOne()

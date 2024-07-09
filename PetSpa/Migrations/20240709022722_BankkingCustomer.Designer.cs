@@ -12,8 +12,8 @@ using PetSpa.Data;
 namespace PetSpa.Migrations
 {
     [DbContext(typeof(PetSpaContext))]
-    [Migration("20240703031853_a")]
-    partial class a
+    [Migration("20240709022722_BankkingCustomer")]
+    partial class BankkingCustomer
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -60,10 +60,10 @@ namespace PetSpa.Migrations
                         .HasColumnType("datetime")
                         .HasColumnName("bookingSchedule");
 
-                    b.Property<bool>("CheckAccept")
+                    b.Property<int>("CheckAccept")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
                         .HasColumnName("checkAccept");
 
                     b.Property<Guid>("CusId")
@@ -203,29 +203,29 @@ namespace PetSpa.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("46787474-81d1-46ba-8e9e-ea777bf57046"),
-                            ConcurrencyStamp = "46787474-81d1-46ba-8e9e-ea777bf57046",
+                            Id = new Guid("cfc86370-bd35-46e4-ae4b-308b18fbcf7d"),
+                            ConcurrencyStamp = "cfc86370-bd35-46e4-ae4b-308b18fbcf7d",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = new Guid("9bd02d16-b728-4b70-90b8-087d962983ad"),
-                            ConcurrencyStamp = "9bd02d16-b728-4b70-90b8-087d962983ad",
+                            Id = new Guid("03144614-7519-4fe3-b579-ec192346b91c"),
+                            ConcurrencyStamp = "03144614-7519-4fe3-b579-ec192346b91c",
                             Name = "Staff",
                             NormalizedName = "STAFF"
                         },
                         new
                         {
-                            Id = new Guid("4814f420-5110-4c92-8ce0-c6917d5e7ec1"),
-                            ConcurrencyStamp = "4814f420-5110-4c92-8ce0-c6917d5e7ec1",
+                            Id = new Guid("dccc003b-8c5d-4f8e-b38e-f2ed65ab05b4"),
+                            ConcurrencyStamp = "dccc003b-8c5d-4f8e-b38e-f2ed65ab05b4",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = new Guid("bafab390-2024-45eb-84c0-71eb85933400"),
-                            ConcurrencyStamp = "bafab390-2024-45eb-84c0-71eb85933400",
+                            Id = new Guid("381cd045-86cf-4102-a28c-b350c376b12b"),
+                            ConcurrencyStamp = "381cd045-86cf-4102-a28c-b350c376b12b",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         });
@@ -453,6 +453,12 @@ namespace PetSpa.Migrations
 
                     b.Property<Guid?>("AdminId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Banking")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("banking");
 
                     b.Property<string>("CusRank")
                         .IsRequired()

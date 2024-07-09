@@ -12,6 +12,6 @@
         public BookingStatus Status { get; set; }
         public Guid StaffId { get; set; }
         public string StaffName { get; set; }
-        public bool CheckAccept { get; set; }
+        public CheckAccpectStatus CheckAccept { get; set; }
     }
 }

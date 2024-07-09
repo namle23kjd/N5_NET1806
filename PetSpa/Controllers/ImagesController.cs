@@ -24,7 +24,7 @@ namespace PetSpa.Controllers
         //Post : /api/Images/Upload
         [HttpPost]
         [Route("Upload")]
-        [Authorize(Roles = "Admin,Customer,Manager")]
+        //[Authorize(Roles = "Admin,Customer,Manager")]
         public async Task<IActionResult> Upload([FromForm] ImageUploadRequestDTO request)
         {
             ValidateFileUpload(request);

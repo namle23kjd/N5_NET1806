@@ -29,7 +29,7 @@ namespace PetSpa.Controllers
         // Create Combo
         // Post : api/Combo
         [HttpPost]
-        [Authorize(Roles = "Admin,Customer,Manager,Staff")]
+        //[Authorize(Roles = "Admin,Customer,Manager,Staff")]
 
         public async Task<IActionResult> Create([FromBody] AddComboRequestDTO addComboRequestDTO)
         {
@@ -50,7 +50,7 @@ namespace PetSpa.Controllers
         // Get Combo
         // Get: api/combo
         [HttpGet]
-       
+      
         public async Task<IActionResult> GetAll()
         {
             var comboDomainModel = await comboRespository.GetAllAsync();
@@ -87,7 +87,7 @@ namespace PetSpa.Controllers
         // Update Combo By ID
         [HttpPut]
         [Route("{ComboId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        //[Authorize(Roles = "Admin,Manager")]
 
         public async Task<IActionResult> Update([FromRoute] Guid ComboId, UpdateComboRequestDTO updateComboRequestDTO)
         {
@@ -102,7 +102,7 @@ namespace PetSpa.Controllers
         // Delete Combo By ID (Set Status to False)
         [HttpDelete]
         [Route("{ComboId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        //[Authorize(Roles = "Admin,Manager")]
 
         public async Task<IActionResult> Delete([FromRoute] Guid ComboId)
         {

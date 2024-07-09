@@ -53,7 +53,7 @@ namespace PetSpa.Repositories.ComboRepository
             var existingCombo = await dbContext.Combos.FirstOrDefaultAsync(x => x.ComboId == ComboID);
             if (existingCombo == null) return null;
 
-            existingCombo.Status = false;
+            existingCombo.Status = !existingCombo.Status;
             await dbContext.SaveChangesAsync();
 
             return existingCombo;

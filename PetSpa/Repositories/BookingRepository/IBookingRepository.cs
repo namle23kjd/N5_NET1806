@@ -13,7 +13,7 @@ namespace PetSpa.Repositories.BookingRepository
         Task<Manager> GetManagerWithLeastBookingsAsync();
         Task<List<Booking>> GetCompletedBookingsAsync();
         Task<List<Booking>> GetBookingsByStatusAsync(BookingStatus status);
-        Task<List<Booking>> GetBookingsByApprovalStatusAsync(bool isApproved);
+        Task<List<Booking>> GetBookingsByApprovalStatusAsync(CheckAccpectStatus checkAcceptStatus);
         List<Staff> GetAvailableStaffsForStartTime(DateTime startTime, DateTime endTime, Guid? staffId = null);
         (List<Staff>, string) GetAvailableStaffs(DateTime startTime, DateTime endTime, int? periodMonths = null, Guid? staffId = null);
         Task<Booking?> GetCurrentBookingForStaffAsync(Guid staffId);
@@ -24,7 +24,6 @@ namespace PetSpa.Repositories.BookingRepository
          Task<Booking?> UpdateFeedbackAsync(Guid BookingId, Booking booking);
 
         Task<List<DailyRevenueDTO>> GetDailyRevenueForCurrentMonthAsync(DateTime? startDate);
-
-        Task<List<Booking>> GetBookingsByCheckAcceptAsync(bool checkAccept);
+        Task<List<Booking>> GetBookingsByCheckAcceptAsync(CheckAccpectStatus checkAccept);
     }
 }

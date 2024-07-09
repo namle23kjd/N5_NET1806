@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PetSpa.Migrations
 {
     /// <inheritdoc />
-    public partial class m : Migration
+    public partial class BankkingCustomer : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -245,6 +245,7 @@ namespace PetSpa.Migrations
                     phoneNumber = table.Column<string>(type: "varchar(15)", unicode: false, maxLength: 15, nullable: true),
                     cusRank = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: false),
                     totalSpent = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m),
+                    banking = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: true),
                     AdminId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
@@ -268,9 +269,9 @@ namespace PetSpa.Migrations
                 {
                     manaID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Id = table.Column<Guid>(type: "uniqueidentifier", unicode: false, maxLength: 100, nullable: false),
-                    fullName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    gender = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: false),
-                    phoneNumber = table.Column<string>(type: "varchar(15)", unicode: false, maxLength: 15, nullable: false),
+                    fullName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    gender = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true),
+                    phoneNumber = table.Column<string>(type: "varchar(15)", unicode: false, maxLength: 15, nullable: true),
                     AdminId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
@@ -373,7 +374,7 @@ namespace PetSpa.Migrations
                     feedback = table.Column<string>(type: "text", nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    checkAccept = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    checkAccept = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     paymentID = table.Column<int>(type: "int", nullable: true),
                     invoiceID = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
@@ -512,10 +513,10 @@ namespace PetSpa.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("1ea52f16-349f-4d46-b2a5-e9134dfb76d4"), "1ea52f16-349f-4d46-b2a5-e9134dfb76d4", "Admin", "ADMIN" },
-                    { new Guid("291b2132-eeb1-4c93-b284-c125e4ddf427"), "291b2132-eeb1-4c93-b284-c125e4ddf427", "Staff", "STAFF" },
-                    { new Guid("5389bb91-0609-4818-96a9-3a5a37b4b883"), "5389bb91-0609-4818-96a9-3a5a37b4b883", "Customer", "CUSTOMER" },
-                    { new Guid("98a517bc-dc43-4d04-85d7-994970361e49"), "98a517bc-dc43-4d04-85d7-994970361e49", "Manager", "MANAGER" }
+                    { new Guid("03144614-7519-4fe3-b579-ec192346b91c"), "03144614-7519-4fe3-b579-ec192346b91c", "Staff", "STAFF" },
+                    { new Guid("381cd045-86cf-4102-a28c-b350c376b12b"), "381cd045-86cf-4102-a28c-b350c376b12b", "Manager", "MANAGER" },
+                    { new Guid("cfc86370-bd35-46e4-ae4b-308b18fbcf7d"), "cfc86370-bd35-46e4-ae4b-308b18fbcf7d", "Customer", "CUSTOMER" },
+                    { new Guid("dccc003b-8c5d-4f8e-b38e-f2ed65ab05b4"), "dccc003b-8c5d-4f8e-b38e-f2ed65ab05b4", "Admin", "ADMIN" }
                 });
 
             migrationBuilder.CreateIndex(

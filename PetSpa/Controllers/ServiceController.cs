@@ -27,7 +27,7 @@ namespace PetSpa.Controllers
         // Create Service
         // Post: /api/Service
         [HttpPost]
-        [Authorize(Roles = "Admin,Customer,Manager")]
+        //[Authorize(Roles = "Admin,Customer,Manager")]
 
         public async Task<IActionResult> Create([FromBody] AddServiceRequest addServiceRequest)
         {
@@ -98,7 +98,7 @@ namespace PetSpa.Controllers
         // Put: /api/Service/{ServiceId}
         [HttpPut]
         [Route("{ServiceId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        //[Authorize(Roles = "Admin,Manager")]
 
         public async Task<IActionResult> Update([FromRoute] Guid ServiceId, [FromBody] UpdateServiceRequestDTO updateServiceRequestDTO)
         {

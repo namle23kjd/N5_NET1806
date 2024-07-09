@@ -19,6 +19,7 @@ namespace PetSpa.Models.DTO.Customer
         public string CusRank { get; set; } = null!;
         public Guid AdminId { get; set; } // Thêm thuộc tính này để phản ánh quan hệ với Admin
         public decimal TotalSpent { get; set; } = 0;
+        public string? Banking { get; set; }
 
         public virtual IdentityUser User { get; set; } = null!; // Quan hệ với bảng AspNetUsers
         public virtual AdminDTO Admins { get; set; } = null!; // Quan hệ với bảng Admin
