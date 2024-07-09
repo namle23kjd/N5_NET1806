@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
+
 import {
   Avatar,
   Button,
@@ -88,6 +87,7 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
         newPriceCombo = priceCurrent; // Default to the initial price if value doesn't match
     }
 
+    console.log("New Price Combo:", newPriceCombo); // Debugging log
     setPriceCombo(newPriceCombo);
     setPeriod(value);
   };
@@ -154,7 +154,6 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
       message.error("Failed to fetch staff members");
     }
   };
-  
 
   const columns = [
     {
@@ -201,17 +200,17 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
   ];
 
   const handleChoice = async () => {
-    const userInfo = JSON.parse(localStorage.getItem("user-info"));
-    const token = userInfo?.data?.token;
-    const userId = userInfo?.data?.user?.id;
-    const savedCart = localStorage.getItem(`cart-${userId}`);
+    const savedCart = localStorage.getItem("cart");
     const cart = savedCart ? JSON.parse(savedCart) : [];
     if (selectedPetId == null || date == null) {
       setError("Please select a pet and a date.");
       return;
     }
     setError("");
-
+    const userInfoString = localStorage.getItem("user-info");
+    const userInfo = JSON.parse(userInfoString);
+    const token = userInfo?.data?.token;
+    console.log(token);
     const isServiceAlreadyInCart = cart.some((service) =>
       cart.some(
         (item) =>
@@ -247,6 +246,7 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
       });
 
       if (response.status === 401) {
+        console.log("Please log in again.");
         setError("Please log in again.");
         setLoading(false); // Stop loading
         return;
@@ -270,7 +270,7 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
       setCart((prevCart) => [...prevCart, newItem]);
       message.success("Booking for pet successfully");
       // Lưu giỏ hàng vào localStorage
-      localStorage.setItem(`cart-${userId}`, JSON.stringify([...cart, newItem]));
+      localStorage.setItem("cart", JSON.stringify([...cart, newItem]));
       setSelectedPetId(null);
       setDate(null);
       setSelectStaffId(null);
@@ -280,6 +280,7 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
     } catch (error) {
       if (error.response) {
         if (error.response.status === 401) {
+          console.log("Please log in again.");
           message.error(error.response.data);
           localStorage.removeItem("user-info");
           setTimeout(() => {
