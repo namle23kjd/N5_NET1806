@@ -229,7 +229,13 @@ function Cart() {
       const response = await axios.get(
         `https://localhost:7150/api/Staff/${staffId}`
       );
-      return response.data.data.fullName;
+      const staff = response.data;
+
+      if (staff && staff.data.fullName) {
+        return staff.data.fullName;
+      } else {
+        return null;
+      }
     } catch (error) {
       console.error(`Error fetching staff name for staffId ${staffId}:`, error);
       return null;
@@ -286,7 +292,7 @@ function Cart() {
               const staffName = detail.staffId
                 ? await fetchStaffName(detail.staffId)
                 : null;
-             
+
               if (
                 booking.bookingDetails.length >= 2 &&
                 detail.service.comboId
@@ -324,6 +330,7 @@ function Cart() {
               }
             }
           );
+
           return Promise.all(bookingDetailsPromises);
         });
 
@@ -540,7 +547,6 @@ function Cart() {
     }
   }
 
-
   // Clear cart at midnight
   const clearCartAtMidnight = () => {
     const now = new Date();
@@ -563,24 +569,44 @@ function Cart() {
     const fetchStaffAndBookings = async () => {
       await fetchStaff();
       await fetchBookings();
-      
     };
-   
+
     fetchStaffAndBookings();
     fetchCustomerRankAndDiscount();
+
     const urlParams = new URLSearchParams(window.location.search);
     const responseCode = urlParams.get("vnp_ResponseCode");
     const vnpTxnRef = urlParams.get("vnp_TxnRef");
-  
 
+    const fetchAllStaffNames = async (products) => {
+      const productsWithStaffNames = await Promise.all(
+        products.map(async (product) => {
+          const staffName = product.staffId
+            ? await fetchStaffName(product.staffId)
+            : null;
+          return {
+            ...product,
+            ...(staffName && { staffName }), // Only include staffName if it exists
+            selected: true,
+          };
+        })
+      );
+      return productsWithStaffNames;
+    };
+
+    const handleProductsUpdate = async (products) => {
+      const productsWithStaffNames = await fetchAllStaffNames(products);
+      setProducts(productsWithStaffNames);
+      console.log(productsWithStaffNames);
+    };
 
     if (responseCode != null) {
       if (responseCode === "00") {
         const selectedProducts =
           JSON.parse(localStorage.getItem("selectedProducts")) || [];
         localStorage.removeItem("selectedProducts");
-        const products = JSON.parse(localStorage.getItem("cart")) || [];
-        const updatedProducts = products.filter(
+        const cartData = JSON.parse(localStorage.getItem("cart")) || [];
+        const updatedProducts = cartData.filter(
           (product) =>
             !selectedProducts.some(
               (selected) =>
@@ -590,16 +616,16 @@ function Cart() {
                 selected.staffId === product.staffId
             )
         );
-        setProducts(updatedProducts);
+        handleProductsUpdate(updatedProducts);
         localStorage.setItem("cart", JSON.stringify(updatedProducts));
         navigate("/Cart");
         setCurrentStep(2);
         message.success("Payment successful and items removed from cart.");
       } else if (responseCode !== "00" && vnpTxnRef) {
         const products = JSON.parse(localStorage.getItem("cart")) || [];
-        setProducts(products);
         localStorage.removeItem("selectedProducts");
 
+        handleProductsUpdate(products);
         axios
           .delete(
             `https://localhost:7150/api/Payments?transactionId=${vnpTxnRef}`
@@ -619,14 +645,8 @@ function Cart() {
       }
     } else {
       const storedProducts = JSON.parse(localStorage.getItem("cart")) || [];
-      if (storedProducts) {
-        setProducts(
-          storedProducts.map((product) => ({
-            ...product,
-            selected: true,
-          }))
-        );
-       
+      if (storedProducts.length > 0) {
+        handleProductsUpdate(storedProducts);
       }
     }
 
@@ -721,7 +741,7 @@ function Cart() {
           href="src/assets/images/favicon/favicon.ico"
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
           href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
           rel="stylesheet"
@@ -900,14 +920,19 @@ function Cart() {
                                             {product.petName}
                                           </a>
                                         </div>
-                                        <div className="text-muted mb-2 d-flex flex-wrap">
-                                          <span className="me-1">StaffName:</span>
-                                          <a
-                                            href="javascript:void(0)"
-                                            className="me-3"
-                                          >
-                                          </a>
-                                        </div>
+                                        {product.staffName && (
+                                          <div className="text-muted mb-2 d-flex flex-wrap">
+                                            <span className="me-1">
+                                              StaffName:
+                                            </span>
+                                            <a
+                                              href="javascript:void(0)"
+                                              className="me-3"
+                                            >
+                                              {product.staffName}
+                                            </a>
+                                          </div>
+                                        )}
                                         <div className="text-muted mb-2 d-flex flex-wrap">
                                           <span className="me-1">Date:</span>
                                           <a
@@ -1101,4 +1126,3 @@ function Cart() {
 }
 
 export default Cart;
-

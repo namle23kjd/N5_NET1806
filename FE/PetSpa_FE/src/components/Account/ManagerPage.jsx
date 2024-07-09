@@ -541,6 +541,8 @@ const ManagerPage = () => {
       title: "#",
       dataIndex: "key",
       key: "key",
+      sorter: (a, b) => a.key - b.key,
+      sortOrder: sortedInfo.columnKey === "key" && sortedInfo.order,
     },
     {
       title: "Service Name",
@@ -580,8 +582,15 @@ const ManagerPage = () => {
           <Button type="primary" onClick={() => handleEdit(record)}>
             Edit
           </Button>
-          <Button type="danger" onClick={() => handleDelete(record.key)}>
-            Delete
+          <Button
+            type="primary"
+            style={{
+              backgroundColor: record.status ? "red" : "green",
+              borderColor: record.status ? "red" : "green",
+            }}
+            onClick={() => handleDelete(record.key)}
+          >
+            {record.status ? "Delete" : "Restore"}
           </Button>
         </Space>
       ),
@@ -593,6 +602,8 @@ const ManagerPage = () => {
       title: "#",
       dataIndex: "key",
       key: "key",
+      sorter: (a, b) => a.key - b.key,
+      sortOrder: sortedInfo.columnKey === "key" && sortedInfo.order,
     },
     {
       title: "Customer Name",
@@ -647,7 +658,11 @@ const ManagerPage = () => {
           <Button type="primary" onClick={() => handleAccept(record.key)}>
             Accept
           </Button>
-          <Button type="danger" onClick={() => handleDeny(record.key)}>
+          <Button
+            type="primary"
+            style={{ backgroundColor: "red", borderColor: "red" }}
+            onClick={() => handleDeny(record.key)}
+          >
             Deny
           </Button>
         </Space>
