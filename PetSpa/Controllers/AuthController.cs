@@ -61,7 +61,10 @@ namespace PetSpa.Controllers
                 }
 
                 var user = await _userManager.FindByEmailAsync(email.Email);
-
+                if (!user.Status)
+                {
+                    return BadRequest(_apiResponse.CreateErrorResponse("Your Account is banned"));
+                }
                 if (user != null)
                 {
                     var customer = await petSpaContext.Customers.FirstOrDefaultAsync(x => x.Id == user.Id);
