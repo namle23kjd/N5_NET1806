@@ -241,7 +241,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpGet("ConfirmEmail")]
-        [Authorize(Roles = "Admin,Customer")]
+        //[Authorize(Roles = "Admin,Customer")]
         public async Task<IActionResult> ConfirmEmail([FromBody] ComfirmEmailDTO request)
         {
             if (string.IsNullOrEmpty(request.Token) || string.IsNullOrEmpty(request.Email))
@@ -357,7 +357,7 @@ namespace PetSpa.Controllers
 
         [HttpPost]
         [Route("change-password")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto changePasswordRequestDto)
         {
             var user = await _userManager.FindByEmailAsync(changePasswordRequestDto.Email);
@@ -389,7 +389,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpPost("forgot-password")]
-        [Authorize(Roles = "Admin,Customer,Staff,Manager")]
+        //[Authorize(Roles = "Admin,Customer,Staff,Manager")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest forgotPassword)
         {
             var user = await _userManager.FindByEmailAsync(forgotPassword.Email);
@@ -417,7 +417,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,Customer,Staff,Manager")]
+        //[Authorize(Roles = "Admin,Customer,Staff,Manager")]
         public async Task<IActionResult> TestEmail()
         {
             var message = new Message(new string[] { "nguyenbaminhduc2019@gmail.com" }, "Test", "<h1>Hoàng Anh stupid</h1>");
@@ -426,7 +426,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpPost("reset-password")]
-        [Authorize(Roles = "Admin,Customer,Staff,Manager")]
+        //[Authorize(Roles = "Admin,Customer,Staff,Manager")]
         public async Task<IActionResult> ResetPassword([FromBody] ForgotPasswordRequestDto model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
