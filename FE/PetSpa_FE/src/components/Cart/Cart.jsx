@@ -114,9 +114,9 @@ function Cart() {
       const rank = response.data.data.cusRank;
       setRank(rank);
 
-      if (rank === "Silver") {
+      if (rank === "silver") {
         setDiscount(0.05);
-      } else if (rank === "Gold") {
+      } else if (rank === "gold") {
         setDiscount(0.1);
       }
     }
@@ -286,7 +286,7 @@ function Cart() {
               const staffName = detail.staffId
                 ? await fetchStaffName(detail.staffId)
                 : null;
-             
+
               if (
                 booking.bookingDetails.length >= 2 &&
                 detail.service.comboId
@@ -540,6 +540,12 @@ function Cart() {
     }
   }
 
+  // Clear cart when user logs out
+  const handleLogout = () => {
+    localStorage.removeItem("cart");
+    localStorage.removeItem("user-info");
+    navigate("/login");
+  };
 
   // Clear cart at midnight
   const clearCartAtMidnight = () => {
@@ -563,16 +569,17 @@ function Cart() {
     const fetchStaffAndBookings = async () => {
       await fetchStaff();
       await fetchBookings();
-      
+      await fetchCustomerRankAndDiscount();
     };
-   
+
     fetchStaffAndBookings();
-    fetchCustomerRankAndDiscount();
+
     const urlParams = new URLSearchParams(window.location.search);
     const responseCode = urlParams.get("vnp_ResponseCode");
     const vnpTxnRef = urlParams.get("vnp_TxnRef");
-  
+    console.log(urlParams);
 
+    console.log("Current URL:", window.location.href);
 
     if (responseCode != null) {
       if (responseCode === "00") {
@@ -626,7 +633,6 @@ function Cart() {
             selected: true,
           }))
         );
-       
       }
     }
 
@@ -721,7 +727,7 @@ function Cart() {
           href="src/assets/images/favicon/favicon.ico"
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
           href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
           rel="stylesheet"
@@ -898,14 +904,6 @@ function Cart() {
                                             className="me-3"
                                           >
                                             {product.petName}
-                                          </a>
-                                        </div>
-                                        <div className="text-muted mb-2 d-flex flex-wrap">
-                                          <span className="me-1">StaffName:</span>
-                                          <a
-                                            href="javascript:void(0)"
-                                            className="me-3"
-                                          >
                                           </a>
                                         </div>
                                         <div className="text-muted mb-2 d-flex flex-wrap">

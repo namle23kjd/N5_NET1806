@@ -140,13 +140,13 @@ const StaffPage = () => {
         <TaskList tasks={tasks.inProgress} printTasks={printTasks} />
       </div>
       <div className={`task-content ${activeTab !== "done" ? "hidden" : ""}`}>
-        <TaskList tasks={tasks.done} printTasks={printTasks} />
+        <TaskList tasks={tasks.done} printTasks={printTasks} isDoneTab />
       </div>
     </div>
   );
 };
 
-const TaskList = ({ tasks, printTasks }) => {
+const TaskList = ({ tasks, printTasks, isDoneTab = false }) => {
   const [selectedTasks, setSelectedTasks] = useState([]);
 
   const handleTaskSelect = (task) => {
@@ -155,6 +155,22 @@ const TaskList = ({ tasks, printTasks }) => {
         ? prevSelectedTasks.filter((t) => t !== task)
         : [...prevSelectedTasks, task]
     );
+  };
+
+  const handleDeny = async (taskId) => {
+    try {
+      await axios.post(`https://localhost:7150/api/Staff/${taskId}/deny`, {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("user-info").data.token}`,
+        },
+      });
+      // Remove denied task from the list
+      setSelectedTasks((prevTasks) =>
+        prevTasks.filter((task) => task.id !== taskId)
+      );
+    } catch (error) {
+      console.error("Error denying task:", error);
+    }
   };
 
   return (
@@ -169,6 +185,7 @@ const TaskList = ({ tasks, printTasks }) => {
             <th>Date</th>
             <th>Time</th>
             <th>Select</th>
+            {isDoneTab && <th>Action</th>}
           </tr>
         </thead>
         <tbody>
@@ -187,11 +204,17 @@ const TaskList = ({ tasks, printTasks }) => {
                   onChange={() => handleTaskSelect(task)}
                 />
               </td>
+              {isDoneTab && (
+                <td>
+                  <button onClick={() => handleDeny(task.id)}>Deny</button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
       </table>
-      <button className="print-button"
+      <button
+        className="print-button"
         onClick={() => printTasks(selectedTasks)}
         disabled={selectedTasks.length === 0}
       >

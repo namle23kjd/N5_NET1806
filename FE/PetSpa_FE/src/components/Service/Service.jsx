@@ -114,10 +114,8 @@ function Service() {
       try {
         const response = await axios.get("https://localhost:7150/api/Service");
         const result = response.data;
-        const filteredServices = result.data.data.filter(
-          (service) => service.status !== false
-        );
-        setServices(filteredServices);
+        
+        setServices(result.data.data);
         setError(""); // Clear any previous errors
       } catch (error) {
         setError("An error occurred while fetching services");
@@ -204,11 +202,9 @@ function Service() {
       const response = await axios.get("https://localhost:7150/api/Service");
       const result = response.data;
       // Filter out services with status false
-      const filteredServices = result.data.data.filter(
-        (service) => service.status !== false
-      );
-      setServices(filteredServices);
-      localStorage.setItem("service", JSON.stringify(filteredServices));
+      
+      setServices(result.data.data);
+     
     } catch (error) {
       console.error("Error fetching services:", error);
     }
@@ -333,13 +329,19 @@ function Service() {
                           <div className="item_price">
                             <span>{formattedPrice}</span>
                           </div>
-                          <Link
-                            className="btn_unfill"
-                            onClick={() => handleBookNow(service.serviceId)}
-                          >
-                            <span>Schedule Your Appointment</span>{" "}
-                            <FontAwesomeIcon icon={faArrowRight} />
-                          </Link>
+                          <div>
+      {service.status ? (
+        <Link
+          className="btn_unfill"
+          onClick={() => handleBookNow(service.serviceId)}
+        >
+          <span>Schedule Your Appointment</span>{" "}
+          <FontAwesomeIcon icon={faArrowRight} />
+        </Link>
+      ) : (
+        <span className="btn_unfill">The service is currently down.</span>
+      )}
+    </div>
                           {isOpen &&
                             selectedServiceId === service.serviceId && (
                               <ProtectedRoute allowedRoles={["Customer"]}>
