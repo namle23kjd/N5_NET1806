@@ -24,6 +24,10 @@ namespace PetSpa.Repositories.CustomerRepository
             await _dbContext.SaveChangesAsync();
             return true;
         }
+        public async Task<Customer> GetByPhoneNumberAsync(string phoneNumber)
+        {
+            return await _dbContext.Customers.FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber);
+        }
 
         public async Task<List<Customer>> GetAllAsync()
         {
