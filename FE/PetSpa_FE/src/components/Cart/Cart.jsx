@@ -1,3 +1,4 @@
+
 import {
   faCartShopping,
   faCircleCheck,
@@ -33,7 +34,7 @@ function Cart() {
 
   const [rank, setRank] = useState(null);
   const [discount, setDiscount] = useState(0);
-  const [userId, setUserId] = useState();
+
   const [form] = useForm();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -53,7 +54,7 @@ function Cart() {
   };
 
   const handleDeleteBooking = async (index) => {
-    const cartString = localStorage.getItem(`cart-${userId}`);
+    const cartString = localStorage.getItem("cart");
     let cart = JSON.parse(cartString);
 
     if (!cart || !Array.isArray(cart)) {
@@ -63,7 +64,7 @@ function Cart() {
 
     cart.splice(index, 1);
     setProducts(cart);
-    localStorage.setItem(`cart-${userId}`, JSON.stringify(cart));
+    localStorage.setItem("cart", JSON.stringify(cart));
     message.success("Booking removed successfully.");
   };
 
@@ -547,14 +548,21 @@ function Cart() {
       await fetchCustomerRankAndDiscount();
     };
 
-    const handlePaymentResponse = async (responseCode, vnpTxnRef) => {
+    fetchStaffAndBookings();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const responseCode = urlParams.get("vnp_ResponseCode");
+    const vnpTxnRef = urlParams.get("vnp_TxnRef");
+    console.log(urlParams);
+
+    console.log("Current URL:", window.location.href);
+
+    if (responseCode != null) {
       if (responseCode === "00") {
         const selectedProducts =
           JSON.parse(localStorage.getItem("selectedProducts")) || [];
         localStorage.removeItem("selectedProducts");
-
-        const products =
-          JSON.parse(localStorage.getItem(`cart-${userId}`)) || [];
+        const products = JSON.parse(localStorage.getItem("cart")) || [];
         const updatedProducts = products.filter(
           (product) =>
             !selectedProducts.some(
@@ -565,61 +573,45 @@ function Cart() {
                 selected.staffId === product.staffId
             )
         );
-
         setProducts(updatedProducts);
-        localStorage.setItem(`cart-${userId}`, JSON.stringify(updatedProducts));
+        localStorage.setItem("cart", JSON.stringify(updatedProducts));
         navigate("/Cart");
         setCurrentStep(2);
         message.success("Payment successful and items removed from cart.");
       } else if (responseCode !== "00" && vnpTxnRef) {
-        try {
-          const response = await axios.delete(
+        const products = JSON.parse(localStorage.getItem("cart")) || [];
+        setProducts(products);
+        localStorage.removeItem("selectedProducts");
+
+        axios
+          .delete(
             `https://localhost:7150/api/Payments?transactionId=${vnpTxnRef}`
-          );
-          console.log("Payment failure data:", response.data);
-          message.error("Payment failed. Please try again.");
-          navigate("/Cart");
-        } catch (error) {
-          console.error("Error fetching payment failure data:", error);
-          message.error(
-            "Payment failed and we encountered an error while fetching the failure details."
-          );
-          navigate("/Cart");
-        }
-      }
-    };
-
-    const initialize = async () => {
-      const userInfo = JSON.parse(localStorage.getItem("user-info"));
-      if (userInfo && userInfo.data && userInfo.data.user) {
-        const userId = userInfo.data.user.id;
-        setUserId(userId);
-
-        await fetchStaffAndBookings();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const responseCode = urlParams.get("vnp_ResponseCode");
-        const vnpTxnRef = urlParams.get("vnp_TxnRef");
-
-        if (responseCode != null) {
-          await handlePaymentResponse(responseCode, vnpTxnRef);
-        } else {
-          const storedProducts =
-            JSON.parse(localStorage.getItem(`cart-${userId}`)) || [];
-          if (storedProducts) {
-            setProducts(
-              storedProducts.map((product) => ({
-                ...product,
-                selected: true,
-              }))
+          )
+          .then((response) => {
+            console.log("Payment failure data:", response.data);
+            message.error("Payment failed. Please try again.");
+            navigate("/Cart");
+          })
+          .catch((error) => {
+            console.error("Error fetching payment failure data:", error);
+            message.error(
+              "Payment failed and we encountered an error while fetching the failure details."
             );
-          }
-        }
+            navigate("/Cart");
+          });
       }
-    };
-
-    initialize();
-  }, [navigate, userId]);
+    } else {
+      const storedProducts = JSON.parse(localStorage.getItem("cart")) || [];
+      if (storedProducts) {
+        setProducts(
+          storedProducts.map((product) => ({
+            ...product,
+            selected: true,
+          }))
+        );
+      }
+    }
+  }, []);
 
   return (
     <div>
