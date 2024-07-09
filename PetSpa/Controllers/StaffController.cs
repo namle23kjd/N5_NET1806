@@ -161,7 +161,7 @@ namespace PetSpa.Controllers
         
         //Lấy thông tin booking mà nhân viên đang làm
         [HttpGet("{staffId:guid}/current-booking")]
-        [Authorize(Roles ="Staff")]
+        //[Authorize(Roles ="Staff")]
         public async Task<IActionResult> GetCurrentBookingForStaff(Guid staffId)
         {
             var bookings = await _staffRepository.GetBookingsByStatusAsync(staffId, BookingStatus.InProgress);

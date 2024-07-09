@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
 import {
   Avatar,
   Button,
@@ -49,7 +47,7 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
     fetchPets();
   }, [dataSource]);
   const disablePastDates = (current) => {
-    return current && current < moment().startOf("day");
+    return current && current < moment().startOf('day');
   };
   const handlePrice = (value) => {
     // Kiểm tra giá trị của priceCurrent
@@ -228,37 +226,25 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
   };
 
   const handleChoice = async () => {
-    const userInfo = JSON.parse(localStorage.getItem("user-info"));
-    const token = userInfo?.data?.token;
-    const userId = userInfo?.data?.user?.id;
-    const savedCart = localStorage.getItem(`cart-${userId}`);
+    const savedCart = localStorage.getItem("cart");
     const cart = savedCart ? JSON.parse(savedCart) : [];
     if (selectedPetId == null || date == null) {
       setError("Please select a pet and a date.");
       return;
     }
     setError("");
-
+    const userInfoString = localStorage.getItem("user-info");
+    const userInfo = JSON.parse(userInfoString);
+    const token = userInfo?.data?.token;
+    console.log(date);
     const isAlreadyInCart = cart.some(
       (item) =>
-        item.petId === selectedPetId &&
-        item.serviceId === selectedServiceId &&
-        item.date === date.format("YYYY-MM-DDTHH:mm:ss")
+        item.petId === selectedPetId && item.serviceId === selectedServiceId && item.date === date.format("YYYY-MM-DDTHH:mm:ss")
     );
     const isAlready = cart.some(
       (item) =>
-        item.petId === selectedPetId &&
-        item.date === date.format("YYYY-MM-DDTHH:mm:ss")
+        item.petId === selectedPetId && item.date === date.format("YYYY-MM-DDTHH:mm:ss")
     );
-    const isAlreadyStaff = cart.some(
-      (item) =>
-        item.staffId === selectStaffId &&
-        item.date === date.format("YYYY-MM-DDTHH:mm:ss")
-    );
-    if (isAlreadyStaff) {
-      message.warning("This staff has already used this service in cart.");
-      return;
-    }
     if (isAlready) {
       message.warning("This pet has already used this service in cart.");
       return;
@@ -319,10 +305,7 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
         setCart((prevCart) => [...prevCart, newItem]);
         message.success("Service booked successfully");
         // Save cart to localStorage
-        localStorage.setItem(
-          `cart-${userId}`,
-          JSON.stringify([...cart, newItem])
-        );
+        localStorage.setItem("cart", JSON.stringify([...cart, newItem]));
         setSelectedPetId(null);
         setDate(null);
         setSelectStaffId(null);
@@ -389,17 +372,17 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
         />
         <Form layout="vertical" className="mt-5" form={form}>
           <div className="flex space-x-4">
-            <Form.Item label="Date" className="w-1/2">
-              <Space direction="vertical" className="w-full">
-                <DatePicker
-                  showTime
-                  value={date}
-                  onChange={(date) => setDate(date)}
-                  className="w-full"
-                  disabledDate={disablePastDates} // Add the disabledDate prop
-                />
-              </Space>
-            </Form.Item>
+          <Form.Item label="Date" className="w-1/2">
+      <Space direction="vertical" className="w-full">
+        <DatePicker
+          showTime
+          value={date}
+          onChange={(date) => setDate(date)}
+          className="w-full"
+          disabledDate={disablePastDates} // Add the disabledDate prop
+        />
+      </Space>
+    </Form.Item>
             <Form.Item label="Select Staff" className="w-1/2">
               <Select
                 showSearch
