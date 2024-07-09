@@ -582,8 +582,11 @@ const ManagerPage = () => {
           <Button type="primary" onClick={() => handleEdit(record)}>
             Edit
           </Button>
-          <Button type="danger" onClick={() => handleDelete(record.key)}>
-            Delete
+          <Button
+            type={record.status ? "danger" : "primary"}
+            onClick={() => handleDelete(record.key)}
+          >
+            {record.status ? "Delete" : "Restore"}
           </Button>
         </Space>
       ),
