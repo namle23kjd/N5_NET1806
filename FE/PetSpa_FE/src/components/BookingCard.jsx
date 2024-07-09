@@ -4,91 +4,97 @@ import {
   Button,
   DatePicker,
   Form,
-  Input,
   Modal,
   Select,
   Space,
   Table,
-  Upload,
   message,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-
 import AddingPet from "./AddingPet";
+import moment from "moment";
 
 const { Option } = Select;
 
-const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
+const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
   const [selectStaffId, setSelectStaffId] = useState();
   const [error, setError] = useState(null);
   const [dataSource, setDataSource] = useState([]);
-  const [selectedComboId, setSelectedComboId] = useState(comboId);
+  const [selectedServiceId, setSelectedServiceId] = useState(serviceId);
   const [date, setDate] = useState(null);
   const [staffList, setStaffList] = useState([]);
   const [selectedPetId, setSelectedPetId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [comboList, setcomboList] = useState([]);
-  const [priceCombo, setPriceCombo] = useState();
-  const [isPetOpen, setIsPetOpen] = useState(false);
-
   const navigate = useNavigate();
   const [form] = useForm();
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
   });
+  const [priceCombo, setPriceCombo] = useState();
+  const [isPetOpen, setIsPetOpen] = useState(false);
+  const [services, setServices] = useState([]);
+  const [period, setPeriod] = useState(1);
+  const [priceCurrent, setPriceCurrent] = useState();
+  useEffect(() => {
+    fetchPets();
+    fetchStaff();
+    fetchServices();
+  }, []);
+  useEffect(() => {
+    fetchPets();
+  }, [dataSource]);
+  const disablePastDates = (current) => {
+    return current && current < moment().startOf('day');
+  };
+  const handlePrice = (value) => {
+    // Kiểm tra giá trị của priceCurrent
+    if (
+      !priceCurrent ||
+      typeof priceCurrent !== "number" ||
+      priceCurrent <= 0
+    ) {
+      console.error("Invalid priceCurrent value:", priceCurrent);
+      return;
+    }
+
+    let newPriceCombo = priceCurrent;
+
+    switch (value) {
+      case 3:
+        newPriceCombo = priceCurrent * 3 * 0.97; // 3 tháng, giảm giá 3%
+        break;
+      case 6:
+        newPriceCombo = priceCurrent * 6 * 0.94; // 6 tháng, giảm giá 6%
+        break;
+      case 9:
+        newPriceCombo = priceCurrent * 9 * 0.92; // 9 tháng, giảm giá 8%
+        break;
+      default:
+        newPriceCombo = priceCurrent; // Mặc định trở về giá ban đầu nếu giá trị không khớp
+    }
+
+    // Đảm bảo newPriceCombo không bị gán giá trị undefined hoặc null
+    if (isNaN(newPriceCombo) || newPriceCombo <= 0) {
+      console.error("Invalid newPriceCombo value:", newPriceCombo);
+      newPriceCombo = priceCurrent; // Trở lại giá trị ban đầu nếu có lỗi
+    }
+
+    // Cập nhật giá trị
+    setPriceCombo(newPriceCombo);
+    setPeriod(value);
+
+    console.log("Updated price combo:", newPriceCombo, "for period:", value);
+  };
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
-  };
-
-  const fetchCombo = async () => {
-    try {
-      const response = await axios.get("https://localhost:7150/api/Combo");
-      setcomboList(response.data);
-
-      const combo = response.data.find((x) => x.comboId == comboId);
-      setPriceCombo(combo.price);
-      setPriceCurrent(combo.price);
-    } catch (error) {
-      message.error("Failed to fetch combo details");
-    }
-  };
-
-  useEffect(() => {
-    fetchCombo();
-    fetchStaff();
-    fetchMovies();
-  }, []);
-  useEffect(() => {
-    fetchMovies();
-  }, [dataSource]);
-  const [priceCurrent, setPriceCurrent] = useState();
-  const [period, setPeriod] = useState(1);
-
-  const handlePrice = (value) => {
-    let newPriceCombo = priceCurrent;
-    switch (value) {
-      case 3:
-        newPriceCombo = priceCurrent * 3 * 0.97; // 3 months, 3% discount
-        break;
-      case 6:
-        newPriceCombo = priceCurrent * 6 * 0.94; // 6 months, 6% discount
-        break;
-      case 9:
-        newPriceCombo = priceCurrent * 9 * 0.92; // 9 months, 8% discount
-        break;
-      default:
-        newPriceCombo = priceCurrent; // Default to the initial price if value doesn't match
-    }
-
-    setPriceCombo(newPriceCombo);
-    setPeriod(value);
   };
 
   const handlePetModalOpen = () => {
@@ -103,7 +109,7 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
     form.submit();
   };
 
-  async function fetchMovies() {
+  async function fetchPets() {
     const userInfoString = localStorage.getItem("user-info");
     const userInfo = JSON.parse(userInfoString);
 
@@ -121,11 +127,13 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
 
           if (response.status === 401) {
             localStorage.removeItem("user-info");
+            message.warning("Please login in.");
             navigate("/login");
             return;
           }
 
           const result = response.data;
+
           localStorage.setItem("pets", JSON.stringify(result));
           setDataSource(result.data.pets.filter((x) => x.status !== false));
         } catch (error) {
@@ -198,6 +206,26 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
     },
   ];
 
+  const fetchServices = async () => {
+    try {
+      const response = await axios.get("https://localhost:7150/api/Service");
+      const result = response.data;
+      setServices(result.data.data);
+      localStorage.setItem("service", JSON.stringify(result));
+      if (selectedServiceId) {
+        const service = result.data.data.find(
+          (x) => x.serviceId === selectedServiceId
+        );
+        if (service) {
+          setPriceCombo(service.price);
+          setPriceCurrent(service.price);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching services:", error);
+    }
+  };
+
   const handleChoice = async () => {
     const savedCart = localStorage.getItem("cart");
     const cart = savedCart ? JSON.parse(savedCart) : [];
@@ -209,21 +237,30 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
     const userInfoString = localStorage.getItem("user-info");
     const userInfo = JSON.parse(userInfoString);
     const token = userInfo?.data?.token;
-
-    const isServiceAlreadyInCart = cart.some((service) =>
-      cart.some(
-        (item) =>
-          item.petId === selectedPetId &&
-          item.comboId === service.serviceId &&
-          item.date === date.format("YYYY-MM-DDTHH:mm:ss")
-      )
+    console.log(date);
+    const isAlreadyInCart = cart.some(
+      (item) =>
+        item.petId === selectedPetId && item.serviceId === selectedServiceId && item.date === date.format("YYYY-MM-DDTHH:mm:ss")
     );
+    const isAlready = cart.some(
+      (item) =>
+        item.petId === selectedPetId && item.date === date.format("YYYY-MM-DDTHH:mm:ss")
+    );
+    const isAlreadyStaff = cart.some(
+      (item) =>
+        item.selectStaffId === selectStaffId && item.date === date.format("YYYY-MM-DDTHH:mm:ss")
+    );
+    if (isAlreadyStaff) {
+      message.warning("The staff has been booked during this time.");
+      return;
+    }
+    if (isAlready) {
+      message.warning("This pet has already used this service in cart.");
+      return;
+    }
 
-    if (isServiceAlreadyInCart) {
-      message.warning(
-        "This pet has already used this combo at the selected time."
-      );
-      setLoading(false);
+    if (isAlreadyInCart) {
+      message.warning("This pet has already used this service in cart.");
       return;
     }
 
@@ -233,10 +270,13 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
       // Sending POST request to the backend
       let url = `https://localhost:7150/api/Booking/available?startTime=${date.format(
         "YYYY-MM-DDTHH:mm:ss"
-      )}&serviceCode=${selectedComboId}`;
+      )}&serviceCode=${selectedServiceId}`;
 
       if (selectStaffId) {
         url += `&staffId=${selectStaffId}`;
+      }
+      if (period) {
+        url += `&periodMonths=${period}`;
       }
       const response = await axios.get(url, {
         headers: {
@@ -245,48 +285,62 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
       });
 
       if (response.status === 401) {
-        setError("Please log in again.");
+        console.log("Token expired. Please log in again.");
+        setError("Token expired. Please log in again.");
         setLoading(false); // Stop loading
         return;
       }
 
       const selectedPet = dataSource.find((pet) => pet.petId === selectedPetId);
-      const selectedService = comboList.find(
-        (service) => service.comboId === comboId
+      const selectedService = services.find(
+        (service) => service.serviceId === selectedServiceId
       );
 
       const newItem = {
+        serviceId: selectedService.serviceId,
         date: date.format("YYYY-MM-DDTHH:mm:ss"),
-        serviceName: selectedService.comboType,
-        servicePrice: priceCombo,
+        serviceName: selectedService.serviceName,
+        servicePrice: priceCombo, // Use the updated priceCombo
         petId: selectedPet.petId,
         petName: selectedPet.petName,
-        comboDetails: selectedService.services,
         period: period,
         staffId: selectStaffId ? selectStaffId : "",
       };
-      setCart((prevCart) => [...prevCart, newItem]);
-      message.success("Booking for pet successfully");
-      // Lưu giỏ hàng vào localStorage
-      localStorage.setItem("cart", JSON.stringify([...cart, newItem]));
-      setSelectedPetId(null);
-      setDate(null);
-      setSelectStaffId(null);
-      form.resetFields();
+
+      // Proceed with payment process
+      const paymentResponse = await processPayment(newItem);
+
+      if (paymentResponse.success) {
+        setCart((prevCart) => [...prevCart, newItem]);
+        message.success("Service booked successfully");
+        // Save cart to localStorage
+        localStorage.setItem("cart", JSON.stringify([...cart, newItem]));
+        setSelectedPetId(null);
+        setDate(null);
+        setSelectStaffId(null);
+        setSelectedServiceId(null);
+        form.resetFields();
+        handleHideModal();
+      } else {
+        message.error("Payment failed. Please try again.");
+      }
+
       setLoading(false); // Reset Ant Design form fields
-      handleHideModal();
     } catch (error) {
       if (error.response) {
+        console.log(error.response.data);
         if (error.response.status === 401) {
-          message.error(error.response.data);
+          console.log("Token expired. Please log in again.");
+          message.warning("Please log in again.");
           localStorage.removeItem("user-info");
           setTimeout(() => {
             navigate("/login");
           }, 1000);
+
           setLoading(false);
         } else {
           console.error("Error response:", error.response.data);
-          message.error(error.response.data || "An error occurred.");
+          message.error(error.response.data);
           setLoading(false);
           return;
         }
@@ -299,8 +353,18 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
     }
   };
 
+  // Mock function for processing payment
+  const processPayment = async (item) => {
+    // Implement your payment processing logic here
+    // For example, call your payment API and return the response
+    return {
+      success: true, // Change this based on actual payment response
+      data: item,
+    };
+  };
+
   return (
-    <div>
+    <>
       <Modal open={isOpen} footer={null} onCancel={handleHideModal} width={800}>
         <Button type="primary" onClick={handlePetModalOpen}>
           +
@@ -317,16 +381,17 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
         />
         <Form layout="vertical" className="mt-5" form={form}>
           <div className="flex space-x-4">
-            <Form.Item label="Date" className="w-1/2">
-              <Space direction="vertical" className="w-full">
-                <DatePicker
-                  showTime
-                  value={date}
-                  onChange={(date) => setDate(date)}
-                  className="w-full"
-                />
-              </Space>
-            </Form.Item>
+          <Form.Item label="Date" className="w-1/2">
+      <Space direction="vertical" className="w-full">
+        <DatePicker
+          showTime
+          value={date}
+          onChange={(date) => setDate(date)}
+          className="w-full"
+          disabledDate={disablePastDates} // Add the disabledDate prop
+        />
+      </Space>
+    </Form.Item>
             <Form.Item label="Select Staff" className="w-1/2">
               <Select
                 showSearch
@@ -375,8 +440,8 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
         handleHideModal={handlePetModalClose}
         setDataSource={setDataSource}
       />
-    </div>
+    </>
   );
 };
 
-export default BookingCombo;
+export default BookingCard;

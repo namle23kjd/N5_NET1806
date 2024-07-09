@@ -1,4 +1,3 @@
-
 import {
   faCartShopping,
   faCircleCheck,
@@ -115,9 +114,9 @@ function Cart() {
       const rank = response.data.data.cusRank;
       setRank(rank);
 
-      if (rank === "silver") {
+      if (rank === "Silver") {
         setDiscount(0.05);
-      } else if (rank === "gold") {
+      } else if (rank === "Gold") {
         setDiscount(0.1);
       }
     }
@@ -287,7 +286,7 @@ function Cart() {
               const staffName = detail.staffId
                 ? await fetchStaffName(detail.staffId)
                 : null;
-
+             
               if (
                 booking.bookingDetails.length >= 2 &&
                 detail.service.comboId
@@ -541,21 +540,39 @@ function Cart() {
     }
   }
 
+
+  // Clear cart at midnight
+  const clearCartAtMidnight = () => {
+    const now = new Date();
+    const midnight = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+      0,
+      0,
+      0
+    );
+    const timeToMidnight = midnight.getTime() - now.getTime();
+    setTimeout(() => {
+      localStorage.removeItem("cart");
+      setProducts([]);
+    }, timeToMidnight);
+  };
+
   useEffect(() => {
     const fetchStaffAndBookings = async () => {
       await fetchStaff();
       await fetchBookings();
-      await fetchCustomerRankAndDiscount();
+      
     };
-
+   
     fetchStaffAndBookings();
-
+    fetchCustomerRankAndDiscount();
     const urlParams = new URLSearchParams(window.location.search);
     const responseCode = urlParams.get("vnp_ResponseCode");
     const vnpTxnRef = urlParams.get("vnp_TxnRef");
-    console.log(urlParams);
+  
 
-    console.log("Current URL:", window.location.href);
 
     if (responseCode != null) {
       if (responseCode === "00") {
@@ -609,8 +626,12 @@ function Cart() {
             selected: true,
           }))
         );
+       
       }
     }
+
+    // Set up the cart clear at midnight
+    clearCartAtMidnight();
   }, []);
 
   return (
@@ -677,7 +698,7 @@ function Cart() {
       </Modal>
 
       <head>
-        <meta charset="utf-8" />
+        <meta charSet="utf-8" />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
@@ -880,6 +901,14 @@ function Cart() {
                                           </a>
                                         </div>
                                         <div className="text-muted mb-2 d-flex flex-wrap">
+                                          <span className="me-1">StaffName:</span>
+                                          <a
+                                            href="javascript:void(0)"
+                                            className="me-3"
+                                          >
+                                          </a>
+                                        </div>
+                                        <div className="text-muted mb-2 d-flex flex-wrap">
                                           <span className="me-1">Date:</span>
                                           <a
                                             href="javascript:void(0)"
@@ -1072,3 +1101,4 @@ function Cart() {
 }
 
 export default Cart;
+

@@ -5,6 +5,7 @@ const Logout = () => {
   const handleLogout = () => {
     // Assuming you clear user info from localStorage or session storage
     localStorage.removeItem("user-info");
+    localStorage.removeItem("cart");
     // Redirect to login page after logout
     navigate('/login');
   };
