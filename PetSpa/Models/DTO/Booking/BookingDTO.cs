@@ -23,7 +23,7 @@ namespace PetSpa.Models.DTO.Booking
         public decimal? TotalAmount { get; set; }
         public DateTime BookingSchedule { get; set; }
         public string? Feedback { get; set; }
-        public bool CheckAccept { get; set; }
+        public CheckAccpectStatus CheckAccept { get; set; }
         public string CustomerName { get; set; }
         public List<BookingDetailDTO>? BookingDetails { get; set; } = new List<BookingDetailDTO>();
 

@@ -29,7 +29,7 @@ namespace PetSpa.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -47,7 +47,7 @@ namespace PetSpa.Controllers
 
         [HttpPost]
         [Route("CreateAdmin")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateAdmin([FromBody] AddAdminRequestDTO addAdminRequestDTO)
         {
             if (!ModelState.IsValid)
@@ -74,7 +74,7 @@ namespace PetSpa.Controllers
 
 
         [HttpGet("{adminId}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> FindAdmin(Guid adminId)
         {
             try

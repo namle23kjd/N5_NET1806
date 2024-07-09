@@ -485,7 +485,7 @@ namespace PetSpa.Controllers
             booking.EndDate = booking.StartDate + originalDuration;
 
             // Đặt lại trạng thái checkAccept thành false
-            booking.CheckAccept = false;
+            booking.CheckAccept = CheckAccpectStatus.NotChecked;
 
             // Lưu thay đổi vào cơ sở dữ liệu
             petSpaContext.Bookings.Update(booking);
@@ -549,7 +549,7 @@ namespace PetSpa.Controllers
         {
             try
             {
-                var bookings = await bookingRepository.GetBookingsByApprovalStatusAsync(false);
+                var bookings = await bookingRepository.GetBookingsByApprovalStatusAsync(CheckAccpectStatus.NotChecked);
                 return Ok(apiResponseService.CreateSuccessResponse(mapper.Map<List<BookingDTO>>(bookings), "Pending bookings retrieved successfully"));
             }
             catch (Exception ex)
@@ -565,7 +565,7 @@ namespace PetSpa.Controllers
         {
             try
             {
-                var bookings = await bookingRepository.GetBookingsByApprovalStatusAsync(true);
+                var bookings = await bookingRepository.GetBookingsByApprovalStatusAsync(CheckAccpectStatus.Accepted);
                 return Ok(apiResponseService.CreateSuccessResponse(mapper.Map<List<BookingDTO>>(bookings), "Approved bookings retrieved successfully"));
             }
             catch (Exception ex)
@@ -633,7 +633,7 @@ namespace PetSpa.Controllers
                 }
 
                 // Chuyển trạng thái CheckAccept sang true
-                booking.CheckAccept = true;
+                booking.CheckAccept = CheckAccpectStatus.Accepted;
                 await bookingRepository.UpdateAsync(booking.BookingId, booking);
 
                 return Ok(apiResponseService.CreateSuccessResponse("Booking accepted successfully"));
@@ -644,6 +644,37 @@ namespace PetSpa.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while accepting booking"));
             }
         }
+
+        [HttpPut("deny-booking")]
+        public async Task<IActionResult> DenyBooking([FromBody] AccpectCheckCustomerBooking denyBookingDTO)
+        {
+            try
+            {
+                var booking = await bookingRepository.GetByIdAsync(denyBookingDTO.BookingId);
+                if (booking == null)
+                {
+                    return NotFound(apiResponseService.CreateErrorResponse("Booking not found"));
+                }
+
+                // Kiểm tra nếu trạng thái là InProgress (1)
+                if (booking.Status == BookingStatus.InProgress)
+                {
+                    return BadRequest(apiResponseService.CreateErrorResponse("Booking is not in progress"));
+                }
+
+                // Cập nhật trạng thái CheckAccept thành -1
+                booking.CheckAccept = CheckAccpectStatus.Deny;
+                await bookingRepository.UpdateAsync(booking.BookingId, booking);
+
+                return Ok(apiResponseService.CreateSuccessResponse("Booking denied successfully"));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while denying booking.");
+                return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while denying booking"));
+            }
+        }
+
 
 
         [HttpGet("total-revenue/current-month")]
@@ -664,39 +695,16 @@ namespace PetSpa.Controllers
         [HttpGet("pending-bookings")]
         public async Task<IActionResult> GetBookingNotAccpects()
         {
-            var pendingBookings = await petSpaContext.Bookings
-        .Include(b => b.BookingDetails)
-        .Where(b => !b.CheckAccept)
-        .Select(b => new
-        {
-            b.BookingId,
-            b.CusId,
-            StaffId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().StaffId : null,
-            ServiceId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().ServiceId : null,
-            ComboId = b.BookingDetails.FirstOrDefault() != null ? b.BookingDetails.FirstOrDefault().ComboId : null,
-            b.Status,
-            b.CheckAccept,
-            b.TotalAmount,
-            b.StartDate,
-            b.EndDate
-        })
-        .ToListAsync();
-
-            var result = pendingBookings.Select(b => new BookingDTO
+            try
             {
-                BookingId = b.BookingId,
-                CusId = b.CusId,
-                StaffId = b.StaffId ?? Guid.Empty,
-                ServiceId = b.ServiceId,
-                ComboId = b.ComboId,
-                Status = (BookingStatus)b.Status,
-                CheckAccept = b.CheckAccept,
-                TotalAmount = b.TotalAmount,
-                StartDate = b.StartDate,
-                EndDate = b.EndDate
-            }).ToList();
-
-            return Ok(result);
+                var bookings = await bookingRepository.GetBookingsByCheckAcceptAsync(CheckAccpectStatus.NotChecked);
+                return Ok(apiResponseService.CreateSuccessResponse(mapper.Map<List<BookingDTO>>(bookings), "Pending bookings retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while getting pending bookings.");
+                return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while getting pending bookings"));
+            }
         }
 
         [HttpPost("cancel-booking")]
@@ -750,11 +758,83 @@ namespace PetSpa.Controllers
             }
         }
 
+        [HttpPost("refund-booking")]
+        public async Task<IActionResult> RefundBooking([FromBody] CancelBookingRequest cancelBookingRequest)
+        {
+            using (var transaction = await petSpaContext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var booking = await petSpaContext.Bookings
+                                                      .Include(b => b.Payments) // Include related Payment
+                                                      .FirstOrDefaultAsync(b => b.BookingId == cancelBookingRequest.BookingId);
+
+                    if (booking == null)
+                    {
+                        return NotFound(new { message = "Booking not found" });
+                    }
+
+                    if (booking.Status == BookingStatus.Canceled)
+                    {
+                        return BadRequest(new { message = "Booking is already canceled" });
+                    }
+
+                    // Update booking status to canceled
+                    booking.Status = BookingStatus.Canceled;
+
+                    // Calculate refund amount based on customer rank
+                    decimal refundPercentage = 0;
+                    var customer = await petSpaContext.Customers.FirstOrDefaultAsync(c => c.CusId == booking.CusId);
+
+                    if (customer != null)
+                    {
+                        switch (customer.CusRank)
+                        {
+                            case "Bronze":
+                                refundPercentage = 0.70m;
+                                break;
+                            case "Silver":
+                                refundPercentage = 0.75m;
+                                break;
+                            case "Gold":
+                                refundPercentage = 0.80m;
+                                break;
+                            default:
+                                refundPercentage = 0.70m; // Default refund percentage
+                                break;
+                        }
+
+                        decimal refundAmount = (booking.TotalAmount ?? 0) * refundPercentage;
+
+                        // Subtract the refund amount from the payment's total
+                        if (booking.Payments != null)
+                        {
+                            booking.Payments.TotalPayment -= refundAmount;
+
+                            // Subtract the refund amount from the customer's total spent
+                            customer.TotalSpent -= refundAmount;
+                            customer.UpdateCusRank(); // Update customer rank if needed
+                        }
+                    }
+
+                    await petSpaContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return Ok(new { message = "Booking canceled successfully" });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"Internal server error: {ex.Message}" });
+                }
+            }
+        }
+
         // API to get bookings with checkAccept = true
         [HttpGet("bookings/accepted")]
         public async Task<IActionResult> GetAcceptedBookings()
         {
-            var bookings = await bookingRepository.GetBookingsByCheckAcceptAsync(true);
+            var bookings = await bookingRepository.GetBookingsByCheckAcceptAsync(CheckAccpectStatus.Accepted);
             var bookingDtos = bookings.Select(b => new BookingStaffDTO
             {
                 BookingId = b.BookingId,
@@ -769,18 +849,18 @@ namespace PetSpa.Controllers
                 CheckAccept = b.CheckAccept
             }).ToList();
             return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Accepted bookings retrieved successfully"));
-        }
+        } 
 
         // API to get bookings with checkAccept = false
         [HttpGet("bookings/not-accepted")]
         public async Task<IActionResult> GetNotAcceptedBookings()
         {
-            var bookings = await bookingRepository.GetBookingsByCheckAcceptAsync(false);
+            var bookings = await bookingRepository.GetBookingsByCheckAcceptAsync(CheckAccpectStatus.NotChecked);
             var bookingDtos = bookings.Select(b => new BookingStaffDTO
             {
                 BookingId = b.BookingId,
                 CustomerName = b.Customer.FullName ?? "Unknown",
-                ServiceId= b.BookingDetails.FirstOrDefault()?.Service?.ServiceId ?? Guid.Empty,
+                ServiceId = b.BookingDetails.FirstOrDefault()?.Service?.ServiceId ?? Guid.Empty,
                 ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "Unknown",
                 PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
                 StartDate = b.StartDate,
@@ -788,11 +868,33 @@ namespace PetSpa.Controllers
                 Status = (BookingStatus)b.Status,
                 StaffId = b.BookingDetails.FirstOrDefault()?.Staff?.StaffId ?? Guid.Empty,
                 StaffName = b.BookingDetails.FirstOrDefault()?.Staff?.FullName ?? "Unknown",
-                CheckAccept = b.CheckAccept
+                CheckAccept = (CheckAccpectStatus)b.CheckAccept
             }).ToList();
             return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Not accepted bookings retrieved successfully"));
         }
 
 
-    }
+        //booking deny
+        [HttpGet("bookings/deny")]
+        public async Task<IActionResult> GetDenyBookings()
+        {
+            var bookings = await bookingRepository.GetBookingsByCheckAcceptAsync(CheckAccpectStatus.Deny);
+            var bookingDtos = bookings.Select(b => new BookingStaffDTO
+            {
+                BookingId = b.BookingId,
+                CustomerName = b.Customer.FullName ?? "Unknown",
+                ServiceId = b.BookingDetails.FirstOrDefault()?.Service?.ServiceId ?? Guid.Empty,
+                ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "Unknown",
+                PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
+                StartDate = b.StartDate,
+                EndDate = b.EndDate,
+                Status = (BookingStatus)b.Status,
+                StaffId = b.BookingDetails.FirstOrDefault()?.Staff?.StaffId ?? Guid.Empty,
+                StaffName = b.BookingDetails.FirstOrDefault()?.Staff?.FullName ?? "Unknown",
+                CheckAccept = (CheckAccpectStatus)b.CheckAccept
+            }).ToList();
+            return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Not accepted bookings retrieved successfully"));
+        }
+
+    }    
 }

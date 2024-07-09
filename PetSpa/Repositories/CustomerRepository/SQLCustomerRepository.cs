@@ -67,5 +67,10 @@ namespace PetSpa.Repositories.CustomerRepository
                 .Include(c => c.Bookings).ThenInclude(bd => bd.BookingDetails).ThenInclude(se => se.Service)
                 .FirstOrDefaultAsync(x => x.CusId == CusId);
         }
+
+        public async Task<Customer?> GetByPhoneNumberAsync(string phoneNumber)
+        {
+            return await _dbContext.Customers.FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber);
+        }
     }
 }

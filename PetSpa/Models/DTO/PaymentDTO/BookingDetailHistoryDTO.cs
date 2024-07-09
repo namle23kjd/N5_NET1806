@@ -11,7 +11,7 @@ namespace PetSpa.Models.DTO.PaymentDTO
         public Guid? ServiceId { get; set; }
         public Guid? StaffId { get; set; }
         public decimal? ServicePrice { get; set; }
-        public bool CheckAccept { get; set; }
+        public CheckAccpectStatus CheckAccept { get; set; }
         public BookingStatus Status { get; set; }
         public string Feedback { get; set; }
         public DateTime BookingSchedule { get; set; }

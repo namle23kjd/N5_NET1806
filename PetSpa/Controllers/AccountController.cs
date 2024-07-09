@@ -30,12 +30,28 @@ namespace PetSpa.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _userManager.Users.Where(u => u.Status).ToListAsync(); // Lọc người dùng có Status là true
-            var userDtos = _mapper.Map<List<UserDTO>>(users);
+            // Lấy tất cả người dùng có Status là true
+            var users = await _userManager.Users
+                .Where(u => u.Status)
+                .ToListAsync();
+
+            // Lọc người dùng theo các vai trò mong muốn
+            var filteredUsers = new List<ApplicationUser>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles.Contains("Staff") || roles.Contains("Customer") || roles.Contains("Manager"))
+                {
+                    filteredUsers.Add(user); // Thêm vào danh sách đã lọc
+                }
+            }
+
+            var userDtos = _mapper.Map<List<UserDTO>>(filteredUsers);
 
             foreach (var userDto in userDtos)
             {
-                var user = users.First(u => u.UserName == userDto.UserName);
+                var user = filteredUsers.First(u => u.UserName == userDto.UserName);
                 var roles = await _userManager.GetRolesAsync(user);
                 userDto.Roles = roles.ToList();
             }
