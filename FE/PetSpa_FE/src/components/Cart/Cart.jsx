@@ -334,7 +334,11 @@ function Cart() {
           return Promise.all(bookingDetailsPromises);
         });
 
-        (await Promise.all(extractedDataPromises)).flat();
+        const extractedData = (await Promise.all(extractedDataPromises)).flat();
+        // Sort the extracted data by date
+        extractedData.sort((a, b) => new Date(a.scheduleDate) - new Date(b.scheduleDate));
+
+        setProducts(extractedData);
       } catch (error) {
         if (error.response && error.response.status === 401) {
           localStorage.removeItem("user-info");
@@ -596,6 +600,8 @@ function Cart() {
 
     const handleProductsUpdate = async (products) => {
       const productsWithStaffNames = await fetchAllStaffNames(products);
+      // Sort the products by date
+      productsWithStaffNames.sort((a, b) => new Date(a.date) - new Date(b.date));
       setProducts(productsWithStaffNames);
       console.log(productsWithStaffNames);
     };
@@ -941,7 +947,7 @@ function Cart() {
                                           >
                                             {new Date(
                                               product.date
-                                            ).toLocaleDateString("vi-VN", {
+                                            ).toLocaleDateString("en-VN", {
                                               year: "numeric",
                                               month: "long",
                                               day: "numeric",
