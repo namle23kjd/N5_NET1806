@@ -538,11 +538,11 @@ const ManagerPage = () => {
 
   const serviceColumns = [
     {
-      title: "Service ID",
-      dataIndex: "serviceId",
-      key: "serviceId",
-      sorter: (a, b) => a.serviceId - b.serviceId,
-      sortOrder: sortedInfo.columnKey === "serviceId" && sortedInfo.order,
+      title: "#",
+      dataIndex: "key",
+      key: "key",
+      sorter: (a, b) => a.key - b.key,
+      sortOrder: sortedInfo.columnKey === "key" && sortedInfo.order,
     },
     {
       title: "Service Name",
@@ -599,9 +599,11 @@ const ManagerPage = () => {
 
   const checkacceptColumns = [
     {
-      title: "Booking ID",
-      dataIndex: "bookingId",
-      key: "bookingId",
+      title: "#",
+      dataIndex: "key",
+      key: "key",
+      sorter: (a, b) => a.key - b.key,
+      sortOrder: sortedInfo.columnKey === "key" && sortedInfo.order,
     },
     {
       title: "Customer Name",
@@ -656,7 +658,11 @@ const ManagerPage = () => {
           <Button type="primary" onClick={() => handleAccept(record.key)}>
             Accept
           </Button>
-          <Button type="danger" onClick={() => handleDeny(record.key)}>
+          <Button
+            type="primary"
+            style={{ backgroundColor: "red", borderColor: "red" }}
+            onClick={() => handleDeny(record.key)}
+          >
             Deny
           </Button>
         </Space>
