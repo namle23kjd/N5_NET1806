@@ -115,6 +115,13 @@ namespace PetSpa.Controllers
                     return NotFound(_apiResponseService.CreateErrorResponse("Customer not found"));
                 }
 
+                // Check if the phone number already exists for another customer
+                var customerWithSamePhoneNumber = await _customerRepository.GetByPhoneNumberAsync(updateCustomerByUserRequestDTO.PhoneNumber);
+                if (customerWithSamePhoneNumber != null && customerWithSamePhoneNumber.Id != CusId)
+                {
+                    return BadRequest(_apiResponseService.CreateErrorResponse("Phone number already exists for another customer."));
+                }
+
                 existingCustomer.FullName = updateCustomerByUserRequestDTO.FullName;
                 existingCustomer.Gender = updateCustomerByUserRequestDTO.Gender;
                 existingCustomer.PhoneNumber = updateCustomerByUserRequestDTO.PhoneNumber;
