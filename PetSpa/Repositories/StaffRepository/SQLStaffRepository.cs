@@ -62,7 +62,7 @@ namespace PetSpa.Repositories.StaffRepository
                 .ThenInclude(bd => bd.Service)
             .Include(b => b.BookingDetails)
                 .ThenInclude(bd => bd.Pet)
-            .Where(b => b.BookingDetails.Any(bd => bd.StaffId == staffId) && b.Status == status && b.CheckAccept == true)
+            .Where(b => b.BookingDetails.Any(bd => bd.StaffId == staffId) && b.Status == status && b.CheckAccept == CheckAccpectStatus.Accepted)
             .ToListAsync();
         }
 
@@ -70,11 +70,11 @@ namespace PetSpa.Repositories.StaffRepository
         {
             var bookings = await _dbContext.BookingDetails
                 .Include(bd => bd.Staff)
-                .Where(bd => bd.Booking.StartDate.Date == date.Date && bd.Booking.CheckAccept == true)
+                .Where(bd => bd.Booking.StartDate.Date == date.Date && bd.Booking.CheckAccept == CheckAccpectStatus.Accepted)
                 .GroupBy(bd => new { bd.StaffId, bd.Staff.FullName })
                 .Select(group => new StaffBookingSummaryDTO
                 {
-                    StaffId = (Guid)group.Key.StaffId,
+                    StaffId = group.Key.StaffId ?? Guid.Empty,
                     StaffName = group.Key.FullName,
                     TotalBooking = group.Count()
                 })

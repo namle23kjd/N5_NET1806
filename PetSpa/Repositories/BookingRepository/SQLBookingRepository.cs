@@ -222,11 +222,11 @@ namespace PetSpa.Repositories.BookingRepository
                     .ToListAsync();
         }
 
-        public async Task<List<Booking>> GetBookingsByApprovalStatusAsync(bool isApproved)
+        public async Task<List<Booking>> GetBookingsByApprovalStatusAsync(CheckAccpectStatus checkAcceptStatus)
         {
             return await dbContext.Bookings
                     .Include(b => b.BookingDetails)
-                    .Where(b => b.CheckAccept == isApproved)
+                    .Where(b => b.CheckAccept == checkAcceptStatus)
                     .ToListAsync();
         }
 
@@ -328,9 +328,9 @@ namespace PetSpa.Repositories.BookingRepository
             return dailyRevenues;
         }
 
-        public async Task<List<Booking>> GetBookingsByCheckAcceptAsync(bool checkAccept)
+        public async Task<List<Booking>> GetBookingsByCheckAcceptAsync(CheckAccpectStatus checkAccept)
         {
-            return await dbContext.Bookings
+                    return await dbContext.Bookings
                .Include(b => b.Customer)
                .Include(b => b.BookingDetails)
                    .ThenInclude(bd => bd.Service)

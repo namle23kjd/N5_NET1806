@@ -43,6 +43,7 @@ namespace PetSpa.Mappings
             CreateMap<AddPetRequestDTO, Pet>().ReverseMap();
             CreateMap<UpdatePetRequestDTO, Pet>().ReverseMap();
             CreateMap<Customer, CustomerDTO>()
+                .ForMember(dest => dest.Banking, opt => opt.MapFrom(src => src.Banking))
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
                 .ForMember(dest => dest.Bookings, opt => opt.MapFrom(src => src.Bookings))
                 .ForMember(dest => dest.Pets, opt => opt.MapFrom(src => src.Pets))

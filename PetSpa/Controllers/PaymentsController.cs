@@ -50,43 +50,32 @@ namespace PetSpa.Controllers
                     {
                         TransactionId = transactionId, // Sử dụng tick làm TransactionId
                         CreatedDate = DateTime.UtcNow,
-                        ExpirationTime = DateTime.UtcNow.AddMinutes(3),
+                        ExpirationTime = DateTime.UtcNow.AddMinutes(10),
                         PaymentMethod = "VNPay",
                         CusId = model.CusId, // Gán CusId vào Payment
-                        TotalPayment = 0m // Khởi tạo TotalPayment bằng 0
+                        TotalPayment = Convert.ToDecimal(model.Amount) // Khởi tạo TotalPayment bằng 0
                     };
 
                     _context.Payments.Add(payment);
                     await _context.SaveChangesAsync(); // Lưu Payment trước để lấy PaymentId
 
-                    decimal totalAmount = 0m;
+                    //decimal totalAmount = 0m;
 
                     // Cập nhật trạng thái của các booking
                     foreach (var bookingId in model.BookingIds)
                     {
                         var booking = await _context.Bookings.Include(b => b.BookingDetails)
-                                                             .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+                                                     .FirstOrDefaultAsync(b => b.BookingId == bookingId);
                         if (booking == null)
                         {
                             return NotFound($"Booking with ID {bookingId} not found");
                         }
-                        // Áp dụng giảm giá dựa trên hạng của khách hàng
-                        if (customer.CusRank == "Silver")
-                        {
-                            booking.TotalAmount = booking.TotalAmount * 0.95m; // Giảm 5%
-                        }
-                        else if (customer.CusRank == "Gold")
-                        {
-                            booking.TotalAmount = booking.TotalAmount * 0.90m; // Giảm 10%
-                        }
 
                         booking.PaymentId = payment.PaymentId;
-  
-                        totalAmount += booking.TotalAmount ?? 0m; // Tính tổng số tiền của tất cả các booking
+                        _context.Bookings.Update(booking); // Cập nhật booking
                     }
 
-                    payment.TotalPayment = totalAmount; // Cập nhật TotalPayment của Payment
-                    customer.TotalSpent += totalAmount; // Cập nhật TotalSpent của khách hàng
+                    customer.TotalSpent += payment.TotalPayment ?? 0m; // Cập nhật TotalSpent của khách hàng
                     customer.UpdateCusRank(); // Cập nhật CusRank của khách hàng nếu cần
                     _context.Customers.Update(customer); // Cập nhật khách hàng trong cơ sở dữ liệu
 
