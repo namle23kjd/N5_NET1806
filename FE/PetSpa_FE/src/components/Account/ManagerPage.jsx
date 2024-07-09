@@ -34,6 +34,7 @@ const ManagerPage = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [activeTab, setActiveTab] = useState("service");
+  const [activeTaskTab, setActiveTaskTab] = useState("todo");
   const [staffList, setStaffList] = useState([]);
   const [tasks, setTasks] = useState({ todo: [], inProgress: [], done: [] });
   const [error, setError] = useState("");
@@ -46,7 +47,7 @@ const ManagerPage = () => {
     fetchBookings();
     fetchStaff();
     if (activeTab === "task") {
-      fetchTasks();
+      fetchTasksForAllStaff();
     }
   }, [activeTab]);
 
@@ -113,7 +114,7 @@ const ManagerPage = () => {
     }
   };
 
-  const fetchTasks = async () => {
+  const fetchTasksForAllStaff = async () => {
     try {
       const userInfoString = localStorage.getItem("user-info");
       if (!userInfoString) {
@@ -123,30 +124,35 @@ const ManagerPage = () => {
 
       const userInfo = JSON.parse(userInfoString);
       const token = userInfo.data.token;
-      const userId = userInfo.data.user.id;
 
       const headers = {
         Authorization: `Bearer ${token}`,
       };
 
-      const todoResponse = await axios.get(
-        `https://localhost:7150/api/Staff/${userId}/pending-bookings`,
-        { headers }
-      );
-      const inProgressResponse = await axios.get(
-        `https://localhost:7150/api/Staff/${userId}/current-booking`,
-        { headers }
-      );
-      const doneResponse = await axios.get(
-        `https://localhost:7150/api/Staff/${userId}/completed-bookings`,
-        { headers }
-      );
+      const allTasks = { todo: [], inProgress: [], done: [] };
 
-      setTasks({
-        todo: mapApiResponse(todoResponse.data),
-        inProgress: mapApiResponse(inProgressResponse.data),
-        done: mapApiResponse(doneResponse.data),
-      });
+      for (const staff of staffList) {
+        const { staffId } = staff;
+
+        const todoResponse = await axios.get(
+          `https://localhost:7150/api/Staff/${staffId}/pending-bookings`,
+          { headers }
+        );
+        const inProgressResponse = await axios.get(
+          `https://localhost:7150/api/Staff/${staffId}/current-booking`,
+          { headers }
+        );
+        const doneResponse = await axios.get(
+          `https://localhost:7150/api/Staff/${staffId}/completed-bookings`,
+          { headers }
+        );
+
+        allTasks.todo.push(...mapApiResponse(todoResponse.data, staff.fullName));
+        allTasks.inProgress.push(...mapApiResponse(inProgressResponse.data, staff.fullName));
+        allTasks.done.push(...mapApiResponse(doneResponse.data, staff.fullName));
+      }
+
+      setTasks(allTasks);
     } catch (error) {
       if (error.response && error.response.status === 403) {
         setError("You are not authorized to access this resource.");
@@ -156,7 +162,7 @@ const ManagerPage = () => {
     }
   };
 
-  const mapApiResponse = (data) => {
+  const mapApiResponse = (data, staffName) => {
     return data.map((item) => ({
       id: item.bookingId,
       service: item.serviceName,
@@ -164,6 +170,7 @@ const ManagerPage = () => {
       owner: item.customerName,
       date: new Date(item.startDate).toLocaleDateString(),
       time: new Date(item.startDate).toLocaleTimeString(),
+      staffName: staffName,
     }));
   };
 
@@ -493,6 +500,7 @@ const ManagerPage = () => {
               <th>Owner</th>
               <th>Date</th>
               <th>Time</th>
+              <th>Staff</th>
               <th>Select</th>
             </tr>
           </thead>
@@ -505,6 +513,7 @@ const ManagerPage = () => {
                 <td>{task.owner}</td>
                 <td>{task.date}</td>
                 <td>{task.time}</td>
+                <td>{task.staffName}</td>
                 <td>
                   <input
                     type="checkbox"
@@ -660,18 +669,13 @@ const ManagerPage = () => {
           <Menu
             mode="inline"
             selectedKeys={[activeTab]}
+            items={[
+              { key: "service", label: "Service Manager", onClick: () => setActiveTab("service") },
+              { key: "checkaccept", label: "Checkaccept Manager", onClick: () => setActiveTab("checkaccept") },
+              { key: "task", label: "Task Manager", onClick: () => setActiveTab("task") }
+            ]}
             style={{ height: "100%", borderRight: 0 }}
-          >
-            <Menu.Item key="service" onClick={() => setActiveTab("service")}>
-              Service Manager
-            </Menu.Item>
-            <Menu.Item key="checkaccept" onClick={() => setActiveTab("checkaccept")}>
-              Checkaccept Manager
-            </Menu.Item>
-            <Menu.Item key="task" onClick={() => setActiveTab("task")}>
-              Task Manager
-            </Menu.Item>
-          </Menu>
+          />
         </Sider>
         <Layout style={{ padding: "0 24px 24px" }}>
           <Content
@@ -687,33 +691,33 @@ const ManagerPage = () => {
                 {error && <div className="error-message">{error}</div>}
                 <div className="tab-section">
                   <div
-                    className={`tab-title ${activeTab === "todo" ? "active" : ""}`}
-                    onClick={() => setActiveTab("todo")}
+                    className={`tab-title ${activeTaskTab === "todo" ? "active" : ""}`}
+                    onClick={() => setActiveTaskTab("todo")}
                   >
                     To Do ({tasks.todo.length})
                   </div>
                   <div
-                    className={`tab-title ${activeTab === "inProgress" ? "active" : ""}`}
-                    onClick={() => setActiveTab("inProgress")}
+                    className={`tab-title ${activeTaskTab === "inProgress" ? "active" : ""}`}
+                    onClick={() => setActiveTaskTab("inProgress")}
                   >
                     In Progress ({tasks.inProgress.length})
                   </div>
                   <div
-                    className={`tab-title ${activeTab === "done" ? "active" : ""}`}
-                    onClick={() => setActiveTab("done")}
+                    className={`tab-title ${activeTaskTab === "done" ? "active" : ""}`}
+                    onClick={() => setActiveTaskTab("done")}
                   >
                     Completed ({tasks.done.length})
                   </div>
                 </div>
-                <div className={`task-content ${activeTab !== "todo" ? "hidden" : ""}`}>
+                <div className={`task-content ${activeTaskTab !== "todo" ? "hidden" : ""}`}>
                   <TaskList tasks={tasks.todo} printTasks={printTasks} />
                 </div>
                 <div
-                  className={`task-content ${activeTab !== "inProgress" ? "hidden" : ""}`}
+                  className={`task-content ${activeTaskTab !== "inProgress" ? "hidden" : ""}`}
                 >
                   <TaskList tasks={tasks.inProgress} printTasks={printTasks} />
                 </div>
-                <div className={`task-content ${activeTab !== "done" ? "hidden" : ""}`}>
+                <div className={`task-content ${activeTaskTab !== "done" ? "hidden" : ""}`}>
                   <TaskList tasks={tasks.done} printTasks={printTasks} />
                 </div>
               </div>
@@ -748,10 +752,7 @@ const ManagerPage = () => {
                   )}
                 </Space>
                 <Table
-                  columns={
-                    activeTab === "service" ? serviceColumns :
-                    checkacceptColumns
-                  }
+                  columns={activeTab === "service" ? serviceColumns : checkacceptColumns}
                   dataSource={activeTab === "service" ? services : checkaccepts}
                   onChange={handleChange}
                   pagination={{ pageSize: 10 }}
@@ -764,7 +765,7 @@ const ManagerPage = () => {
       </Layout>
       <Modal
         title={editingRecord ? `Edit Service` : `Add Service`}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
         okText={editingRecord ? "Update" : "Add"}
