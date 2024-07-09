@@ -66,9 +66,7 @@ const LoginPage = () => {
     } catch (error) {
       if (error.response) {
         // Lỗi từ phía server
-        setError(
-          `Server error: ${error.response.data.message || error.message}`
-        );
+        setError(error.response.data.msg);
       } else if (error.request) {
         // Không nhận được phản hồi từ server
         setError("No response from the server. Please try again later.");
@@ -137,6 +135,10 @@ const LoginPage = () => {
           if (errorResponse && errorResponse.message) {
             setError(errorResponse.message);
           } else {
+            if (errorResponse.msg == "Your Account is banned") {
+              setError("Account is banned");
+              return;
+            }
             setError("Login failed. Please check your credentials.");
           }
           setIsLoading(false);
@@ -144,7 +146,7 @@ const LoginPage = () => {
         } else {
           let result = await response.json();
           localStorage.setItem("user-info", JSON.stringify(result));
-          setError("Login successfully");
+          message.success("Login successfully");
 
           const role = result.data.user.role;
           if (role === "Customer") {

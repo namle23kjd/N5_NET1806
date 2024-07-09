@@ -1,4 +1,3 @@
-
 import {
   faCartShopping,
   faCircleCheck,
@@ -55,16 +54,19 @@ function Cart() {
 
   const handleDeleteBooking = async (index) => {
     const cartString = localStorage.getItem("cart");
-    let cart = JSON.parse(cartString);
+    let cartData = JSON.parse(cartString);
 
-    if (!cart || !Array.isArray(cart)) {
+    if (!cartData || !Array.isArray(cartData.items)) {
       message.error("Cart is empty or invalid.");
       return;
     }
 
-    cart.splice(index, 1);
-    setProducts(cart);
-    localStorage.setItem("cart", JSON.stringify(cart));
+    // Remove the item at the specified index
+    cartData.items.splice(index, 1);
+
+    // Update the state and local storage
+    setProducts(cartData.items);
+    localStorage.setItem("cart", JSON.stringify(cartData));
     message.success("Booking removed successfully.");
   };
 
@@ -115,9 +117,9 @@ function Cart() {
       const rank = response.data.data.cusRank;
       setRank(rank);
 
-      if (rank === "silver") {
+      if (rank === "Silver") {
         setDiscount(0.05);
-      } else if (rank === "gold") {
+      } else if (rank === "Gold") {
         setDiscount(0.1);
       }
     }
@@ -545,24 +547,59 @@ function Cart() {
     const fetchStaffAndBookings = async () => {
       await fetchStaff();
       await fetchBookings();
-      await fetchCustomerRankAndDiscount();
     };
 
     fetchStaffAndBookings();
+    fetchCustomerRankAndDiscount();
 
     const urlParams = new URLSearchParams(window.location.search);
     const responseCode = urlParams.get("vnp_ResponseCode");
     const vnpTxnRef = urlParams.get("vnp_TxnRef");
-    console.log(urlParams);
 
-    console.log("Current URL:", window.location.href);
+    const clearCartIfNewDay = () => {
+      const savedCart = JSON.parse(localStorage.getItem("cart"));
+      let cartData = { items: [], createdAt: new Date().toISOString() };
+
+      if (savedCart) {
+        try {
+          cartData = savedCart;
+        } catch (error) {
+          console.error("Error parsing saved cart:", error);
+          // If parsing fails, reset the cart data
+          cartData = { items: [], createdAt: new Date().toISOString() };
+        }
+      }
+
+      const cartCreatedAt = new Date(cartData.createdAt);
+      const now = new Date();
+      const cartCreationDay = cartCreatedAt.getDate();
+      const currentDay = now.getDate();
+
+      if (cartCreationDay !== currentDay) {
+        // Cart is from a previous day, clear it
+        cartData.items = [];
+        cartData.createdAt = now.toISOString();
+        localStorage.setItem("cart", JSON.stringify(cartData));
+        return [];
+      } else {
+        // Sort items by date from nearest to farthest
+        cartData.items.sort((a, b) => new Date(a.date) - new Date(b.date));
+        return cartData.items;
+      }
+    };
+
+    const storedProducts = clearCartIfNewDay();
 
     if (responseCode != null) {
       if (responseCode === "00") {
         const selectedProducts =
           JSON.parse(localStorage.getItem("selectedProducts")) || [];
         localStorage.removeItem("selectedProducts");
-        const products = JSON.parse(localStorage.getItem("cart")) || [];
+        const cartData = JSON.parse(localStorage.getItem("cart")) || {
+          items: [],
+        };
+        const products = cartData.items;
+
         const updatedProducts = products.filter(
           (product) =>
             !selectedProducts.some(
@@ -573,13 +610,19 @@ function Cart() {
                 selected.staffId === product.staffId
             )
         );
+
+        // Update the cart with the remaining products
+        cartData.items = updatedProducts;
         setProducts(updatedProducts);
-        localStorage.setItem("cart", JSON.stringify(updatedProducts));
+        localStorage.setItem("cart", JSON.stringify(cartData));
+
         navigate("/Cart");
         setCurrentStep(2);
         message.success("Payment successful and items removed from cart.");
       } else if (responseCode !== "00" && vnpTxnRef) {
-        const products = JSON.parse(localStorage.getItem("cart")) || [];
+        const products = (
+          JSON.parse(localStorage.getItem("cart")) || { items: [] }
+        ).items;
         setProducts(products);
         localStorage.removeItem("selectedProducts");
 
@@ -601,14 +644,14 @@ function Cart() {
           });
       }
     } else {
-      const storedProducts = JSON.parse(localStorage.getItem("cart")) || [];
-      if (storedProducts) {
+      if (storedProducts.length > 0) {
         setProducts(
           storedProducts.map((product) => ({
             ...product,
             selected: true,
           }))
         );
+        console.log(setProducts);
       }
     }
   }, []);

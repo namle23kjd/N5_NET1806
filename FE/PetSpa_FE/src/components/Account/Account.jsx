@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Card, Alert, Checkbox } from 'antd';
+import { Card, Alert, Checkbox } from "antd";
 import {
   Form,
   Input,
@@ -132,8 +132,8 @@ function Account() {
         localStorage.removeItem("user-info"); // Clear expired token
         window.location.href = "/login"; // Redirect to login page
       } else {
-        console.error("API error:", error);
-        message.error("API error");
+        console.error("API error:", error.response.data.msg);
+        message.error(error.response.data.msg);
       }
     } finally {
       setLoading(false);
@@ -254,26 +254,23 @@ function Account() {
               >
                 <ul className="navbar-nav flex-row align-items-center ms-auto">
                   <li className="nav-item navbar-dropdown dropdown-user dropdown">
-                      <li>
-                          <div className="d-flex">
-                            <div className="flex-shrink-0 me-3">
-                              <div className="avatar avatar-online">
-                                <img
-                                  src="src/assets/images/avatars/avt.png"
-                                  alt="User avatar"
-                                  className="h-auto rounded-circle"
-                                />
-                              </div>
-                            </div>
-                            <div className="flex-grow-1">
-                              <span className="fw-medium d-block">
-                                {fullName}
-                              </span>
-                              <small className="text-muted">{Role}</small>
-                            </div>
+                    <li>
+                      <div className="d-flex">
+                        <div className="flex-shrink-0 me-3">
+                          <div className="avatar avatar-online">
+                            <img
+                              src="src/assets/images/avatars/avt.png"
+                              alt="User avatar"
+                              className="h-auto rounded-circle"
+                            />
                           </div>
-                      </li>
-
+                        </div>
+                        <div className="flex-grow-1">
+                          <span className="fw-medium d-block">{fullName}</span>
+                          <small className="text-muted">{Role}</small>
+                        </div>
+                      </div>
+                    </li>
                   </li>
                 </ul>
               </div>
@@ -445,27 +442,27 @@ export default Account;
 
 const cardStyles = {
   deleteAccountCard: {
-    borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    backgroundColor: '#ffffff',
+    borderRadius: "8px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+    backgroundColor: "#ffffff",
   },
   cardHeader: {
-    fontSize: '1.25rem',
-    fontWeight: 'bold',
-    padding: '16px',
-    borderBottom: '1px solid #f0f0f0',
+    fontSize: "1.25rem",
+    fontWeight: "bold",
+    padding: "16px",
+    borderBottom: "1px solid #f0f0f0",
   },
   cardBody: {
-    padding: '16px',
+    padding: "16px",
   },
   alertContainer: {
-    marginBottom: '16px',
+    marginBottom: "16px",
   },
   confirmationCheckbox: {
-    display: 'block',
-    marginBottom: '16px',
+    display: "block",
+    marginBottom: "16px",
   },
   deactivateAccountBtn: {
-    width: '100%',
+    width: "100%",
   },
 };

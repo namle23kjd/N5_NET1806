@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Form, Input, Button, Row, Col, Card, Typography, message } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 const { Title } = Typography;
 
 function AccountSetting() {
@@ -12,6 +12,7 @@ function AccountSetting() {
   const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState();
   const [Role, setRole] = useState();
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchUserInfo = async () => {
       const userInfoString = localStorage.getItem("user-info");
@@ -43,14 +44,12 @@ function AccountSetting() {
           const userData = response.data;
           const fullName = userData.data.fullName;
           const user = JSON.parse(localStorage.getItem("user-info"));
-     
 
           const Role = user.data.user.role;
- 
+
           setFullName(fullName);
           setRole(Role);
           // Tách fullName thành firstName và lastName
-          
         } else {
           message.error("Failed to fetch user information");
         }
@@ -60,10 +59,9 @@ function AccountSetting() {
           localStorage.removeItem("user-info"); // Clear expired token
           window.location.href = "/login"; // Redirect to login page
         } else {
-          console.error("API error:", error);
-          message.error("API error");
+          message.error(error.response.data.msg);
         }
-      } 
+      }
     };
 
     fetchUserInfo();
@@ -80,6 +78,12 @@ function AccountSetting() {
         window.location.href = "/login"; // Redirect to login page
         return;
       }
+      if (values.currentPassword === values.newPassword) {
+        message.error(
+          "The current password and the new password cannot be the same."
+        );
+        return;
+      }
 
       const apiUrl = `https://localhost:7150/api/Auth/change-password`;
       const data = {
@@ -87,7 +91,6 @@ function AccountSetting() {
         currentPassword: values.currentPassword,
         newPassword: values.newPassword,
       };
-      
 
       const response = await axios({
         method: "POST",
@@ -100,13 +103,10 @@ function AccountSetting() {
       });
 
       if (response.status === 200) {
-       
-        message.success("Password changed successfully");
-        form.resetFields([
-          "currentPassword",
-          "newPassword",
-          "confirmPassword",
-        ]);
+        message.success("Password changed successfully,Please login again");
+        form.resetFields(["currentPassword", "newPassword", "confirmPassword"]);
+        localStorage.removeItem("user-info");
+        navigate("/login");
       } else {
         message.error(response.data.message || "Error changing password");
       }
@@ -114,9 +114,11 @@ function AccountSetting() {
       if (error.response && error.response.status === 401) {
         message.error("Session expired. Please log in again.");
         localStorage.removeItem("user-info"); // Clear expired token
-        window.location.href = "/login"; // Redirect to login page
+        navigate("/login"); // Redirect to login page
       } else {
-        message.error(error.response?.data?.message || "Current password wrong to change");
+        message.error(
+          error.response?.data?.message || "Current password wrong to change"
+        );
       }
     } finally {
       setLoading(false);
@@ -174,27 +176,23 @@ function AccountSetting() {
                         />
                       </div>
                     </a> */}
-                      <li>
-
-                          <div className="d-flex">
-                            <div className="flex-shrink-0 me-3">
-                              <div className="avatar avatar-online">
-                                <img
-                                  src="src/assets/images/avatars/avt.png"
-                                  alt="User avatar"
-                                  className="h-auto rounded-circle"
-                                />
-                              </div>
-                            </div>
-                            <div className="flex-grow-1">
-                              <span className="fw-medium d-block">
-                                {fullName}
-                              </span>
-                              <small className="text-muted">{Role}</small>
-                            </div>
+                    <li>
+                      <div className="d-flex">
+                        <div className="flex-shrink-0 me-3">
+                          <div className="avatar avatar-online">
+                            <img
+                              src="src/assets/images/avatars/avt.png"
+                              alt="User avatar"
+                              className="h-auto rounded-circle"
+                            />
                           </div>
-                      </li>
-
+                        </div>
+                        <div className="flex-grow-1">
+                          <span className="fw-medium d-block">{fullName}</span>
+                          <small className="text-muted">{Role}</small>
+                        </div>
+                      </div>
+                    </li>
                   </li>
                 </ul>
               </div>
@@ -244,7 +242,8 @@ function AccountSetting() {
                                 rules={[
                                   {
                                     required: true,
-                                    message: "Please input your current password!",
+                                    message:
+                                      "Please input your current password!",
                                   },
                                 ]}
                                 className="form-password-toggle"
@@ -275,11 +274,13 @@ function AccountSetting() {
                                   },
                                   {
                                     min: 8,
-                                    message: "Password must be at least 8 characters long!",
+                                    message:
+                                      "Password must be at least 8 characters long!",
                                   },
                                   {
                                     max: 30,
-                                    message: "Password must not exceed 30 characters!",
+                                    message:
+                                      "Password must not exceed 30 characters!",
                                   },
                                 ]}
                                 className="form-password-toggle"
@@ -301,18 +302,26 @@ function AccountSetting() {
                               <Form.Item
                                 label="Confirm New Password"
                                 name="confirmPassword"
-                                dependencies={['newPassword']}
+                                dependencies={["newPassword"]}
                                 rules={[
                                   {
                                     required: true,
-                                    message: "Please confirm your new password!",
+                                    message:
+                                      "Please confirm your new password!",
                                   },
                                   ({ getFieldValue }) => ({
                                     validator(_, value) {
-                                      if (!value || getFieldValue('newPassword') === value) {
+                                      if (
+                                        !value ||
+                                        getFieldValue("newPassword") === value
+                                      ) {
                                         return Promise.resolve();
                                       }
-                                      return Promise.reject(new Error('The two passwords do not match!'));
+                                      return Promise.reject(
+                                        new Error(
+                                          "The two passwords do not match!"
+                                        )
+                                      );
                                     },
                                   }),
                                 ]}
@@ -342,7 +351,8 @@ function AccountSetting() {
                                 At least one lowercase character
                               </li>
                               <li>
-                                At least one number, symbol, or whitespace character
+                                At least one number, symbol, or whitespace
+                                character
                               </li>
                             </ul>
                           </div>

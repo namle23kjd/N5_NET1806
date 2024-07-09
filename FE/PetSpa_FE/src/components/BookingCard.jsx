@@ -231,8 +231,33 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
     const userInfo = JSON.parse(localStorage.getItem("user-info"));
     const token = userInfo?.data?.token;
     const userId = userInfo?.data?.user?.id;
-    const savedCart = localStorage.getItem(`cart-${userId}`);
-    const cart = savedCart ? JSON.parse(savedCart) : [];
+    const savedCart = localStorage.getItem("cart");
+    let cartData = { items: [], createdAt: new Date().toISOString() };
+
+    if (savedCart) {
+      try {
+        cartData = JSON.parse(savedCart);
+      } catch (error) {
+        console.error("Error parsing saved cart:", error);
+        // If parsing fails, reset the cart data
+        cartData = { items: [], createdAt: new Date().toISOString() };
+      }
+    }
+
+    const cart = cartData.items || [];
+    const cartCreatedAt = new Date(cartData.createdAt);
+
+    // Check if the cart was created on a different day
+    const now = new Date();
+    const cartCreationDay = cartCreatedAt.getDate();
+    const currentDay = now.getDate();
+
+    if (cartCreationDay !== currentDay) {
+      // Cart is from a previous day, clear it
+      cartData.items = [];
+      cartData.createdAt = now.toISOString();
+    }
+
     if (selectedPetId == null || date == null) {
       setError("Please select a pet and a date.");
       return;
@@ -316,13 +341,11 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
       const paymentResponse = await processPayment(newItem);
 
       if (paymentResponse.success) {
-        setCart((prevCart) => [...prevCart, newItem]);
+        cartData.items.push(newItem);
+        setCart(cartData.items);
         message.success("Service booked successfully");
         // Save cart to localStorage
-        localStorage.setItem(
-          `cart-${userId}`,
-          JSON.stringify([...cart, newItem])
-        );
+        localStorage.setItem("cart", JSON.stringify(cartData));
         setSelectedPetId(null);
         setDate(null);
         setSelectStaffId(null);

@@ -69,7 +69,6 @@ function Service() {
             (booking) => booking.feedback != null
           );
           setBookings(filteredBookings);
-          console.log(filteredBookings);
         } else {
           console.error("Failed to fetch bookings");
         }
@@ -77,7 +76,7 @@ function Service() {
         console.error("Error fetching bookings:", error);
       }
     };
-    
+
     fetchBookings();
   }, []);
 
@@ -204,11 +203,9 @@ function Service() {
       const response = await axios.get("https://localhost:7150/api/Service");
       const result = response.data;
       // Filter out services with status false
-      const filteredServices = result.data.data.filter(
-        (service) => service.status !== false
-      );
-      setServices(filteredServices);
-      localStorage.setItem("service", JSON.stringify(filteredServices));
+
+      console.log(result.data.data);
+      setServices(result.data.data);
     } catch (error) {
       console.error("Error fetching services:", error);
     }
@@ -310,6 +307,7 @@ function Service() {
                     const backgroundImage = service.serviceImage
                       ? `url(${service.serviceImage})`
                       : 'url("src/assets/images/shape/shape_path_1.svg")';
+
                     return (
                       <div key={service.serviceId} className="col col-lg-4">
                         <div
@@ -333,13 +331,19 @@ function Service() {
                           <div className="item_price">
                             <span>{formattedPrice}</span>
                           </div>
-                          <Link
-                            className="btn_unfill"
-                            onClick={() => handleBookNow(service.serviceId)}
-                          >
-                            <span>Schedule Your Appointment</span>{" "}
-                            <FontAwesomeIcon icon={faArrowRight} />
-                          </Link>
+                          {service.status ? (
+                            <Link
+                              className="btn_unfill"
+                              onClick={() => handleBookNow(service.serviceId)}
+                            >
+                              <span>Schedule Your Appointment</span>{" "}
+                              <FontAwesomeIcon icon={faArrowRight} />
+                            </Link>
+                          ) : (
+                            <div className="btn_unfill">
+                              <span>Service is currently unavailable</span>
+                            </div>
+                          )}
                           {isOpen &&
                             selectedServiceId === service.serviceId && (
                               <ProtectedRoute allowedRoles={["Customer"]}>
