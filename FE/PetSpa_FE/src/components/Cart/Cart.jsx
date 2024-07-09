@@ -114,9 +114,9 @@ function Cart() {
       const rank = response.data.data.cusRank;
       setRank(rank);
 
-      if (rank === "silver") {
+      if (rank === "Silver") {
         setDiscount(0.05);
-      } else if (rank === "gold") {
+      } else if (rank === "Gold") {
         setDiscount(0.1);
       }
     }

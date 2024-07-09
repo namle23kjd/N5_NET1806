@@ -583,7 +583,11 @@ const ManagerPage = () => {
             Edit
           </Button>
           <Button
-            type={record.status ? "danger" : "primary"}
+            type="primary"
+            style={{
+              backgroundColor: record.status ? "red" : "green",
+              borderColor: record.status ? "red" : "green",
+            }}
             onClick={() => handleDelete(record.key)}
           >
             {record.status ? "Delete" : "Restore"}
