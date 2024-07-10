@@ -68,6 +68,6 @@ namespace PetSpa.Repositories.CustomerRepository
                 .FirstOrDefaultAsync(x => x.CusId == CusId);
         }
 
-       
+
     }
 }

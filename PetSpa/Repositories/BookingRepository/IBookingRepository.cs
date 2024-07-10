@@ -25,5 +25,9 @@ namespace PetSpa.Repositories.BookingRepository
 
         Task<List<DailyRevenueDTO>> GetDailyRevenueForCurrentMonthAsync(DateTime? startDate);
         Task<List<Booking>> GetBookingsByCheckAcceptAsync(CheckAccpectStatus checkAccept);
+
+        Task<List<Booking>> GetDeniedBookingsByStaffIdAsync(Guid staffId);
+        Task<decimal> GetTotalRevenueAsync(DateTime startDate, DateTime endDate);
     }
+
 }
