@@ -341,5 +341,28 @@ namespace PetSpa.Repositories.BookingRepository
                .Where(b => b.CheckAccept == checkAccept)
                .ToListAsync();
         }
+
+        public async Task<List<Booking>> GetDeniedBookingsByStaffIdAsync(Guid staffId)
+        {
+            return await dbContext.Bookings
+                .Include(b => b.Customer)
+                .Include(b => b.BookingDetails)
+                    .ThenInclude(bd => bd.Service)
+                .Include(b => b.BookingDetails)
+                    .ThenInclude(bd => bd.Pet)
+                .Include(b => b.BookingDetails)
+                    .ThenInclude(bd => bd.Staff)
+                .Where(b => b.BookingDetails.Any(bd => bd.StaffId == staffId) && b.CheckAccept == CheckAccpectStatus.Deny)
+                .ToListAsync();
+        }
+
+        public async Task<decimal> GetTotalRevenueAsync(DateTime startDate, DateTime endDate)
+        {
+            var totalAmount = await dbContext.Payments
+            .Where(p => p.CreatedDate >= startDate && p.CreatedDate <= endDate)
+            .SumAsync(p => p.TotalPayment ?? 0m);
+
+            return totalAmount;
+        }
     }
 }
