@@ -38,8 +38,8 @@ namespace PetSpa.Data
                 //optionsBuilder.UseSqlServer("Server=DESKTOP-LJMA02H\\PIEDTEAM;Database=Pet_Spa;User Id=sa;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
                 //optionsBuilder.UseSqlServer("Server = HOANGNE\\SQLEXPRESS; Database = Pet_Spa; User Id = SA; Password = 1; Trusted_Connection = True; TrustServerCertificate = True");
 
-                //optionsBuilder.UseSqlServer("Server=DESKTOP-S41VFN3\\PIEDTEAM;Database=Pet__SPAManagement;User Id=sa;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
-                optionsBuilder.UseSqlServer("Server = HOANGNE\\SQLEXPRESS; Database = Pet_Spa; User Id = SA; Password = 12345; Trusted_Connection = True; TrustServerCertificate = True");
+                optionsBuilder.UseSqlServer("Server=DESKTOP-S41VFN3\\PIEDTEAM;Database=Pet__SPAManagement;User Id=sa;Password=12345;Trusted_Connection=True;TrustServerCertificate=True");
+               // optionsBuilder.UseSqlServer("Server = HOANGNE\\SQLEXPRESS; Database = Pet_Spa; User Id = SA; Password = 12345; Trusted_Connection = True; TrustServerCertificate = True");
 
                 //Server = HOANGNE\\SQLEXPRESS; Database = Pet_Spa; User Id = SA; Password = 12345; Trusted_Connection = True; TrustServerCertificate = True
             }
