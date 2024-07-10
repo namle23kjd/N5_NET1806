@@ -184,7 +184,8 @@ namespace PetSpa.Controllers
                 var applicationUser = new ApplicationUser
                 {
                     UserName = registerRequestDto.Email,
-                    Email = registerRequestDto.Email
+                    Email = registerRequestDto.Email,
+                    PhoneNumber = registerRequestDto.PhoneNumber,
                 };
 
                 var identityResult = await _userManager.CreateAsync(applicationUser, registerRequestDto.Password);
