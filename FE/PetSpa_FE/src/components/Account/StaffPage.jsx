@@ -159,10 +159,8 @@ const TaskList = ({ tasks, printTasks, isDoneTab = false }) => {
 
   const handleDeny = async (taskId) => {
     try {
-      await axios.post(`https://localhost:7150/api/Staff/${taskId}/deny`, {}, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("user-info").data.token}`,
-        },
+      await axios.put(`https://localhost:7150/api/Booking/deny-booking`, {
+        bookingId: taskId,
       });
       // Remove denied task from the list
       setSelectedTasks((prevTasks) =>

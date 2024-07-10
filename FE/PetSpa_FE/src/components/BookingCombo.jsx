@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import AddingPet from "./AddingPet";
+import moment from "moment";
 
 const { Option } = Select;
 
@@ -217,6 +218,11 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
           item.date === date.format("YYYY-MM-DDTHH:mm:ss")
       )
     );
+    const now = moment();
+    if (date.diff(now, "hours") < 1) {
+      message.warning("The booking time must be at least one hour from now.");
+      return;
+    }
 
     if (isServiceAlreadyInCart) {
       message.warning(

@@ -8,6 +8,9 @@ import { DatePicker, Space } from "antd";
 import { useNavigate } from "react-router-dom";
 import uploadFile from "@/utils/upload";
 import { Option } from "antd/es/mentions";
+import { CatIcon, DogIcon } from "lucide-react";
+import { PetsOutlined } from "@mui/icons-material";
+import moment from "moment";
 
 function AddingPet({ isOpen, handleHideModal, setDataSource }) {
   const navigate = useNavigate();
@@ -94,6 +97,9 @@ function AddingPet({ isOpen, handleHideModal, setDataSource }) {
     handleHideModal();
     form.resetFields();
   };
+  const disabledDate = (current) => {
+    return current && current > moment().endOf("day");
+  };
 
   return (
     <Modal
@@ -155,21 +161,28 @@ function AddingPet({ isOpen, handleHideModal, setDataSource }) {
           name="category"
           rules={[{ required: true, message: "Please select a category!" }]}
         >
-          <Select style={{ width: "100%" }}>
-            <Option value="Cat">Cat</Option>
-            <Option value="Dog">Dog</Option>
-            <Option value="Other">Other</Option>
+          <Select placeholder="Select category" style={{ borderRadius: "8px" }}>
+            <Option value="Cat">
+              <CatIcon /> Cat
+            </Option>
+            <Option value="Dog">
+              <DogIcon /> Dog
+            </Option>
+            <Option value="Other">
+              <PetsOutlined />
+              Other
+            </Option>
           </Select>
         </Form.Item>
         <Form.Item label="Birthday">
-          <Space direction="vertical" style={{ width: "100%" }}>
-            <DatePicker
-              showTime
-              value={birthday}
-              onChange={(date) => setBirthday(date)}
-              style={{ width: "100%" }}
-            />
-          </Space>
+          <DatePicker
+            value={birthday}
+            onChange={(date) => setBirthday(date)}
+            disabledDate={disabledDate}
+            format="YYYY-MM-DD"
+            style={{ width: "100%", borderRadius: "8px" }}
+            placeholder="Select pet's birthday"
+          />
         </Form.Item>
         <Form.Item label="Poster" name="poster_path">
           <Upload

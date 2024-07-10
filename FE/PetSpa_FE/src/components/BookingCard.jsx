@@ -1,4 +1,3 @@
-
 import {
   Avatar,
   Button,
@@ -48,7 +47,7 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
     fetchPets();
   }, [dataSource]);
   const disablePastDates = (current) => {
-    return current && current < moment().startOf('day');
+    return current && current < moment().startOf("day");
   };
   const handlePrice = (value) => {
     // Kiểm tra giá trị của priceCurrent
@@ -240,16 +239,25 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
     console.log(date);
     const isAlreadyInCart = cart.some(
       (item) =>
-        item.petId === selectedPetId && item.serviceId === selectedServiceId && item.date === date.format("YYYY-MM-DDTHH:mm:ss")
+        item.petId === selectedPetId &&
+        item.serviceId === selectedServiceId &&
+        item.date === date.format("YYYY-MM-DDTHH:mm:ss")
     );
     const isAlready = cart.some(
       (item) =>
-        item.petId === selectedPetId && item.date === date.format("YYYY-MM-DDTHH:mm:ss")
+        item.petId === selectedPetId &&
+        item.date === date.format("YYYY-MM-DDTHH:mm:ss")
     );
     const isAlreadyStaff = cart.some(
       (item) =>
-        item.selectStaffId === selectStaffId && item.date === date.format("YYYY-MM-DDTHH:mm:ss")
+        item.selectStaffId === selectStaffId &&
+        item.date === date.format("YYYY-MM-DDTHH:mm:ss")
     );
+    const now = moment();
+    if (date.diff(now, "hours") < 1) {
+      message.warning("The booking time must be at least one hour from now.");
+      return;
+    }
     if (isAlreadyStaff) {
       message.warning("The staff has been booked during this time.");
       return;
@@ -381,17 +389,17 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
         />
         <Form layout="vertical" className="mt-5" form={form}>
           <div className="flex space-x-4">
-          <Form.Item label="Date" className="w-1/2">
-      <Space direction="vertical" className="w-full">
-        <DatePicker
-          showTime
-          value={date}
-          onChange={(date) => setDate(date)}
-          className="w-full"
-          disabledDate={disablePastDates} // Add the disabledDate prop
-        />
-      </Space>
-    </Form.Item>
+            <Form.Item label="Date" className="w-1/2">
+              <Space direction="vertical" className="w-full">
+                <DatePicker
+                  showTime
+                  value={date}
+                  onChange={(date) => setDate(date)}
+                  className="w-full"
+                  disabledDate={disablePastDates} // Add the disabledDate prop
+                />
+              </Space>
+            </Form.Item>
             <Form.Item label="Select Staff" className="w-1/2">
               <Select
                 showSearch
