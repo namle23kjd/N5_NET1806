@@ -4,10 +4,16 @@ import "../../assets/css/StaffPage.css";
 import { useNavigate } from "react-router-dom";
 
 const StaffPage = () => {
-  const [tasks, setTasks] = useState({ todo: [], inProgress: [], done: [] });
+  const [tasks, setTasks] = useState({
+    todo: [],
+    inProgress: [],
+    done: [],
+    cancel: [],
+  });
   const [activeTab, setActiveTab] = useState("todo");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -37,11 +43,16 @@ const StaffPage = () => {
           `https://localhost:7150/api/Staff/${userId}/completed-bookings`,
           { headers }
         );
+        const cancelResponse = await axios.get(
+          `https://localhost:7150/api/Booking/staff-denied-bookings/${userId}`,
+          { headers }
+        );
 
         setTasks({
           todo: mapApiResponse(todoResponse.data),
           inProgress: mapApiResponse(inProgressResponse.data),
           done: mapApiResponse(doneResponse.data),
+          cancel: mapApiResponse(cancelResponse.data),
         });
       } catch (error) {
         if (error.response && error.response.status === 403) {
@@ -53,7 +64,7 @@ const StaffPage = () => {
     };
 
     fetchData();
-  }, []);
+  }, [navigate]);
 
   const mapApiResponse = (data) => {
     return data.map((item) => ({
@@ -64,6 +75,30 @@ const StaffPage = () => {
       date: new Date(item.startDate).toLocaleDateString(),
       time: new Date(item.startDate).toLocaleTimeString(),
     }));
+  };
+
+  const handleDeny = async (taskId) => {
+    try {
+      await axios.put(`https://localhost:7150/api/Booking/deny-booking`, {
+        bookingId: taskId,
+      });
+
+      setTasks((prevTasks) => {
+        const taskToDeny =
+          prevTasks.todo.find((task) => task.id === taskId) ||
+          prevTasks.inProgress.find((task) => task.id === taskId) ||
+          prevTasks.done.find((task) => task.id === taskId);
+        return {
+          ...prevTasks,
+          todo: prevTasks.todo.filter((task) => task.id !== taskId),
+          inProgress: prevTasks.inProgress.filter((task) => task.id !== taskId),
+          done: prevTasks.done.filter((task) => task.id !== taskId),
+          cancel: [...prevTasks.cancel, taskToDeny],
+        };
+      });
+    } catch (error) {
+      console.error("Error denying task:", error);
+    }
   };
 
   const printTasks = (tasksToPrint) => {
@@ -130,6 +165,12 @@ const StaffPage = () => {
         >
           Completed ({tasks.done.length})
         </div>
+        <div
+          className={`tab-title ${activeTab === "cancel" ? "active" : ""}`}
+          onClick={() => setActiveTab("cancel")}
+        >
+          Canceled ({tasks.cancel.length})
+        </div>
       </div>
       <div className={`task-content ${activeTab !== "todo" ? "hidden" : ""}`}>
         <TaskList tasks={tasks.todo} printTasks={printTasks} />
@@ -142,11 +183,19 @@ const StaffPage = () => {
       <div className={`task-content ${activeTab !== "done" ? "hidden" : ""}`}>
         <TaskList tasks={tasks.done} printTasks={printTasks} isDoneTab />
       </div>
+      <div className={`task-content ${activeTab !== "cancel" ? "hidden" : ""}`}>
+        <TaskList tasks={tasks.cancel} printTasks={printTasks} isCancelTab />
+      </div>
     </div>
   );
 };
 
-const TaskList = ({ tasks, printTasks, isDoneTab = false }) => {
+const TaskList = ({
+  tasks,
+  printTasks,
+  isDoneTab = false,
+  isCancelTab = false,
+}) => {
   const [selectedTasks, setSelectedTasks] = useState([]);
 
   const handleTaskSelect = (task) => {
@@ -155,20 +204,6 @@ const TaskList = ({ tasks, printTasks, isDoneTab = false }) => {
         ? prevSelectedTasks.filter((t) => t !== task)
         : [...prevSelectedTasks, task]
     );
-  };
-
-  const handleDeny = async (taskId) => {
-    try {
-      await axios.put(`https://localhost:7150/api/Booking/deny-booking`, {
-        bookingId: taskId,
-      });
-      // Remove denied task from the list
-      setSelectedTasks((prevTasks) =>
-        prevTasks.filter((task) => task.id !== taskId)
-      );
-    } catch (error) {
-      console.error("Error denying task:", error);
-    }
   };
 
   return (
@@ -183,7 +218,7 @@ const TaskList = ({ tasks, printTasks, isDoneTab = false }) => {
             <th>Date</th>
             <th>Time</th>
             <th>Select</th>
-            {isDoneTab && <th>Action</th>}
+            {isDoneTab && !isCancelTab && <th>Action</th>}
           </tr>
         </thead>
         <tbody>

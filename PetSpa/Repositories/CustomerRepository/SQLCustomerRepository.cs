@@ -24,9 +24,31 @@ namespace PetSpa.Repositories.CustomerRepository
             await _dbContext.SaveChangesAsync();
             return true;
         }
-        public async Task<Customer> GetByPhoneNumberAsync(string phoneNumber)
+        public async Task<bool> IsUniquePhoneNumberAsync(Guid id, string newPhoneNumber)
         {
-            return await _dbContext.Customers.FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber);
+            // Retrieve the customer with the specified id
+            var existingCustomer = await _dbContext.Customers
+                .FirstOrDefaultAsync(c => c.CusId == id);
+
+            if (existingCustomer == null)
+            {
+                // If the customer with the specified id doesn't exist, you might want to handle this case
+                // For now, we'll just return false
+                return false;
+            }
+
+            // Check if the new phone number is the same as the current phone number
+            if (existingCustomer.PhoneNumber == newPhoneNumber)
+            {
+                return true;
+            }
+
+            // Check if the new phone number is unique
+            var customerCount = await _dbContext.Customers
+                .Where(c => c.PhoneNumber == newPhoneNumber)
+                .CountAsync();
+
+            return customerCount == 0;
         }
 
         public async Task<List<Customer>> GetAllAsync()

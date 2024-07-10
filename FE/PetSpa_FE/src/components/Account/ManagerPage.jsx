@@ -76,9 +76,11 @@ const ManagerPage = () => {
 
   const fetchBookings = async () => {
     try {
-      const response = await fetch("https://localhost:7150/api/Booking/bookings/not-accepted");
+      const response = await fetch(
+        "https://localhost:7150/api/Booking/bookings/not-accepted"
+      );
       const data = await response.json();
-      const filteredData = data.data.filter(booking => booking.status !== 2);
+      const filteredData = data.data.filter((booking) => booking.status !== 2);
       const formattedData = filteredData.map((booking, index) => ({
         key: index + 1,
         bookingId: booking.bookingId,
@@ -147,9 +149,15 @@ const ManagerPage = () => {
           { headers }
         );
 
-        allTasks.todo.push(...mapApiResponse(todoResponse.data, staff.fullName));
-        allTasks.inProgress.push(...mapApiResponse(inProgressResponse.data, staff.fullName));
-        allTasks.done.push(...mapApiResponse(doneResponse.data, staff.fullName));
+        allTasks.todo.push(
+          ...mapApiResponse(todoResponse.data, staff.fullName)
+        );
+        allTasks.inProgress.push(
+          ...mapApiResponse(inProgressResponse.data, staff.fullName)
+        );
+        allTasks.done.push(
+          ...mapApiResponse(doneResponse.data, staff.fullName)
+        );
       }
 
       setTasks(allTasks);
@@ -263,7 +271,7 @@ const ManagerPage = () => {
           `https://localhost:7150/api/Service/${service.serviceId}`
         );
         if (result.status === 200) {
-          message.success("Service status updated successfully");
+          message.success("Service deleted successfully");
         }
       } else {
         message.error("Service not found");
@@ -375,8 +383,13 @@ const ManagerPage = () => {
   const handleAccept = async (key) => {
     const booking = checkaccepts.find((checkaccept) => checkaccept.key === key);
 
-    if (!booking || booking.staffId === "00000000-0000-0000-0000-000000000000") {
-      message.error("Please select a staff member before accepting the booking.");
+    if (
+      !booking ||
+      booking.staffId === "00000000-0000-0000-0000-000000000000"
+    ) {
+      message.error(
+        "Please select a staff member before accepting the booking."
+      );
       return;
     }
 
@@ -683,9 +696,21 @@ const ManagerPage = () => {
             mode="inline"
             selectedKeys={[activeTab]}
             items={[
-              { key: "service", label: "Service Manager", onClick: () => setActiveTab("service") },
-              { key: "checkaccept", label: "Checkaccept Manager", onClick: () => setActiveTab("checkaccept") },
-              { key: "task", label: "Task Manager", onClick: () => setActiveTab("task") }
+              {
+                key: "service",
+                label: "Service Manager",
+                onClick: () => setActiveTab("service"),
+              },
+              {
+                key: "checkaccept",
+                label: "Checkaccept Manager",
+                onClick: () => setActiveTab("checkaccept"),
+              },
+              {
+                key: "task",
+                label: "Task Manager",
+                onClick: () => setActiveTab("task"),
+              },
             ]}
             style={{ height: "100%", borderRight: 0 }}
           />
@@ -704,33 +729,49 @@ const ManagerPage = () => {
                 {error && <div className="error-message">{error}</div>}
                 <div className="tab-section">
                   <div
-                    className={`tab-title ${activeTaskTab === "todo" ? "active" : ""}`}
+                    className={`tab-title ${
+                      activeTaskTab === "todo" ? "active" : ""
+                    }`}
                     onClick={() => setActiveTaskTab("todo")}
                   >
                     To Do ({tasks.todo.length})
                   </div>
                   <div
-                    className={`tab-title ${activeTaskTab === "inProgress" ? "active" : ""}`}
+                    className={`tab-title ${
+                      activeTaskTab === "inProgress" ? "active" : ""
+                    }`}
                     onClick={() => setActiveTaskTab("inProgress")}
                   >
                     In Progress ({tasks.inProgress.length})
                   </div>
                   <div
-                    className={`tab-title ${activeTaskTab === "done" ? "active" : ""}`}
+                    className={`tab-title ${
+                      activeTaskTab === "done" ? "active" : ""
+                    }`}
                     onClick={() => setActiveTaskTab("done")}
                   >
                     Completed ({tasks.done.length})
                   </div>
                 </div>
-                <div className={`task-content ${activeTaskTab !== "todo" ? "hidden" : ""}`}>
+                <div
+                  className={`task-content ${
+                    activeTaskTab !== "todo" ? "hidden" : ""
+                  }`}
+                >
                   <TaskList tasks={tasks.todo} printTasks={printTasks} />
                 </div>
                 <div
-                  className={`task-content ${activeTaskTab !== "inProgress" ? "hidden" : ""}`}
+                  className={`task-content ${
+                    activeTaskTab !== "inProgress" ? "hidden" : ""
+                  }`}
                 >
                   <TaskList tasks={tasks.inProgress} printTasks={printTasks} />
                 </div>
-                <div className={`task-content ${activeTaskTab !== "done" ? "hidden" : ""}`}>
+                <div
+                  className={`task-content ${
+                    activeTaskTab !== "done" ? "hidden" : ""
+                  }`}
+                >
                   <TaskList tasks={tasks.done} printTasks={printTasks} />
                 </div>
               </div>
@@ -765,7 +806,11 @@ const ManagerPage = () => {
                   )}
                 </Space>
                 <Table
-                  columns={activeTab === "service" ? serviceColumns : checkacceptColumns}
+                  columns={
+                    activeTab === "service"
+                      ? serviceColumns
+                      : checkacceptColumns
+                  }
                   dataSource={activeTab === "service" ? services : checkaccepts}
                   onChange={handleChange}
                   pagination={{ pageSize: 10 }}
@@ -783,18 +828,27 @@ const ManagerPage = () => {
         onCancel={handleModalCancel}
         okText={editingRecord ? "Update" : "Add"}
       >
-        <Form form={form} layout="vertical" name="recordForm" onFinish={() => {}}>
+        <Form
+          form={form}
+          layout="vertical"
+          name="recordForm"
+          onFinish={() => {}}
+        >
           <Form.Item
             name="serviceName"
             label="Service Name"
-            rules={[{ required: true, message: "Please input the service name!" }]}
+            rules={[
+              { required: true, message: "Please input the service name!" },
+            ]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="serviceDescription"
             label="Description"
-            rules={[{ required: true, message: "Please input the description!" }]}
+            rules={[
+              { required: true, message: "Please input the description!" },
+            ]}
           >
             <Input />
           </Form.Item>
