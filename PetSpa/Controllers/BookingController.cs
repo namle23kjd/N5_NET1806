@@ -680,16 +680,45 @@ namespace PetSpa.Controllers
         [HttpGet("total-revenue/current-month")]
         public async Task<IActionResult> GetTotalRevenueForCurrentMonth([FromQuery] DateTime? startDate)
         {
+            var now = DateTime.UtcNow;
+            if (startDate.HasValue && startDate.Value > now)
+            {
+                return apiResponseService.CreateBadRequestResponse("Start date cannot be a future date.");
+            }
+
             var totalAmount = await bookingRepository.GetAllToTalForMonthAsync(startDate);
             var dailyRevenues = await bookingRepository.GetDailyRevenueForCurrentMonthAsync(startDate);
-            return Ok(new { TotalAmount = totalAmount, DailyRevenues = dailyRevenues });
+            return apiResponseService.CreateResponse(true, new { TotalAmount = totalAmount, DailyRevenues = dailyRevenues }, "Succeeded", 201);
         }
 
         [HttpGet("total-revenue/from-start")]
         public async Task<IActionResult> GetTotalRevenueFromStart()
         {
             var totalAmount = await bookingRepository.GetAllToTalAsync();
-            return Ok(new { TotalAmount = totalAmount });
+            return apiResponseService.CreateResponse(true, new { TotalAmount = totalAmount }, "Succeeded", 201);
+        }
+
+        [HttpGet("total-revenue")]
+        public async Task<IActionResult> GetTotalRevenue([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        {
+            var now = DateTime.UtcNow;
+            if (!startDate.HasValue || !endDate.HasValue)
+            {
+                return apiResponseService.CreateBadRequestResponse("Start date and end date are required.");
+            }
+
+            if (endDate < startDate)
+            {
+                return apiResponseService.CreateBadRequestResponse("End date must be greater than or equal to start date.");
+            }
+
+            if (startDate.Value > now || endDate.Value > now)
+            {
+                return apiResponseService.CreateBadRequestResponse("Start date and end date cannot be future dates.");
+            }
+
+            var totalAmount = await bookingRepository.GetTotalRevenueAsync(startDate.Value, endDate.Value);
+            return apiResponseService.CreateResponse(true, new { TotalAmount = totalAmount }, "Succeeded", 201);
         }
 
         [HttpGet("pending-bookings")]
@@ -894,6 +923,35 @@ namespace PetSpa.Controllers
                 CheckAccept = (CheckAccpectStatus)b.CheckAccept
             }).ToList();
             return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Not accepted bookings retrieved successfully"));
+        }
+
+
+        [HttpGet("staff-denied-bookings/{staffId:Guid}")]
+        public async Task<IActionResult> GetDeniedBookingsByStaffId([FromRoute] Guid staffId)
+        {
+            try
+            {
+                var bookings = await bookingRepository.GetDeniedBookingsByStaffIdAsync(staffId);
+                var bookingDtos = bookings.Select(b => new BookingStaffDTO
+                {
+                    BookingId = b.BookingId,
+                    CustomerName = b.Customer.FullName ?? "Unknown",
+                    ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "Unknown",
+                    PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
+                    StartDate = b.StartDate,
+                    EndDate = b.EndDate,
+                    Status = (BookingStatus)b.Status,
+                    StaffId = b.BookingDetails.FirstOrDefault()?.Staff?.StaffId ?? Guid.Empty,
+                    StaffName = b.BookingDetails.FirstOrDefault()?.Staff?.FullName ?? "Unknown",
+                    CheckAccept = b.CheckAccept
+                }).ToList();
+                return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Denied bookings for staff retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while getting denied bookings for staff.");
+                return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while getting denied bookings for staff"));
+            }
         }
 
     }    

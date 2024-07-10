@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using PetSpa.Repositories.BookingRepository;
 using PetSpa.Models.DTO.Booking;
 using Microsoft.AspNetCore.Authorization;
+using Serilog.Core;
 
 namespace PetSpa.Controllers
 {
