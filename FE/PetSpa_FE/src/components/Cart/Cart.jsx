@@ -83,7 +83,7 @@ function Cart() {
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", {
+    return new Intl.NumberFormat("en-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
@@ -944,7 +944,7 @@ function Cart() {
                                           >
                                             {new Date(
                                               product.date
-                                            ).toLocaleDateString("vi-VN", {
+                                            ).toLocaleDateString("en-VN", {
                                               year: "numeric",
                                               month: "long",
                                               day: "numeric",
@@ -959,7 +959,7 @@ function Cart() {
                                           >
                                             {new Date(
                                               product.date
-                                            ).toLocaleTimeString("vi-VN", {
+                                            ).toLocaleTimeString("en-VN", {
                                               hour: "2-digit",
                                               minute: "2-digit",
                                             })}
