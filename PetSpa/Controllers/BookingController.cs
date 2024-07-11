@@ -839,23 +839,8 @@ namespace PetSpa.Controllers
                     var customer = await petSpaContext.Customers.FirstOrDefaultAsync(c => c.CusId == booking.CusId);
 
                     if (customer != null)
-                    {
-                        switch (customer.CusRank)
-                        {
-                            case "Bronze":
-                                refundPercentage = 0.70m;
-                                break;
-                            case "Silver":
-                                refundPercentage = 0.75m;
-                                break;
-                            case "Gold":
-                                refundPercentage = 0.80m;
-                                break;
-                            default:
-                                refundPercentage = 0.70m; // Default refund percentage
-                                break;
-                        }
-
+                    {                       
+                        refundPercentage = 0.70m;              
                         decimal refundAmount = (booking.TotalAmount ?? 0) * refundPercentage;
 
                         // Subtract the refund amount from the payment's total
