@@ -824,11 +824,23 @@ namespace PetSpa.Controllers
                     if (booking == null)
                     {
                         return NotFound(new { message = "Booking not found" });
+
+                    }
+
+                    if (booking.Status == BookingStatus.InProgress)
+                    {
+                        return BadRequest(new { message = "Booking is In Progress, so cannot be refunded" });
+                    }
+
+
+                    if (booking.Status == BookingStatus.Completed)
+                    {
+                        return BadRequest(new { message = "Booking is Completed, so cannot be refunded" });
                     }
 
                     if (booking.Status == BookingStatus.Canceled)
                     {
-                        return BadRequest(new { message = "Booking is already canceled" });
+                        return BadRequest(new { message = "Booking has already been refunded" });
                     }
 
                     // Update booking status to canceled
@@ -960,6 +972,28 @@ namespace PetSpa.Controllers
                 logger.LogError(ex, "An error occurred while getting denied bookings for staff.");
                 return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while getting denied bookings for staff"));
             }
+        }
+
+        [HttpGet("bookings/status-2")]
+        public async Task<IActionResult> GetStatus2Bookings()
+        {
+            var bookings = await bookingRepository.GetBookingsByStatus2Async(BookingStatus.Canceled);
+            var bookingDtos = bookings.Select(b => new BookingStaffDTO
+            {
+                BookingId = b.BookingId,
+                CustomerName = b.Customer.FullName ?? "Unknown",
+                ServiceId = b.BookingDetails.FirstOrDefault()?.Service?.ServiceId ?? Guid.Empty,
+                ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "Unknown",
+                PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
+                StartDate = b.StartDate,
+                EndDate = b.EndDate,
+                Status = (BookingStatus)b.Status,
+                StaffId = b.BookingDetails.FirstOrDefault()?.Staff?.StaffId ?? Guid.Empty,
+                StaffName = b.BookingDetails.FirstOrDefault()?.Staff?.FullName ?? "Unknown",
+                CheckAccept = (CheckAccpectStatus)b.CheckAccept
+            }).ToList();
+
+            return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Status 2 bookings retrieved successfully"));
         }
 
     }    
