@@ -645,6 +645,29 @@ namespace PetSpa.Controllers
             }
         }
 
+        [HttpPut("accept-booking-havestaff")]
+        public async Task<IActionResult> AcceptBookingHaveStaff([FromBody] AccpectBookingHaveStaffDTO acceptBookingHaveStaffDTO)
+        {
+            try
+            {
+                var booking = await bookingRepository.GetByIdAsync(acceptBookingHaveStaffDTO.BookingId);
+                if (booking == null)
+                {
+                    return NotFound(apiResponseService.CreateErrorResponse("Booking not found"));
+                }
+                // Chuyển trạng thái CheckAccept sang true
+                booking.CheckAccept = CheckAccpectStatus.Accepted;
+                await bookingRepository.UpdateAsync(booking.BookingId, booking);
+
+                return Ok(apiResponseService.CreateSuccessResponse("Booking accepted successfully"));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while accepting booking.");
+                return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while accepting booking"));
+            }
+        }
+
         [HttpPut("deny-booking")]
         public async Task<IActionResult> DenyBooking([FromBody] AccpectCheckCustomerBooking denyBookingDTO)
         {
