@@ -364,5 +364,19 @@ namespace PetSpa.Repositories.BookingRepository
 
             return totalAmount;
         }
+
+        public async Task<List<Booking>> GetBookingsByStatus2Async(BookingStatus status)
+        {
+            return await dbContext.Bookings
+        .Include(b => b.Customer)
+        .Include(b => b.BookingDetails)
+            .ThenInclude(bd => bd.Service)
+        .Include(b => b.BookingDetails)
+            .ThenInclude(bd => bd.Pet)
+        .Include(b => b.BookingDetails)
+            .ThenInclude(bd => bd.Staff)
+        .Where(b => b.Status == status)
+        .ToListAsync();
+        }
     }
 }

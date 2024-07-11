@@ -28,6 +28,8 @@ namespace PetSpa.Repositories.BookingRepository
 
         Task<List<Booking>> GetDeniedBookingsByStaffIdAsync(Guid staffId);
         Task<decimal> GetTotalRevenueAsync(DateTime startDate, DateTime endDate);
+
+        Task<List<Booking>> GetBookingsByStatus2Async(BookingStatus status);
     }
 
 }

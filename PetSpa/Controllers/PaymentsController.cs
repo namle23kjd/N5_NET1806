@@ -205,17 +205,17 @@ namespace PetSpa.Controllers
             }
         }
 
-        [HttpDelete("{paymentId:int}")]
-        public async Task<IActionResult> DeletePayment(int paymentId)
+        [HttpDelete("transaction/{transactionId}")]
+        public async Task<IActionResult> DeletePayment(string transactionId)
         {
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    var payment = await _context.Payments.FirstOrDefaultAsync(p => p.PaymentId == paymentId);
+                    var payment = await _context.Payments.FirstOrDefaultAsync(p => p.TransactionId == transactionId);
                     if (payment == null)
                     {
-                        return NotFound($"Payment with ID {paymentId} not found");
+                        return NotFound($"Payment with ID {transactionId} not found");
                     }
 
                     // Tìm khách hàng tương ứng với payment này

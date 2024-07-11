@@ -666,7 +666,7 @@ const Transac = () => {
   const getCurrentPageData = () => {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    return dataSource.slice(startIndex, endIndex);
+    return [...dataSource].reverse().slice(startIndex, endIndex);
   };
 
   return (

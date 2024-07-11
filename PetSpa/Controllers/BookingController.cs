@@ -645,6 +645,29 @@ namespace PetSpa.Controllers
             }
         }
 
+        [HttpPut("accept-booking-havestaff")]
+        public async Task<IActionResult> AcceptBookingHaveStaff([FromBody] AccpectBookingHaveStaffDTO acceptBookingHaveStaffDTO)
+        {
+            try
+            {
+                var booking = await bookingRepository.GetByIdAsync(acceptBookingHaveStaffDTO.BookingId);
+                if (booking == null)
+                {
+                    return NotFound(apiResponseService.CreateErrorResponse("Booking not found"));
+                }
+                // Chuyển trạng thái CheckAccept sang true
+                booking.CheckAccept = CheckAccpectStatus.Accepted;
+                await bookingRepository.UpdateAsync(booking.BookingId, booking);
+
+                return Ok(apiResponseService.CreateSuccessResponse("Booking accepted successfully"));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while accepting booking.");
+                return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while accepting booking"));
+            }
+        }
+
         [HttpPut("deny-booking")]
         public async Task<IActionResult> DenyBooking([FromBody] AccpectCheckCustomerBooking denyBookingDTO)
         {
@@ -801,11 +824,23 @@ namespace PetSpa.Controllers
                     if (booking == null)
                     {
                         return NotFound(new { message = "Booking not found" });
+
+                    }
+
+                    if (booking.Status == BookingStatus.InProgress)
+                    {
+                        return BadRequest(new { message = "Booking is In Progress, so cannot be refunded" });
+                    }
+
+
+                    if (booking.Status == BookingStatus.Completed)
+                    {
+                        return BadRequest(new { message = "Booking is Completed, so cannot be refunded" });
                     }
 
                     if (booking.Status == BookingStatus.Canceled)
                     {
-                        return BadRequest(new { message = "Booking is already canceled" });
+                        return BadRequest(new { message = "Booking has already been refunded" });
                     }
 
                     // Update booking status to canceled
@@ -816,23 +851,8 @@ namespace PetSpa.Controllers
                     var customer = await petSpaContext.Customers.FirstOrDefaultAsync(c => c.CusId == booking.CusId);
 
                     if (customer != null)
-                    {
-                        switch (customer.CusRank)
-                        {
-                            case "Bronze":
-                                refundPercentage = 0.70m;
-                                break;
-                            case "Silver":
-                                refundPercentage = 0.75m;
-                                break;
-                            case "Gold":
-                                refundPercentage = 0.80m;
-                                break;
-                            default:
-                                refundPercentage = 0.70m; // Default refund percentage
-                                break;
-                        }
-
+                    {                       
+                        refundPercentage = 0.70m;              
                         decimal refundAmount = (booking.TotalAmount ?? 0) * refundPercentage;
 
                         // Subtract the refund amount from the payment's total
@@ -952,6 +972,28 @@ namespace PetSpa.Controllers
                 logger.LogError(ex, "An error occurred while getting denied bookings for staff.");
                 return StatusCode(StatusCodes.Status500InternalServerError, apiResponseService.CreateErrorResponse("An error occurred while getting denied bookings for staff"));
             }
+        }
+
+        [HttpGet("bookings/status-2")]
+        public async Task<IActionResult> GetStatus2Bookings()
+        {
+            var bookings = await bookingRepository.GetBookingsByStatus2Async(BookingStatus.Canceled);
+            var bookingDtos = bookings.Select(b => new BookingStaffDTO
+            {
+                BookingId = b.BookingId,
+                CustomerName = b.Customer.FullName ?? "Unknown",
+                ServiceId = b.BookingDetails.FirstOrDefault()?.Service?.ServiceId ?? Guid.Empty,
+                ServiceName = b.BookingDetails.FirstOrDefault()?.Service?.ServiceName ?? "Unknown",
+                PetName = b.BookingDetails.FirstOrDefault()?.Pet?.PetName ?? "Unknown",
+                StartDate = b.StartDate,
+                EndDate = b.EndDate,
+                Status = (BookingStatus)b.Status,
+                StaffId = b.BookingDetails.FirstOrDefault()?.Staff?.StaffId ?? Guid.Empty,
+                StaffName = b.BookingDetails.FirstOrDefault()?.Staff?.FullName ?? "Unknown",
+                CheckAccept = (CheckAccpectStatus)b.CheckAccept
+            }).ToList();
+
+            return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Status 2 bookings retrieved successfully"));
         }
 
     }    
