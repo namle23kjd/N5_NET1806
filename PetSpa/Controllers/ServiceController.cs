@@ -124,6 +124,7 @@ namespace PetSpa.Controllers
             existingService.ServiceImage = updateServiceRequestDTO.ServiceImage;
             existingService.Duration = TimeSpan.Parse(updateServiceRequestDTO.Duration);
             existingService.ComboId = updateServiceRequestDTO.ComboId;
+            existingService.Price = updateServiceRequestDTO.Price;
 
             // Lưu thay đổi vào cơ sở dữ liệu
             var updatedService = await serviceRepository.UpdateAsync(ServiceId, existingService);

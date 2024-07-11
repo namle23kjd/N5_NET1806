@@ -319,6 +319,7 @@ namespace PetSpa.Controllers
             }
             return Ok(mapper.Map<BookingDTO>(bookingDomainModel));
         }
+
         [HttpPut("update-time/{bookingId:Guid}")]
         //[Authorize]
         public async Task<IActionResult> UpdateBookingTime([FromRoute] Guid bookingId, [FromBody] UpdateBookingTimeRequest updateBookingTimeRequest)
@@ -335,7 +336,19 @@ namespace PetSpa.Controllers
             }
 
             // Check if 24 hours have passed since the booking was created
-           
+            if (booking.Status == BookingStatus.Completed)
+            {
+                return BadRequest("Cannot update the time for booking. Becasue Booking is completed");
+            }
+            if ( booking.Status == BookingStatus.InProgress )
+            {
+                return BadRequest("Cannot update the time for booking. Because Booking is InProgress");
+            }
+            if (booking.Status == BookingStatus.Canceled)
+            {
+                return BadRequest("Cannot update the time for booking. Because Booking is Canceled");
+            }
+
 
             booking.StartDate = updateBookingTimeRequest.NewDateTime;
 
