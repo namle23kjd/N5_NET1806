@@ -117,7 +117,7 @@ namespace PetSpa.Controllers
 
                 // Check if the phone number already exists for another customer
                 var customerWithSamePhoneNumber = await _customerRepository.IsUniquePhoneNumberAsync(existingCustomer.CusId,updateCustomerByUserRequestDTO.PhoneNumber);
-                if (customerWithSamePhoneNumber)
+                if (!customerWithSamePhoneNumber)
                 {
                     return BadRequest(_apiResponseService.CreateErrorResponse("Phone number already exists for another customer."));
                 }

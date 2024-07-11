@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import "../../assets/css/StaffPage.css";
 import { useNavigate } from "react-router-dom";
+import { message } from "antd";
 
 const StaffPage = () => {
   const [tasks, setTasks] = useState({
@@ -35,24 +36,39 @@ const StaffPage = () => {
           `https://localhost:7150/api/Staff/${userId}/pending-bookings`,
           { headers }
         );
+        console.log("Todo Response:", todoResponse.data);
+
         const inProgressResponse = await axios.get(
           `https://localhost:7150/api/Staff/${userId}/current-booking`,
           { headers }
         );
+        console.log("In Progress Response:", inProgressResponse.data);
+
         const doneResponse = await axios.get(
           `https://localhost:7150/api/Staff/${userId}/completed-bookings`,
           { headers }
         );
+        console.log("Done Response:", doneResponse.data);
+
         const cancelResponse = await axios.get(
           `https://localhost:7150/api/Booking/staff-denied-bookings/${userId}`,
           { headers }
         );
+        console.log("Cancel Response:", cancelResponse.data.data);
 
         setTasks({
-          todo: mapApiResponse(todoResponse.data),
-          inProgress: mapApiResponse(inProgressResponse.data),
-          done: mapApiResponse(doneResponse.data),
-          cancel: mapApiResponse(cancelResponse.data),
+          todo: Array.isArray(todoResponse.data)
+            ? mapApiResponse(todoResponse.data)
+            : [],
+          inProgress: Array.isArray(inProgressResponse.data)
+            ? mapApiResponse(inProgressResponse.data)
+            : [],
+          done: Array.isArray(doneResponse.data)
+            ? mapApiResponse(doneResponse.data)
+            : [],
+          cancel: Array.isArray(cancelResponse.data.data)
+            ? mapApiResponse(cancelResponse.data.data)
+            : [],
         });
       } catch (error) {
         if (error.response && error.response.status === 403) {
@@ -96,6 +112,7 @@ const StaffPage = () => {
           cancel: [...prevTasks.cancel, taskToDeny],
         };
       });
+      message.success("Update status booking successfully");
     } catch (error) {
       console.error("Error denying task:", error);
     }
@@ -173,15 +190,28 @@ const StaffPage = () => {
         </div>
       </div>
       <div className={`task-content ${activeTab !== "todo" ? "hidden" : ""}`}>
-        <TaskList tasks={tasks.todo} printTasks={printTasks} />
+        <TaskList
+          tasks={tasks.todo}
+          printTasks={printTasks}
+          handleDeny={handleDeny}
+        />
       </div>
       <div
         className={`task-content ${activeTab !== "inProgress" ? "hidden" : ""}`}
       >
-        <TaskList tasks={tasks.inProgress} printTasks={printTasks} />
+        <TaskList
+          tasks={tasks.inProgress}
+          printTasks={printTasks}
+          handleDeny={handleDeny}
+        />
       </div>
       <div className={`task-content ${activeTab !== "done" ? "hidden" : ""}`}>
-        <TaskList tasks={tasks.done} printTasks={printTasks} isDoneTab />
+        <TaskList
+          tasks={tasks.done}
+          printTasks={printTasks}
+          handleDeny={handleDeny}
+          isDoneTab
+        />
       </div>
       <div className={`task-content ${activeTab !== "cancel" ? "hidden" : ""}`}>
         <TaskList tasks={tasks.cancel} printTasks={printTasks} isCancelTab />
@@ -193,6 +223,7 @@ const StaffPage = () => {
 const TaskList = ({
   tasks,
   printTasks,
+  handleDeny,
   isDoneTab = false,
   isCancelTab = false,
 }) => {
@@ -237,7 +268,7 @@ const TaskList = ({
                   onChange={() => handleTaskSelect(task)}
                 />
               </td>
-              {isDoneTab && (
+              {isDoneTab && !isCancelTab && (
                 <td>
                   <button onClick={() => handleDeny(task.id)}>Deny</button>
                 </td>

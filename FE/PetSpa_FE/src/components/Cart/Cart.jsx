@@ -602,7 +602,7 @@ function Cart() {
       setProducts(productsWithStaffNames);
       console.log(productsWithStaffNames);
     };
-
+    console.log(responseCode);
     if (responseCode != null) {
       if (responseCode === "00") {
         const selectedProducts =
@@ -625,6 +625,7 @@ function Cart() {
         setCurrentStep(2);
         message.success("Payment successful and items removed from cart.");
       } else if (responseCode !== "00" && vnpTxnRef) {
+        console.log(vnpTxnRef);
         const products = JSON.parse(localStorage.getItem("cart")) || [];
         localStorage.removeItem("selectedProducts");
 
@@ -744,7 +745,11 @@ function Cart() {
           href="src/assets/images/favicon/favicon.ico"
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&ampdisplay=swap"
           rel="stylesheet"
@@ -1129,4 +1134,3 @@ function Cart() {
 }
 
 export default Cart;
-

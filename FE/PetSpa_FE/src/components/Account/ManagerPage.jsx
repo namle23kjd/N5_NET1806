@@ -193,20 +193,17 @@ const ManagerPage = () => {
           map[staff.staffId] = staff.totalBooking;
           return map;
         }, {});
-
-        const formattedStaffList = staffList.map((staff) => ({
-          staffId: staff.staffId,
-          fullName: `${staff.fullName} (${
-            staffBookingsMap[staff.staffId] || 0
-          } bookings)`,
+        setStaffBookingSummary((prev) => ({
+          ...prev,
+          [date]: staffBookingsMap,
         }));
-
-        setStaffList(formattedStaffList);
+        return staffBookingsMap;
       }
     } catch (error) {
       console.error("Error fetching staff bookings summary:", error);
       message.error("Failed to fetch staff bookings summary");
     }
+    return {};
   };
 
   const handleStaffSelect = async (value, record) => {
@@ -403,6 +400,16 @@ const ManagerPage = () => {
       );
 
       if (response.status === 200) {
+        // Update the booking summary for the specific date
+        const updatedBookingSummary = { ...staffBookingSummary };
+        const bookingDate = booking.startDate;
+        if (updatedBookingSummary[bookingDate]) {
+          updatedBookingSummary[bookingDate][booking.staffId] -= 1;
+        }
+
+        setStaffBookingSummary(updatedBookingSummary);
+
+        // Remove the accepted booking from the list
         setCheckaccepts((prevCheckaccepts) =>
           prevCheckaccepts.filter((checkaccept) => checkaccept.key !== key)
         );
@@ -609,7 +616,7 @@ const ManagerPage = () => {
       ),
     },
   ];
-
+  const [staffBookingSummary, setStaffBookingSummary] = useState({});
   const checkacceptColumns = [
     {
       title: "#",
@@ -637,31 +644,49 @@ const ManagerPage = () => {
       title: "Start Date",
       dataIndex: "startDate",
       key: "startDate",
-      render: (text) => moment(text).format("YYYY-MM-DD"),
+      render: (text) => moment(text).format("YYYY-MM-DD HH:MM:SS"),
     },
     {
       title: "End Date",
       dataIndex: "endDate",
       key: "endDate",
-      render: (text) => moment(text).format("YYYY-MM-DD"),
+      render: (text) => moment(text).format("YYYY-MM-DD HH:MM:SS"),
     },
     {
       title: "Staff Name",
       dataIndex: "staffName",
       key: "staffName",
-      render: (text, record) => (
-        <Select
-          value={record.staffId}
-          onChange={(value) => handleStaffSelect(value, record)}
-          style={{ width: "100%" }}
-        >
-          {staffList.map((staff) => (
-            <Select.Option key={staff.staffId} value={staff.staffId}>
-              {staff.fullName}
-            </Select.Option>
-          ))}
-        </Select>
-      ),
+      render: (text, record) => {
+        const handleFocus = async () => {
+          if (!staffBookingSummary[record.startDate]) {
+            await fetchStaffBookingsSummary(record.startDate);
+          }
+        };
+
+        const options = staffList.map((staff) => {
+          const bookings =
+            staffBookingSummary[record.startDate]?.[staff.staffId] || 0;
+          return {
+            staffId: staff.staffId,
+            fullName: `${staff.fullName} (${bookings} bookings)`,
+          };
+        });
+
+        return (
+          <Select
+            value={record.staffId}
+            onFocus={handleFocus}
+            onChange={(value) => handleStaffSelect(value, record)}
+            style={{ width: "100%" }}
+          >
+            {options.map((staff) => (
+              <Select.Option key={staff.staffId} value={staff.staffId}>
+                {staff.fullName}
+              </Select.Option>
+            ))}
+          </Select>
+        );
+      },
     },
     {
       title: "Action",
