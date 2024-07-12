@@ -632,11 +632,12 @@ function Cart() {
         handleProductsUpdate(products);
         axios
           .delete(
-            `https://localhost:7150/api/Payments?transactionId=${vnpTxnRef}`
+            `https://localhost:7150/api/Payments/transaction/${vnpTxnRef}`
           )
+
           .then((response) => {
             console.log("Payment failure data:", response.data);
-            message.error("Payment failed. Please try again.");
+            message.success("Payment cancel successfully");
             navigate("/Cart");
           })
           .catch((error) => {
