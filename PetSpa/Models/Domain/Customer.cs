@@ -14,7 +14,7 @@ namespace PetSpa.Models.Domain
         public string CusRank { get; set; } = null!;
         public decimal TotalSpent { get; set; } = 0;
         public string? Banking { get; set; } 
-        public virtual List<Payment> Payments { get; set; } = new List<Payment>();
+        public virtual List<Payment> Payments { get; set; } = new List<Payment>();  
         public virtual ApplicationUser User { get; set; } = null!;
         public virtual List<Booking> Bookings { get; set; } = new List<Booking>();
         public virtual List<Pet> Pets { get; set; } = new List<Pet>();

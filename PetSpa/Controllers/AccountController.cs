@@ -41,7 +41,7 @@ namespace PetSpa.Controllers
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                if (roles.Contains("Staff") || roles.Contains("Customer") || roles.Contains("Manager"))
+                if (roles.Contains("Staff") || roles.Contains("Customer") || roles.Contains("Manager") || roles.Contains("Admin"))
                 {
                     filteredUsers.Add(user); // Thêm vào danh sách đã lọc
                 }

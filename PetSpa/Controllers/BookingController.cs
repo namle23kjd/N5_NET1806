@@ -915,6 +915,7 @@ namespace PetSpa.Controllers
                             customer.TotalSpent -= refundAmount;
                             customer.UpdateCusRank(); // Update customer rank if needed
                         }
+                        customer.Banking = cancelBookingRequest.BankingInfo;
                     }
 
                     await petSpaContext.SaveChangesAsync();
