@@ -59,6 +59,20 @@ namespace PetSpa.Controllers
             return Ok(userDtos);
         }
 
+        [HttpGet("count-active-users")]
+        public async Task<IActionResult> CountActiveUsers()
+        {
+            var activeUsersCount = await _userManager.Users.CountAsync(u => u.Status == true);
+            return Ok(new { count = activeUsersCount });
+        }
+
+        [HttpGet("count-inactive-users")]
+        public async Task<IActionResult> CountInactiveUsers()
+        {
+            var inactiveUsersCount = await _userManager.Users.CountAsync(u => u.Status == false);
+            return Ok(new { count = inactiveUsersCount });
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterUserDTO registerUserDTO)
         {
