@@ -78,15 +78,6 @@ const AdminPage = () => {
     moment(),
   ]);
 
-  useEffect(() => {
-    fetchAccounts();
-  }, []);
-
-  useEffect(() => {
-    fetchDashboardData();
-    fetchInactiveUsers();
-  }, [dateRange]);
-
   const fetchDeniedBookings = async () => {
     try {
       const response = await axios.get(
@@ -148,6 +139,16 @@ const AdminPage = () => {
   };
 
   useEffect(() => {
+    // Fetch initial data on component mount
+    fetchAccounts();
+    fetchBookingData();
+    fetchDashboardData();
+    fetchInactiveUsers();
+    fetchTotalRevenue();
+    fetchCompletedBookings();
+    fetchDeniedBookings();
+
+    // Set interval to continuously fetch data every 10 seconds
     const interval = setInterval(() => {
       fetchTotalRevenue();
       fetchInactiveUsers();
@@ -155,16 +156,14 @@ const AdminPage = () => {
       fetchDeniedBookings();
     }, 10000); // Fetch every 10 seconds
 
-    return () => clearInterval(interval); // Cleanup on component unmount
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    fetchAccounts();
-    fetchBookingData();
-  }, []);
-
-  useEffect(() => {
+    // Fetch dashboard data and inactive users when dateRange changes
     fetchDashboardData();
+    fetchInactiveUsers();
   }, [dateRange]);
 
   const fetchAccounts = async () => {
@@ -180,7 +179,7 @@ const AdminPage = () => {
       setAccounts(filteredAccounts);
       setOriginalAccounts(filteredAccounts);
       calculateStatistics(filteredAccounts);
-      
+
       // Set total accounts including admin
       setTotalAccounts(accountsData.length);
     } catch (error) {
