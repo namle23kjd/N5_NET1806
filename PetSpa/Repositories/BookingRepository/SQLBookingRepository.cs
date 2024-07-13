@@ -278,7 +278,7 @@ namespace PetSpa.Repositories.BookingRepository
             .Join(dbContext.Bookings,
                 payment => payment.PaymentId,
                 booking => booking.PaymentId,
-                (payment, booking) => booking.TotalAmount ?? 0)
+                (payment, booking) => payment.TotalPayment ?? 0)
             .SumAsync();
         }
 

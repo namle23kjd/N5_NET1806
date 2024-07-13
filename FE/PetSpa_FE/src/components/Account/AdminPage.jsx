@@ -15,7 +15,7 @@ import {
   Popconfirm,
   Card,
   Col,
-  DatePicker
+  DatePicker,
 } from "antd";
 import {
   EditOutlined,
@@ -25,9 +25,16 @@ import {
   CloseCircleOutlined,
 } from "@ant-design/icons";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWallet, faUsers, faUserPlus, faServer, faTasks, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import moment from 'moment';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faWallet,
+  faUsers,
+  faUserPlus,
+  faServer,
+  faTasks,
+  faExclamationTriangle,
+} from "@fortawesome/free-solid-svg-icons";
+import moment from "moment";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -64,12 +71,58 @@ const AdminPage = () => {
     newUsers: 0,
     serverUptime: 0,
     toDoList: 0,
-    issues: 0
+    issues: 0,
   });
-  const [dateRange, setDateRange] = useState([moment().subtract(7, 'days'), moment()]);
+  const [dateRange, setDateRange] = useState([
+    moment().subtract(7, "days"),
+    moment(),
+  ]);
 
   useEffect(() => {
     fetchAccounts();
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [dateRange]);
+  const fetchBookingData = async () => {
+    try {
+      const response = await axios.get(
+        "https://localhost:7150/api/Booking/bookings/status-2"
+      );
+      const { count } = response.data.data;
+      setDashboardData((prevData) => ({
+        ...prevData,
+        issues: count,
+      }));
+    } catch (error) {
+      console.error("Error fetching booking data:", error);
+    }
+  };
+  const fetchTotalRevenue = async () => {
+    try {
+      const response = await axios.get(
+        "https://localhost:7150/api/Booking/total-revenue/from-start"
+      );
+      const { totalAmount } = response.data.data;
+      setDashboardData((prevData) => ({
+        ...prevData,
+        totalRevenue: totalAmount,
+      }));
+    } catch (error) {
+      console.error("Error fetching total revenue:", error);
+    }
+  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchTotalRevenue();
+    }, 10000); // Fetch every 10 seconds
+
+    return () => clearInterval(interval); // Cleanup on component unmount
+  }, []);
+  useEffect(() => {
+    fetchAccounts();
+    fetchBookingData();
   }, []);
 
   useEffect(() => {
@@ -99,9 +152,9 @@ const AdminPage = () => {
       const [startDate, endDate] = dateRange;
       const response = await axios.get("https://localhost:7150/api/Dashboard", {
         params: {
-          startDate: startDate.format('YYYY-MM-DD'),
-          endDate: endDate.format('YYYY-MM-DD')
-        }
+          startDate: startDate.format("YYYY-MM-DD"),
+          endDate: endDate.format("YYYY-MM-DD"),
+        },
       });
       setDashboardData(response.data);
     } catch (error) {
@@ -137,7 +190,8 @@ const AdminPage = () => {
       (account) => account.email === formData.email && account.id !== editId
     );
     const duplicateUserName = accounts.some(
-      (account) => account.userName === formData.userName && account.id !== editId
+      (account) =>
+        account.userName === formData.userName && account.id !== editId
     );
     const duplicatePhoneNumber = accounts.some(
       (account) =>
@@ -181,9 +235,16 @@ const AdminPage = () => {
         setIsEditing(false);
         setEditId(null);
       } else {
-        await axios.post("https://localhost:7150/api/Account/register", submitData);
+        await axios.post(
+          "https://localhost:7150/api/Account/register",
+          submitData
+        );
       }
-      message.success(isEditing ? "Account updated successfully" : "Account added successfully");
+      message.success(
+        isEditing
+          ? "Account updated successfully"
+          : "Account added successfully"
+      );
       setFormData({
         userName: "",
         email: "",
@@ -214,7 +275,9 @@ const AdminPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://localhost:7150/api/Account/delete-account/${id}`);
+      await axios.delete(
+        `https://localhost:7150/api/Account/delete-account/${id}`
+      );
       message.success("Account deleted successfully");
       fetchAccounts();
     } catch (error) {
@@ -299,7 +362,8 @@ const AdminPage = () => {
       dataIndex: "phoneNumber",
       key: "phoneNumber",
       sorter: (a, b) => a.phoneNumber.localeCompare(b.phoneNumber),
-      sortOrder: sortedInfo.columnKey === "phoneNumber" ? sortedInfo.order : null,
+      sortOrder:
+        sortedInfo.columnKey === "phoneNumber" ? sortedInfo.order : null,
       ellipsis: true,
     },
     {
@@ -413,7 +477,9 @@ const AdminPage = () => {
               <Form.Item
                 label="Phone Number"
                 name="phoneNumber"
-                rules={[{ required: true, message: "Please enter phone number" }]}
+                rules={[
+                  { required: true, message: "Please enter phone number" },
+                ]}
               >
                 <Input
                   name="phoneNumber"
@@ -442,7 +508,9 @@ const AdminPage = () => {
                   <Form.Item
                     label="Full Name"
                     name="fullName"
-                    rules={[{ required: true, message: "Please enter full name" }]}
+                    rules={[
+                      { required: true, message: "Please enter full name" },
+                    ]}
                   >
                     <Input
                       name="fullName"
@@ -500,7 +568,10 @@ const AdminPage = () => {
               </Col>
               <Col span={12}>
                 <Row gutter={16}>
-                  <Col span={24} style={{ textAlign: 'right', marginBottom: '20px' }}>
+                  <Col
+                    span={24}
+                    style={{ textAlign: "right", marginBottom: "20px" }}
+                  >
                     <RangePicker
                       defaultValue={dateRange}
                       onChange={onDateChange}
@@ -512,14 +583,18 @@ const AdminPage = () => {
                     <Card
                       bordered={false}
                       style={{
-                        backgroundColor: '#D9FEE7',
-                        textAlign: 'center',
-                        marginBottom: '20px',
+                        backgroundColor: "#D9FEE7",
+                        textAlign: "center",
+                        marginBottom: "20px",
                       }}
                     >
-                      <FontAwesomeIcon icon={faWallet} size="2x" style={{ color: '#4CAF50' }} />
-                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                        ${dashboardData.totalRevenue}
+                      <FontAwesomeIcon
+                        icon={faWallet}
+                        size="2x"
+                        style={{ color: "#4CAF50" }}
+                      />
+                      <div style={{ fontSize: "24px", fontWeight: "bold" }}>
+                        ${dashboardData.totalRevenue.toLocaleString()}
                       </div>
                       <div>Total Revenue</div>
                     </Card>
@@ -528,14 +603,18 @@ const AdminPage = () => {
                     <Card
                       bordered={false}
                       style={{
-                        backgroundColor: '#FCE4EC',
-                        textAlign: 'center',
-                        marginBottom: '20px',
+                        backgroundColor: "#FCE4EC",
+                        textAlign: "center",
+                        marginBottom: "20px",
                       }}
                     >
-                      <FontAwesomeIcon icon={faUsers} size="2x" style={{ color: '#F06292' }} />
-                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                        {dashboardData.totalUsers}
+                      <FontAwesomeIcon
+                        icon={faUsers}
+                        size="2x"
+                        style={{ color: "#F06292" }}
+                      />
+                      <div style={{ fontSize: "24px", fontWeight: "bold" }}>
+                        {totalAccounts}
                       </div>
                       <div>Total Users</div>
                     </Card>
@@ -546,13 +625,17 @@ const AdminPage = () => {
                     <Card
                       bordered={false}
                       style={{
-                        backgroundColor: '#FFF3E0',
-                        textAlign: 'center',
-                        marginBottom: '20px',
+                        backgroundColor: "#FFF3E0",
+                        textAlign: "center",
+                        marginBottom: "20px",
                       }}
                     >
-                      <FontAwesomeIcon icon={faUserPlus} size="2x" style={{ color: '#FFA726' }} />
-                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                      <FontAwesomeIcon
+                        icon={faUserPlus}
+                        size="2x"
+                        style={{ color: "#FFA726" }}
+                      />
+                      <div style={{ fontSize: "24px", fontWeight: "bold" }}>
                         {dashboardData.newUsers}
                       </div>
                       <div>New Users</div>
@@ -562,16 +645,20 @@ const AdminPage = () => {
                     <Card
                       bordered={false}
                       style={{
-                        backgroundColor: '#E3F2FD',
-                        textAlign: 'center',
-                        marginBottom: '20px',
+                        backgroundColor: "#E3F2FD",
+                        textAlign: "center",
+                        marginBottom: "20px",
                       }}
                     >
-                      <FontAwesomeIcon icon={faServer} size="2x" style={{ color: '#42A5F5' }} />
-                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                        {dashboardData.serverUptime} days
+                      <FontAwesomeIcon
+                        icon={faServer}
+                        size="2x"
+                        style={{ color: "#42A5F5" }}
+                      />
+                      <div style={{ fontSize: "24px", fontWeight: "bold" }}>
+                        {dashboardData.issues}
                       </div>
-                      <div>Server Uptime</div>
+                      <div>Cancel</div>
                     </Card>
                   </Col>
                 </Row>
@@ -580,13 +667,17 @@ const AdminPage = () => {
                     <Card
                       bordered={false}
                       style={{
-                        backgroundColor: '#EDE7F6',
-                        textAlign: 'center',
-                        marginBottom: '20px',
+                        backgroundColor: "#EDE7F6",
+                        textAlign: "center",
+                        marginBottom: "20px",
                       }}
                     >
-                      <FontAwesomeIcon icon={faTasks} size="2x" style={{ color: '#7E57C2' }} />
-                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                      <FontAwesomeIcon
+                        icon={faTasks}
+                        size="2x"
+                        style={{ color: "#7E57C2" }}
+                      />
+                      <div style={{ fontSize: "24px", fontWeight: "bold" }}>
                         {dashboardData.toDoList} tasks
                       </div>
                       <div>To Do List</div>
@@ -596,13 +687,17 @@ const AdminPage = () => {
                     <Card
                       bordered={false}
                       style={{
-                        backgroundColor: '#FFEBEE',
-                        textAlign: 'center',
-                        marginBottom: '20px',
+                        backgroundColor: "#FFEBEE",
+                        textAlign: "center",
+                        marginBottom: "20px",
                       }}
                     >
-                      <FontAwesomeIcon icon={faExclamationTriangle} size="2x" style={{ color: '#EF5350' }} />
-                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                      <FontAwesomeIcon
+                        icon={faExclamationTriangle}
+                        size="2x"
+                        style={{ color: "#EF5350" }}
+                      />
+                      <div style={{ fontSize: "24px", fontWeight: "bold" }}>
                         {dashboardData.issues}
                       </div>
                       <div>Issues</div>
