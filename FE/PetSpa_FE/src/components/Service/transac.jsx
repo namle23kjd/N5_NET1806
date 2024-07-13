@@ -122,7 +122,9 @@ const Transac = () => {
 
             return {
               ...transaction,
-              bookingDetails,
+              bookingDetails: bookingDetails.sort((a, b) =>
+                moment(a.scheduleDate).isAfter(moment(b.scheduleDate)) ? 1 : -1
+              ),
             };
           })
         );
