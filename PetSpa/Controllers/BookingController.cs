@@ -549,7 +549,12 @@ namespace PetSpa.Controllers
             {
                 var completedBookings = await bookingRepository.GetCompletedBookingsAsync();
                 var completedBookingDTOs = mapper.Map<List<BookingDTO>>(completedBookings);
-                return Ok(apiResponseService.CreateSuccessResponse(completedBookingDTOs, "Completed bookings retrieved successfully"));
+                var response = new
+                {
+                    Count = completedBookingDTOs.Count,
+                    Bookings = completedBookingDTOs
+                };
+                return Ok(apiResponseService.CreateSuccessResponse(response, "Completed bookings retrieved successfully"));
             }
             catch (Exception ex)
             {
@@ -988,7 +993,13 @@ namespace PetSpa.Controllers
                 StaffName = b.BookingDetails.FirstOrDefault()?.Staff?.FullName ?? "Unknown",
                 CheckAccept = (CheckAccpectStatus)b.CheckAccept
             }).ToList();
-            return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Not accepted bookings retrieved successfully"));
+            var response = new
+            {
+                Count = bookingDtos.Count,
+                Bookings = bookingDtos
+            };
+
+            return Ok(apiResponseService.CreateSuccessResponse(response, "Not accepted bookings retrieved successfully"));
         }
 
 
@@ -1011,7 +1022,13 @@ namespace PetSpa.Controllers
                     StaffName = b.BookingDetails.FirstOrDefault()?.Staff?.FullName ?? "Unknown",
                     CheckAccept = b.CheckAccept
                 }).ToList();
-                return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Denied bookings for staff retrieved successfully"));
+                var response = new
+                {
+                    Count = bookingDtos.Count,
+                    Bookings = bookingDtos
+                };
+
+                return Ok(apiResponseService.CreateSuccessResponse(response, "Denied bookings for staff retrieved successfully"));
             }
             catch (Exception ex)
             {
@@ -1039,7 +1056,13 @@ namespace PetSpa.Controllers
                 CheckAccept = (CheckAccpectStatus)b.CheckAccept
             }).ToList();
 
-            return Ok(apiResponseService.CreateSuccessResponse(bookingDtos, "Status 2 bookings retrieved successfully"));
+            var response = new
+            {
+                Count = bookingDtos.Count,
+                Bookings = bookingDtos
+            };
+
+            return Ok(apiResponseService.CreateSuccessResponse(response, "Status 2 bookings retrieved successfully"));
         }
 
     }    
