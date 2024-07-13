@@ -549,7 +549,12 @@ namespace PetSpa.Controllers
             {
                 var completedBookings = await bookingRepository.GetCompletedBookingsAsync();
                 var completedBookingDTOs = mapper.Map<List<BookingDTO>>(completedBookings);
-                return Ok(apiResponseService.CreateSuccessResponse(completedBookingDTOs, "Completed bookings retrieved successfully"));
+                var response = new
+                {
+                    Count = completedBookingDTOs.Count,
+                    Bookings = completedBookingDTOs
+                };
+                return Ok(apiResponseService.CreateSuccessResponse(response, "Completed bookings retrieved successfully"));
             }
             catch (Exception ex)
             {
