@@ -86,6 +86,7 @@ const AdminPage = () => {
     fetchDashboardData();
     fetchInactiveUsers();
   }, [dateRange]);
+
   const fetchDeniedBookings = async () => {
     try {
       const response = await axios.get(
@@ -100,6 +101,7 @@ const AdminPage = () => {
       console.error("Error fetching denied bookings:", error);
     }
   };
+
   const fetchBookingData = async () => {
     try {
       const response = await axios.get(
@@ -114,6 +116,7 @@ const AdminPage = () => {
       console.error("Error fetching booking data:", error);
     }
   };
+
   const fetchTotalRevenue = async () => {
     try {
       const response = await axios.get(
@@ -128,6 +131,7 @@ const AdminPage = () => {
       console.error("Error fetching total revenue:", error);
     }
   };
+
   const fetchCompletedBookings = async () => {
     try {
       const response = await axios.get(
@@ -142,6 +146,7 @@ const AdminPage = () => {
       console.error("Error fetching completed bookings:", error);
     }
   };
+
   useEffect(() => {
     const interval = setInterval(() => {
       fetchTotalRevenue();
@@ -152,6 +157,7 @@ const AdminPage = () => {
 
     return () => clearInterval(interval); // Cleanup on component unmount
   }, []);
+
   useEffect(() => {
     fetchAccounts();
     fetchBookingData();
@@ -174,6 +180,9 @@ const AdminPage = () => {
       setAccounts(filteredAccounts);
       setOriginalAccounts(filteredAccounts);
       calculateStatistics(filteredAccounts);
+      
+      // Set total accounts including admin
+      setTotalAccounts(accountsData.length);
     } catch (error) {
       console.error(error);
     }
@@ -193,6 +202,7 @@ const AdminPage = () => {
       console.error(error);
     }
   };
+
   const fetchInactiveUsers = async () => {
     try {
       const response = await axios.get(
@@ -586,7 +596,7 @@ const AdminPage = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <div>
-                  <p>Total Accounts: {totalAccounts}</p>
+                  <p>Total Accounts (including admin): {totalAccounts}</p>
                   <PieChart width={500} height={400}>
                     <Pie
                       data={data}
@@ -662,7 +672,7 @@ const AdminPage = () => {
                       <div style={{ fontSize: "24px", fontWeight: "bold" }}>
                         {totalAccounts}
                       </div>
-                      <div>Total Users</div>
+                      <div>Total Users (including admin)</div>
                     </Card>
                   </Col>
                 </Row>
@@ -687,7 +697,6 @@ const AdminPage = () => {
                       <div>Banned Accounts</div>
                     </Card>
                   </Col>
-
                   <Col span={12}>
                     <Card
                       bordered={false}
@@ -730,7 +739,6 @@ const AdminPage = () => {
                       <div>Completed Bookings</div>
                     </Card>
                   </Col>
-
                   <Col span={12}>
                     <Card
                       bordered={false}
