@@ -476,6 +476,32 @@ const Transac = () => {
       message.error(error.response?.data || "Failed to submit feedback.");
     }
   };
+  const fetchCustomerData = async () => {
+    const userInfoString = localStorage.getItem("user-info");
+    const userInfo = JSON.parse(userInfoString);
+
+    try {
+      const response = await axios.get(
+        `https://localhost:7150/api/Customer/${userInfo.data.user.id}`
+      );
+      const customerData = response.data.data;
+      console.log(customerData);
+      if (customerData.banking) {
+        const [bankName, cardNumber] = customerData.banking.split(" ");
+        setBankName(bankName);
+        setCardNumber(cardNumber);
+        console.log(bankName + cardNumber);
+      }
+    } catch (error) {
+      console.error("Error fetching customer data:", error);
+      message.error("Failed to fetch customer data.");
+    }
+  };
+  useEffect(() => {
+    if (isRefundModalOpen) {
+      fetchCustomerData();
+    }
+  }, [isRefundModalOpen]);
 
   const handleRefund = async () => {
     const userInfoString = localStorage.getItem("user-info");
@@ -489,11 +515,10 @@ const Transac = () => {
 
     try {
       const response = await axios.post(
-        `https://localhost:7150/api/Booking/cancel-booking`,
+        `https://localhost:7150/api/Booking/refund-booking`,
         {
           bookingId: selectedProduct.bookingId,
-          bankName,
-          cardNumber,
+          bankingInfo: `${bankName} ${cardNumber}`,
         },
         {
           headers: {
@@ -988,14 +1013,26 @@ const Transac = () => {
           onCancel={() => setIsRefundModalOpen(false)}
           onOk={handleRefund}
         >
-          <Form layout="vertical">
-            <Form.Item label="Bank Name" required>
+          <Form
+            layout="vertical"
+            onFinish={handleRefund}
+            initialValues={{ bankName, cardNumber }}
+          >
+            <Form.Item
+              label="Bank Name"
+              name="bankName"
+              rules={[{ required: true, message: "Please enter bank name" }]}
+            >
               <Input
                 value={bankName}
                 onChange={(e) => setBankName(e.target.value)}
               />
             </Form.Item>
-            <Form.Item label="Card Number" required>
+            <Form.Item
+              label="Card Number"
+              name="cardNumber"
+              rules={[{ required: true, message: "Please enter card number" }]}
+            >
               <Input
                 value={cardNumber}
                 onChange={(e) => setCardNumber(e.target.value)}

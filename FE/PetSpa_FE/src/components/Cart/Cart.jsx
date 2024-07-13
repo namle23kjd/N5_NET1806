@@ -416,10 +416,10 @@ function Cart() {
 
         let percentage = 0;
         if (item.comboDetails) {
-          percentage += 2; // Combo percentage
+          percentage += 3; // Combo percentage
         }
         if (item.period === 3) {
-          percentage += 3;
+          percentage += 2;
         } else if (item.period === 6) {
           percentage += 4;
         } else if (item.period === 9) {
