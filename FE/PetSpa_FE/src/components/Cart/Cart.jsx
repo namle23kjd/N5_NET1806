@@ -40,7 +40,6 @@ function Cart() {
   const [newDate, setNewDate] = useState(null);
 
   const [staffList, setStaffList] = useState([]);
-
   const [selectedStaffId, setSelectedStaffId] = useState([]);
 
   const fetchStaff = async () => {
@@ -353,6 +352,21 @@ function Cart() {
     handleHideModal();
     form.resetFields();
   }
+  const checkServiceStatus = async (serviceId) => {
+    try {
+      const response = await axios.get("https://localhost:7150/api/Service");
+      const serviceList = response.data.data;
+      for (const item of serviceList.data) {
+        console.log(item.serviceId + "huhu");
+        if (item.serviceId === serviceId && !item.status) {
+          return item.serviceName;
+        }
+      }
+    } catch (error) {
+      message.error("Failed to fetch services");
+    }
+    return null;
+  };
 
   async function handleBooking() {
     let userInfo;
@@ -364,7 +378,6 @@ function Cart() {
       userInfo = JSON.parse(userInfoString);
     } catch (error) {
       console.error("Error parsing user info:", error);
-
       message.error("Invalid user information. Please log in again.");
       return;
     }
@@ -393,6 +406,26 @@ function Cart() {
 
     for (let item of cart) {
       if (item.selected) {
+        const result = await checkServiceStatus(item.serviceId);
+        if (result != null) {
+          message.error(
+            `Service-${result} is not available,Please choice others`
+          );
+          return;
+        }
+
+        let percentage = 0;
+        if (item.comboDetails) {
+          percentage += 2; // Combo percentage
+        }
+        if (item.period === 3) {
+          percentage += 3;
+        } else if (item.period === 6) {
+          percentage += 4;
+        } else if (item.period === 9) {
+          percentage += 6;
+        }
+
         if (item.comboDetails && item.period === 1) {
           bookingPromises.push({
             cusId: userId,
@@ -405,6 +438,7 @@ function Cart() {
               status: true,
               comboType: "string",
             })),
+            percentage,
           });
         } else if (item.comboDetails && item.period > 1) {
           for (let i = 0; i < item.period; i++) {
@@ -423,6 +457,7 @@ function Cart() {
                 status: true,
                 comboType: "string",
               })),
+              percentage,
             });
           }
         } else if (item.period > 1) {
@@ -444,6 +479,7 @@ function Cart() {
                   comboType: "string",
                 },
               ],
+              percentage,
             });
           }
         } else {
@@ -460,6 +496,7 @@ function Cart() {
                 comboType: "string",
               },
             ],
+            percentage,
           });
         }
       }
@@ -479,12 +516,18 @@ function Cart() {
 
       const bookingCodes = responses
         .filter((response) => response)
-        .map((response) => response.data.data.bookingId);
+        .map((response, index) => {
+          const percentage = bookingPromises[index].percentage || 0;
+          return {
+            code: response.data.data.bookingId,
+            percentage,
+          };
+        });
 
       if (bookingCodes.length > 0) {
         const paymentRequest = {
           cusId: userInfo?.data?.user?.id,
-          bookingIds: bookingCodes,
+          bookingIds: bookingCodes.map((booking) => booking.code),
           orderType: "string",
           amount: calculateSubtotal(),
           orderDescription: "string",
@@ -506,11 +549,16 @@ function Cart() {
           if (paymentResponse.status === 200 && paymentResponse.data) {
             const existingBookings =
               JSON.parse(localStorage.getItem("checkBookings")) || [];
-            const newBookings = bookingCodes.map((code) => ({
-              code,
-              expiry: new Date().getTime() + 24 * 60 * 60 * 1000,
-            }));
-            const updatedBookings = [...existingBookings, ...newBookings];
+            const updatedBookings = bookingCodes.reduce((acc, booking) => {
+              const existingBooking = acc.find((b) => b.code === booking.code);
+              if (existingBooking) {
+                existingBooking.percentage += booking.percentage;
+              } else {
+                acc.push(booking);
+              }
+              return acc;
+            }, existingBookings);
+
             localStorage.setItem(
               "checkBookings",
               JSON.stringify(updatedBookings)
@@ -593,6 +641,28 @@ function Cart() {
       );
       return productsWithStaffNames;
     };
+    const applyDiscounts = async (bookingCodes) => {
+      const discountApiUrl =
+        "https://localhost:7150/api/Booking/apply-discount";
+      for (let booking of bookingCodes) {
+        await axios
+          .put(`${discountApiUrl}/${booking.code}/${booking.percentage}`)
+          .then((response) => {
+            console.log(
+              `Discount applied to booking ${
+                booking.code + booking.percentage
+              }:`,
+              response.data
+            );
+          })
+          .catch((error) => {
+            console.error(
+              `Error applying discount to booking ${booking.code}:`,
+              error
+            );
+          });
+      }
+    };
 
     const handleProductsUpdate = async (products) => {
       const productsWithStaffNames = await fetchAllStaffNames(products);
@@ -600,9 +670,8 @@ function Cart() {
         (a, b) => new Date(a.date) - new Date(b.date)
       );
       setProducts(productsWithStaffNames);
-      console.log(productsWithStaffNames);
     };
-    console.log(responseCode);
+
     if (responseCode != null) {
       if (responseCode === "00") {
         const selectedProducts =
@@ -620,7 +689,12 @@ function Cart() {
             )
         );
         handleProductsUpdate(updatedProducts);
+
         localStorage.setItem("cart", JSON.stringify(updatedProducts));
+        const bookingCodes =
+          JSON.parse(localStorage.getItem("checkBookings")) || [];
+        applyDiscounts(bookingCodes);
+        localStorage.removeItem("checkBookings");
         navigate("/Cart");
         setCurrentStep(2);
         message.success("Payment successful and items removed from cart.");
@@ -628,15 +702,16 @@ function Cart() {
         console.log(vnpTxnRef);
         const products = JSON.parse(localStorage.getItem("cart")) || [];
         localStorage.removeItem("selectedProducts");
-
+        localStorage.removeItem("checkBookings");
         handleProductsUpdate(products);
         axios
           .delete(
-            `https://localhost:7150/api/Payments?transactionId=${vnpTxnRef}`
+            `https://localhost:7150/api/Payments/transaction/${vnpTxnRef}`
           )
+
           .then((response) => {
             console.log("Payment failure data:", response.data);
-            message.error("Payment failed. Please try again.");
+            message.success("Payment cancel successfully");
             navigate("/Cart");
           })
           .catch((error) => {

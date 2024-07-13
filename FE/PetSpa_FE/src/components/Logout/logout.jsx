@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const Logout = () => {
   const navigate = useNavigate();
@@ -6,8 +6,9 @@ const Logout = () => {
     // Assuming you clear user info from localStorage or session storage
     localStorage.removeItem("user-info");
     localStorage.removeItem("cart");
+    localStorage.removeItem("checkBookings");
     // Redirect to login page after logout
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
