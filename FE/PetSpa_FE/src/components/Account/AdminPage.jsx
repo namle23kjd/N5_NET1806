@@ -649,8 +649,12 @@ const AdminPage = () => {
                         style={{ color: "#4CAF50" }}
                       />
                       <div style={{ fontSize: "24px", fontWeight: "bold" }}>
-                        ${dashboardData.totalRevenue.toLocaleString()}
+                        {dashboardData.totalRevenue.toLocaleString("vi-VN", {
+                          style: "currency",
+                          currency: "VND",
+                        })}
                       </div>
+
                       <div>Total Revenue</div>
                     </Card>
                   </Col>
@@ -700,28 +704,6 @@ const AdminPage = () => {
                     <Card
                       bordered={false}
                       style={{
-                        backgroundColor: "#E3F2FD",
-                        textAlign: "center",
-                        marginBottom: "20px",
-                      }}
-                    >
-                      <FontAwesomeIcon
-                        icon={faServer}
-                        size="2x"
-                        style={{ color: "#42A5F5" }}
-                      />
-                      <div style={{ fontSize: "24px", fontWeight: "bold" }}>
-                        {dashboardData.issues}
-                      </div>
-                      <div>Cancel</div>
-                    </Card>
-                  </Col>
-                </Row>
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Card
-                      bordered={false}
-                      style={{
                         backgroundColor: "#EDE7F6",
                         textAlign: "center",
                         marginBottom: "20px",
@@ -736,6 +718,28 @@ const AdminPage = () => {
                         {dashboardData.completedBookings} tasks
                       </div>
                       <div>Completed Bookings</div>
+                    </Card>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Card
+                      bordered={false}
+                      style={{
+                        backgroundColor: "#E3F2FD",
+                        textAlign: "center",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faServer}
+                        size="2x"
+                        style={{ color: "#42A5F5" }}
+                      />
+                      <div style={{ fontSize: "24px", fontWeight: "bold" }}>
+                        {dashboardData.issues}
+                      </div>
+                      <div>Cancel Bookings</div>
                     </Card>
                   </Col>
                   <Col span={12}>
