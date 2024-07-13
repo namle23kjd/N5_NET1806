@@ -13,6 +13,9 @@ import {
   Modal,
   message,
   Popconfirm,
+  Card,
+  Col,
+  DatePicker
 } from "antd";
 import {
   EditOutlined,
@@ -22,10 +25,14 @@ import {
   CloseCircleOutlined,
 } from "@ant-design/icons";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWallet, faUsers, faUserPlus, faServer, faTasks, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import moment from 'moment';
 
 const { Option } = Select;
 const { Title } = Typography;
 const { Content } = Layout;
+const { RangePicker } = DatePicker;
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AF19FF"];
 
@@ -51,10 +58,23 @@ const AdminPage = () => {
   const [totalAccounts, setTotalAccounts] = useState(0);
   const [rolePercentages, setRolePercentages] = useState({});
   const [showDashboard, setShowDashboard] = useState(false);
+  const [dashboardData, setDashboardData] = useState({
+    totalRevenue: 0,
+    totalUsers: 0,
+    newUsers: 0,
+    serverUptime: 0,
+    toDoList: 0,
+    issues: 0
+  });
+  const [dateRange, setDateRange] = useState([moment().subtract(7, 'days'), moment()]);
 
   useEffect(() => {
     fetchAccounts();
   }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [dateRange]);
 
   const fetchAccounts = async () => {
     try {
@@ -69,6 +89,21 @@ const AdminPage = () => {
       setAccounts(filteredAccounts);
       setOriginalAccounts(filteredAccounts);
       calculateStatistics(filteredAccounts);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchDashboardData = async () => {
+    try {
+      const [startDate, endDate] = dateRange;
+      const response = await axios.get("https://localhost:7150/api/Dashboard", {
+        params: {
+          startDate: startDate.format('YYYY-MM-DD'),
+          endDate: endDate.format('YYYY-MM-DD')
+        }
+      });
+      setDashboardData(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -236,6 +271,10 @@ const AdminPage = () => {
       );
       setAccounts(filteredData);
     }
+  };
+
+  const onDateChange = (dates) => {
+    setDateRange(dates);
   };
 
   const columns = [
@@ -430,30 +469,148 @@ const AdminPage = () => {
         {showDashboard && (
           <div style={{ marginBottom: "20px" }}>
             <Title level={4}>Dashboard</Title>
-            <p>Total Accounts: {totalAccounts}</p>
-            <PieChart width={1000} height={400}>
-              <Pie
-                data={data}
-                cx={500}
-                cy={200}
-                labelLine={false}
-                label={({ name, percent }) =>
-                  `${name}: ${(percent * 100).toFixed(2)}%`
-                }
-                outerRadius={150}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {data.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
+            <Row gutter={16}>
+              <Col span={12}>
+                <div>
+                  <p>Total Accounts: {totalAccounts}</p>
+                  <PieChart width={500} height={400}>
+                    <Pie
+                      data={data}
+                      cx={250}
+                      cy={200}
+                      labelLine={false}
+                      label={({ name, percent }) =>
+                        `${name}: ${(percent * 100).toFixed(2)}%`
+                      }
+                      outerRadius={150}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {data.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </div>
+              </Col>
+              <Col span={12}>
+                <Row gutter={16}>
+                  <Col span={24} style={{ textAlign: 'right', marginBottom: '20px' }}>
+                    <RangePicker
+                      defaultValue={dateRange}
+                      onChange={onDateChange}
+                    />
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Card
+                      bordered={false}
+                      style={{
+                        backgroundColor: '#D9FEE7',
+                        textAlign: 'center',
+                        marginBottom: '20px',
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faWallet} size="2x" style={{ color: '#4CAF50' }} />
+                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                        ${dashboardData.totalRevenue}
+                      </div>
+                      <div>Total Revenue</div>
+                    </Card>
+                  </Col>
+                  <Col span={12}>
+                    <Card
+                      bordered={false}
+                      style={{
+                        backgroundColor: '#FCE4EC',
+                        textAlign: 'center',
+                        marginBottom: '20px',
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faUsers} size="2x" style={{ color: '#F06292' }} />
+                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                        {dashboardData.totalUsers}
+                      </div>
+                      <div>Total Users</div>
+                    </Card>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Card
+                      bordered={false}
+                      style={{
+                        backgroundColor: '#FFF3E0',
+                        textAlign: 'center',
+                        marginBottom: '20px',
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faUserPlus} size="2x" style={{ color: '#FFA726' }} />
+                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                        {dashboardData.newUsers}
+                      </div>
+                      <div>New Users</div>
+                    </Card>
+                  </Col>
+                  <Col span={12}>
+                    <Card
+                      bordered={false}
+                      style={{
+                        backgroundColor: '#E3F2FD',
+                        textAlign: 'center',
+                        marginBottom: '20px',
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faServer} size="2x" style={{ color: '#42A5F5' }} />
+                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                        {dashboardData.serverUptime} days
+                      </div>
+                      <div>Server Uptime</div>
+                    </Card>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Card
+                      bordered={false}
+                      style={{
+                        backgroundColor: '#EDE7F6',
+                        textAlign: 'center',
+                        marginBottom: '20px',
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faTasks} size="2x" style={{ color: '#7E57C2' }} />
+                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                        {dashboardData.toDoList} tasks
+                      </div>
+                      <div>To Do List</div>
+                    </Card>
+                  </Col>
+                  <Col span={12}>
+                    <Card
+                      bordered={false}
+                      style={{
+                        backgroundColor: '#FFEBEE',
+                        textAlign: 'center',
+                        marginBottom: '20px',
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faExclamationTriangle} size="2x" style={{ color: '#EF5350' }} />
+                      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                        {dashboardData.issues}
+                      </div>
+                      <div>Issues</div>
+                    </Card>
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
           </div>
         )}
         <Space style={{ marginBottom: 16 }}>
