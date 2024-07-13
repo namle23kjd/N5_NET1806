@@ -130,6 +130,39 @@ namespace PetSpa.Controllers
             return Ok(apiResponseService.CreateSuccessResponse(bookingDTO, "Booking created successfully"));
         }
 
+        [HttpPut("apply-discount/{bookingId:Guid}/{discountPercentage:decimal}")]
+        public async Task<IActionResult> ApplyDiscount([FromRoute] Guid bookingId, [FromRoute] decimal discountPercentage)
+        {
+            if (discountPercentage < 0 || discountPercentage > 10)
+            {
+                return apiResponseService.CreateBadRequestResponse("Invalid discount percentage. It must be between 0 and 100.");
+            }
+
+            var booking = await bookingRepository.GetByIdAsync(bookingId);
+            if (booking == null)
+            {
+                return NotFound(apiResponseService.CreateErrorResponse("Booking not found."));
+            }
+
+            if (booking.TotalAmount == null)
+            {
+                return BadRequest(apiResponseService.CreateErrorResponse("Total amount for the booking is not set."));
+            }
+
+            // Apply discount
+            var discountAmount = booking.TotalAmount.Value * (discountPercentage / 100);
+            booking.TotalAmount -= discountAmount;
+
+            var updatedBooking = await bookingRepository.UpdateAsync(bookingId, booking);
+            if (updatedBooking == null)
+            {
+                return BadRequest(apiResponseService.CreateErrorResponse("Failed to update booking."));
+            }
+
+            var bookingDTO = mapper.Map<BookingDTO>(updatedBooking);
+            return Ok(apiResponseService.CreateSuccessResponse(bookingDTO, "Discount applied successfully"));
+        }
+
         [HttpGet("available")]
         //
         //[Authorize]
