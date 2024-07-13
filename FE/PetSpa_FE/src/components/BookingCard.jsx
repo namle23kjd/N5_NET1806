@@ -253,11 +253,11 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
         item.selectStaffId === selectStaffId &&
         item.date === date.format("YYYY-MM-DDTHH:mm:ss")
     );
-    // const now = moment();
-    // if (date.diff(now, "hours") < 1) {
-    //   message.warning("The booking time must be at least one hour from now.");
-    //   return;
-    // }
+    const now = moment();
+    if (date.diff(now, "hours") < 1) {
+      message.warning("The booking time must be at least one hour from now.");
+      return;
+    }
     if (isAlreadyStaff) {
       message.warning("The staff has been booked during this time.");
       return;

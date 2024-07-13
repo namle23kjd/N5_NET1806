@@ -367,7 +367,6 @@ const Transac = () => {
           );
 
           if (updateResponse.status === 200) {
-            console.log("Booking time updated successfully.");
             message.success("Booking time updated successfully.");
             const staffName = selectedStaffId
               ? await fetchStaffName(selectedStaffId)
@@ -382,6 +381,7 @@ const Transac = () => {
                         ...item,
                         scheduleDate: newDate.format("YYYY-MM-DD HH:mm:ss"),
                         staffName: staffName,
+                        staffId: selectedStaffId || item.staffId, // Ensure staffId is updated or added
                       }
                     : item
                 ),
@@ -417,15 +417,13 @@ const Transac = () => {
           navigate("/login");
         } else {
           console.error("Error response:", error.response.data);
-          message.error(
-            error.response.data || "An error occurred."
-          );
+          message.error(error.response.data || "An error occurred.");
           //setError(error.response.data|| "An error occurred.");
         }
       } else {
         console.error("Error:", error);
         message.error("An unexpected error occurred.");
-       // setError("An unexpected error occurred.");
+        // setError("An unexpected error occurred.");
       }
     }
     setIsLoading(false);
@@ -473,9 +471,7 @@ const Transac = () => {
       }
     } catch (error) {
       console.error("Error submitting feedback:", error);
-      message.error(
-        error.response?.data || "Failed to submit feedback."
-      );
+      message.error(error.response?.data || "Failed to submit feedback.");
     }
   };
 
@@ -518,7 +514,8 @@ const Transac = () => {
                 ? { ...item, status: 2 }
                 : item
             ),
-          }});
+          };
+        });
         setDataSource(updatedDataSource);
 
         handleHideModal();
@@ -527,9 +524,7 @@ const Transac = () => {
       }
     } catch (error) {
       console.error("Error submitting refund request:", error);
-      message.error(
-        error.response?.data || "Failed to submit refund request."
-      );
+      message.error(error.response?.data || "Failed to submit refund request.");
     }
   };
 
@@ -769,7 +764,7 @@ const Transac = () => {
                             </div>
                           )}
                           <div className="font-size-sm text-body">
-                            <span>PetName: </span>
+                            <span>Pet Name: </span>
                             <span className="font-weight-bold">
                               {product.petName}
                             </span>
@@ -778,11 +773,13 @@ const Transac = () => {
                             <Form.Item label="Date" className="w-1/2">
                               <Space direction="vertical" className="w-full">
                                 <div className="w-full">
-                                  {product.scheduleDate
-                                    ? dayjs(product.scheduleDate).format(
-                                        "YYYY-MM-DD HH:mm:ss"
-                                      )
-                                    : "N/A"}
+                                  <strong>
+                                    {product.scheduleDate
+                                      ? dayjs(product.scheduleDate).format(
+                                          "YYYY-MM-DD HH:mm:ss"
+                                        )
+                                      : "N/A"}
+                                  </strong>
                                 </div>
                               </Space>
                             </Form.Item>
@@ -801,14 +798,14 @@ const Transac = () => {
                               {getStatusLabel(product.status)}
                             </span>
                           </div>
-                          {product.status !== 2 &&(
+                          {product.status !== 2 && (
                             <div className="font-size-sm text-body">
-                            <span>Acceptance: </span>
-                            <span className="font-weight-bold">
-                              {getCheckAcceptLabel(product.checkAccept)}
-                            </span>
-                          </div>
-                          )}                        
+                              <span>Acceptance: </span>
+                              <span className="font-weight-bold">
+                                {getCheckAcceptLabel(product.checkAccept)}
+                              </span>
+                            </div>
+                          )}
                           {product.status === 1 && !product.feedback && (
                             <Button
                               type="button"
