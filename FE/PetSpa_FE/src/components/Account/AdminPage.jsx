@@ -84,7 +84,22 @@ const AdminPage = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchInactiveUsers();
   }, [dateRange]);
+  const fetchDeniedBookings = async () => {
+    try {
+      const response = await axios.get(
+        "https://localhost:7150/api/Booking/bookings/deny"
+      );
+      const { count } = response.data.data;
+      setDashboardData((prevData) => ({
+        ...prevData,
+        deniedBookings: count,
+      }));
+    } catch (error) {
+      console.error("Error fetching denied bookings:", error);
+    }
+  };
   const fetchBookingData = async () => {
     try {
       const response = await axios.get(
@@ -113,9 +128,26 @@ const AdminPage = () => {
       console.error("Error fetching total revenue:", error);
     }
   };
+  const fetchCompletedBookings = async () => {
+    try {
+      const response = await axios.get(
+        "https://localhost:7150/api/Booking/completed"
+      );
+      const { count } = response.data.data;
+      setDashboardData((prevData) => ({
+        ...prevData,
+        completedBookings: count,
+      }));
+    } catch (error) {
+      console.error("Error fetching completed bookings:", error);
+    }
+  };
   useEffect(() => {
     const interval = setInterval(() => {
       fetchTotalRevenue();
+      fetchInactiveUsers();
+      fetchCompletedBookings();
+      fetchDeniedBookings();
     }, 10000); // Fetch every 10 seconds
 
     return () => clearInterval(interval); // Cleanup on component unmount
@@ -159,6 +191,20 @@ const AdminPage = () => {
       setDashboardData(response.data);
     } catch (error) {
       console.error(error);
+    }
+  };
+  const fetchInactiveUsers = async () => {
+    try {
+      const response = await axios.get(
+        "https://localhost:7150/api/Account/count-inactive-users"
+      );
+      const { count } = response.data;
+      setDashboardData((prevData) => ({
+        ...prevData,
+        inactiveUsers: count,
+      }));
+    } catch (error) {
+      console.error("Error fetching inactive users:", error);
     }
   };
 
@@ -625,22 +671,23 @@ const AdminPage = () => {
                     <Card
                       bordered={false}
                       style={{
-                        backgroundColor: "#FFF3E0",
+                        backgroundColor: "#FCE4EC",
                         textAlign: "center",
                         marginBottom: "20px",
                       }}
                     >
                       <FontAwesomeIcon
-                        icon={faUserPlus}
+                        icon={faUsers}
                         size="2x"
-                        style={{ color: "#FFA726" }}
+                        style={{ color: "#F06292" }}
                       />
                       <div style={{ fontSize: "24px", fontWeight: "bold" }}>
-                        {dashboardData.newUsers}
+                        {dashboardData.inactiveUsers}
                       </div>
-                      <div>New Users</div>
+                      <div>Banned Accounts</div>
                     </Card>
                   </Col>
+
                   <Col span={12}>
                     <Card
                       bordered={false}
@@ -678,11 +725,12 @@ const AdminPage = () => {
                         style={{ color: "#7E57C2" }}
                       />
                       <div style={{ fontSize: "24px", fontWeight: "bold" }}>
-                        {dashboardData.toDoList} tasks
+                        {dashboardData.completedBookings} tasks
                       </div>
-                      <div>To Do List</div>
+                      <div>Completed Bookings</div>
                     </Card>
                   </Col>
+
                   <Col span={12}>
                     <Card
                       bordered={false}
@@ -698,9 +746,9 @@ const AdminPage = () => {
                         style={{ color: "#EF5350" }}
                       />
                       <div style={{ fontSize: "24px", fontWeight: "bold" }}>
-                        {dashboardData.issues}
+                        {dashboardData.deniedBookings}
                       </div>
-                      <div>Issues</div>
+                      <div>Denied Bookings</div>
                     </Card>
                   </Col>
                 </Row>
