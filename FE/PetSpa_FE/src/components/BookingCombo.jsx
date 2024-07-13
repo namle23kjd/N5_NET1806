@@ -75,13 +75,13 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
     let newPriceCombo = priceCurrent;
     switch (value) {
       case 3:
-        newPriceCombo = priceCurrent * 3 * 0.97; // 3 months, 3% discount
+        newPriceCombo = priceCurrent * 3 * 0.98; // 3 months, 3% discount
         break;
       case 6:
-        newPriceCombo = priceCurrent * 6 * 0.94; // 6 months, 6% discount
+        newPriceCombo = priceCurrent * 6 * 0.96; // 6 months, 6% discount
         break;
       case 9:
-        newPriceCombo = priceCurrent * 9 * 0.92; // 9 months, 8% discount
+        newPriceCombo = priceCurrent * 9 * 0.94; // 9 months, 8% discount
         break;
       default:
         newPriceCombo = priceCurrent; // Default to the initial price if value doesn't match
@@ -357,9 +357,9 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
                 className="w-full"
               >
                 <Option value={1}>1 time</Option>
-                <Option value={3}>3 months (3%)</Option>
-                <Option value={6}>6 months (6%)</Option>
-                <Option value={9}>9 months (8%)</Option>
+                <Option value={3}>3 months (2%)</Option>
+                <Option value={6}>6 months (4%)</Option>
+                <Option value={9}>9 months (6%)</Option>
               </Select>
             </Form.Item>
             <div className="w-1/2 text-right">

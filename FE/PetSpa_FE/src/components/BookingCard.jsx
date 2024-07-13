@@ -64,13 +64,13 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
 
     switch (value) {
       case 3:
-        newPriceCombo = priceCurrent * 3 * 0.97; // 3 tháng, giảm giá 3%
+        newPriceCombo = priceCurrent * 3 * 0.98; // 3 tháng, giảm giá 3%
         break;
       case 6:
-        newPriceCombo = priceCurrent * 6 * 0.94; // 6 tháng, giảm giá 6%
+        newPriceCombo = priceCurrent * 6 * 0.96; // 6 tháng, giảm giá 6%
         break;
       case 9:
-        newPriceCombo = priceCurrent * 9 * 0.92; // 9 tháng, giảm giá 8%
+        newPriceCombo = priceCurrent * 9 * 0.94; // 9 tháng, giảm giá 8%
         break;
       default:
         newPriceCombo = priceCurrent; // Mặc định trở về giá ban đầu nếu giá trị không khớp
@@ -425,9 +425,9 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
                 className="w-full"
               >
                 <Option value={1}>1 time</Option>
-                <Option value={3}>3 months (3%)</Option>
-                <Option value={6}>6 months (6%)</Option>
-                <Option value={9}>9 months (8%)</Option>
+                <Option value={3}>3 months (2%)</Option>
+                <Option value={6}>6 months (4%)</Option>
+                <Option value={9}>9 months (6%)</Option>
               </Select>
             </Form.Item>
             <div className="w-1/2 text-right">
