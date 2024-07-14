@@ -622,17 +622,7 @@ const AdminPage = () => {
                 </div>
               </Col>
               <Col span={12}>
-                <Row gutter={16}>
-                  <Col
-                    span={24}
-                    style={{ textAlign: "right", marginBottom: "20px" }}
-                  >
-                    <RangePicker
-                      defaultValue={dateRange}
-                      onChange={onDateChange}
-                    />
-                  </Col>
-                </Row>
+                
                 <Row gutter={16}>
                   <Col span={12}>
                     <Card
