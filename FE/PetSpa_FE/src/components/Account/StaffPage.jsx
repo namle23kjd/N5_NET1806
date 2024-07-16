@@ -54,7 +54,7 @@ const StaffPage = () => {
           `https://localhost:7150/api/Booking/staff-denied-bookings/${userId}`,
           { headers }
         );
-        console.log("Cancel Response:", cancelResponse.data.data);
+        console.log("Cancel Response:", cancelResponse.data.data.bookings);
 
         setTasks({
           todo: Array.isArray(todoResponse.data)
@@ -66,10 +66,11 @@ const StaffPage = () => {
           done: Array.isArray(doneResponse.data)
             ? mapApiResponse(doneResponse.data)
             : [],
-          cancel: Array.isArray(cancelResponse.data.data)
-            ? mapApiResponse(cancelResponse.data.data)
+          cancel: Array.isArray(cancelResponse.data.data.bookings)
+            ? mapApiResponse(cancelResponse.data.data.bookings)
             : [],
         });
+        console.log(tasks.cancel);
       } catch (error) {
         if (error.response && error.response.status === 403) {
           setError("You are not authorized to access this resource.");

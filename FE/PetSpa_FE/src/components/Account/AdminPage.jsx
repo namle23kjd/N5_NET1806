@@ -729,7 +729,7 @@ const AdminPage = () => {
                       <div style={{ fontSize: "24px", fontWeight: "bold" }}>
                         {dashboardData.issues}
                       </div>
-                      <div>Cancel Bookings</div>
+                      <div>Deny bookings by Managers</div>
                     </Card>
                   </Col>
                   <Col span={12}>
@@ -749,7 +749,7 @@ const AdminPage = () => {
                       <div style={{ fontSize: "24px", fontWeight: "bold" }}>
                         {dashboardData.deniedBookings}
                       </div>
-                      <div>Denied Bookings</div>
+                      <div>Cancel bookings by Customers</div>
                     </Card>
                   </Col>
                 </Row>
