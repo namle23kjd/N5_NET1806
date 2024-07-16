@@ -622,17 +622,7 @@ const AdminPage = () => {
                 </div>
               </Col>
               <Col span={12}>
-                <Row gutter={16}>
-                  <Col
-                    span={24}
-                    style={{ textAlign: "right", marginBottom: "20px" }}
-                  >
-                    <RangePicker
-                      defaultValue={dateRange}
-                      onChange={onDateChange}
-                    />
-                  </Col>
-                </Row>
+                
                 <Row gutter={16}>
                   <Col span={12}>
                     <Card
@@ -739,7 +729,7 @@ const AdminPage = () => {
                       <div style={{ fontSize: "24px", fontWeight: "bold" }}>
                         {dashboardData.issues}
                       </div>
-                      <div>Cancel Bookings</div>
+                      <div>Deny bookings by Managers</div>
                     </Card>
                   </Col>
                   <Col span={12}>
@@ -759,7 +749,7 @@ const AdminPage = () => {
                       <div style={{ fontSize: "24px", fontWeight: "bold" }}>
                         {dashboardData.deniedBookings}
                       </div>
-                      <div>Denied Bookings</div>
+                      <div>Cancel bookings by Customers</div>
                     </Card>
                   </Col>
                 </Row>

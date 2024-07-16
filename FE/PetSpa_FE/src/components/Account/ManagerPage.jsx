@@ -146,7 +146,6 @@ const ManagerPage = () => {
         );
         const doneResponse = await axios.get(
           `https://localhost:7150/api/Staff/${staffId}/completed-bookings`,
-          { headers }
         );
 
         allTasks.todo.push(

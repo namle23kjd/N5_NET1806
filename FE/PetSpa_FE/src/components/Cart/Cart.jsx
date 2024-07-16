@@ -727,7 +727,7 @@ function Cart() {
 
           .then((response) => {
             console.log("Payment failure data:", response.data);
-            message.success("Payment cancel successfully");
+            message.error("Payment cancel successfully");
             navigate("/Cart");
           })
           .catch((error) => {
