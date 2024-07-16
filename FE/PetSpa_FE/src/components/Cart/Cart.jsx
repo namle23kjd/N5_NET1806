@@ -502,16 +502,32 @@ function Cart() {
       }
     }
 
-    console.log(bookingPromises);
     try {
       const responses = await Promise.all(
-        bookingPromises.map((requestData) =>
-          axios.post(`https://localhost:7150/api/Booking`, requestData, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-        )
+        bookingPromises.map(async (requestData) => {
+          const response = await axios.post(
+            `https://localhost:7150/api/Booking`,
+            requestData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          // Kiểm tra nếu phản hồi có staffId khác "00000000-0000-0000-0000-000000000000"
+          const { staffId, bookingId } = response.data.data;
+          console.log(bookingId);
+          if (staffId && staffId !== "00000000-0000-0000-0000-000000000000") {
+            // Chạy thêm API để gán staff
+            await axios.put(
+              `https://localhost:7150/api/Booking/accept-booking-havestaff`,
+              { bookingId }
+            );
+          }
+
+          return response;
+        })
       );
 
       const bookingCodes = responses

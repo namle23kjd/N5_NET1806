@@ -130,6 +130,7 @@ const Transac = () => {
         );
 
         setDataSource(extractedData);
+        console.log(extractedData);
       } catch (error) {
         if (error.response && error.response.status === 401) {
           localStorage.removeItem("user-info");
@@ -280,10 +281,11 @@ const Transac = () => {
     // Check if the booking is less than 24 hours from now
     const now = moment();
     const originalBookingTime = moment(
-      selectedProduct.scheduleDate,
+      selectedProduct.bookingSchedule,
       "YYYY-MM-DD HH:mm:ss"
     );
-    if (originalBookingTime.diff(now, "hours") < 24) {
+    console.log(originalBookingTime);
+    if (originalBookingTime.diff(now, "hours") > 24) {
       message.error(
         "Booking time is less than 24 hours from now, therefore it cannot be changed."
       );
@@ -320,8 +322,8 @@ const Transac = () => {
 
     // Validate that new date is at least 24 hours from now
     const now = moment();
-    if (newDate.diff(now, "hours") < 24) {
-      message.error("New schedule time must be at least 24 hours from now.");
+    if (newDate.diff(now, "hours") < 1) {
+      message.error("New schedule time must be at least 1 hours from now.");
       setError(null);
       setIsLoading(false);
       return;
@@ -512,47 +514,49 @@ const Transac = () => {
       message.error("Bank name and card number are required.");
       return;
     }
-
-    try {
-      const response = await axios.post(
-        `https://localhost:7150/api/Booking/refund-booking`,
-        {
-          bookingId: selectedProduct.bookingId,
-          bankingInfo: `${bankName} ${cardNumber}`,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+    if (selectedProduct.scheduleDate)
+      try {
+        const response = await axios.post(
+          `https://localhost:7150/api/Booking/refund-booking`,
+          {
+            bookingId: selectedProduct.bookingId,
+            bankingInfo: `${bankName} ${cardNumber}`,
           },
-        }
-      );
-
-      if (response.status === 200) {
-        message.success(
-          "Refund request submitted successfully. 70% of the amount will be refunded within 24 hours."
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
-        // Update the booking status in dataSource
-        const updatedDataSource = dataSource.map((transaction) => {
-          return {
-            ...transaction,
-            bookingDetails: transaction.bookingDetails.map((item) =>
-              item.bookingId === selectedProduct.bookingId
-                ? { ...item, status: 2 }
-                : item
-            ),
-          };
-        });
-        setDataSource(updatedDataSource);
+        if (response.status === 200) {
+          message.success(
+            "Refund request submitted successfully. 70% of the amount will be refunded within 24 hours."
+          );
 
-        handleHideModal();
-      } else {
-        throw new Error("Failed to submit refund request.");
+          // Update the booking status in dataSource
+          const updatedDataSource = dataSource.map((transaction) => {
+            return {
+              ...transaction,
+              bookingDetails: transaction.bookingDetails.map((item) =>
+                item.bookingId === selectedProduct.bookingId
+                  ? { ...item, status: 2 }
+                  : item
+              ),
+            };
+          });
+          setDataSource(updatedDataSource);
+
+          handleHideModal();
+        } else {
+          throw new Error("Failed to submit refund request.");
+        }
+      } catch (error) {
+        console.error("Error submitting refund request:", error);
+        message.error(
+          error.response?.data || "Failed to submit refund request."
+        );
       }
-    } catch (error) {
-      console.error("Error submitting refund request:", error);
-      message.error(error.response?.data || "Failed to submit refund request.");
-    }
   };
 
   const formatPrice = (price) => {
@@ -868,23 +872,20 @@ const Transac = () => {
                               Update
                             </Button>
                           )}
-                          {product.status === -1 &&
-                            moment(product.bookingSchedule).isAfter(
-                              moment().subtract(5, "hours")
-                            ) && (
-                              <Button
-                                type="button"
-                                size="small"
-                                onClick={() => {
-                                  setSelectedProduct(product);
-                                  setIsRefundModalOpen(true);
-                                }}
-                                className="btn btn-danger btn-pinned mt-3 d-print-none"
-                                style={styles.buttonDanger}
-                              >
-                                Refund
-                              </Button>
-                            )}
+                          {product.status === -1 && (
+                            <Button
+                              type="button"
+                              size="small"
+                              onClick={() => {
+                                setSelectedProduct(product);
+                                setIsRefundModalOpen(true);
+                              }}
+                              className="btn btn-danger btn-pinned mt-3 d-print-none"
+                              style={styles.buttonDanger}
+                            >
+                              Refund
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
