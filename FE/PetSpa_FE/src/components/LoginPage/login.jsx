@@ -220,7 +220,7 @@ const LoginPage = () => {
             <div className="w-full flex justify-between">
               <div className="w-full flex ">
                 <input type="checkbox" className="w-4 h-4 mr-2" />
-                <p className="text-sm ">Remeber Me</p>
+                <p className="text-sm ">Remember Me</p>
               </div>
               <Link
                 to={"/forgot-password"}
