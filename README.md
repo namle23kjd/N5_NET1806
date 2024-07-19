@@ -35,6 +35,7 @@ Pets' Spa Management is an application for managing pet spa services, helping pe
   - React Js
   - Tailwind
   - Antd
+- **Others**:
 - Firebase
 - Github
 - Jira

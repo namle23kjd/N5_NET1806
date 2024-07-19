@@ -381,10 +381,10 @@ namespace PetSpa.Controllers
             {
                 return BadRequest("Cannot update the time for booking. Because Booking is Canceled");
             }
-
+            //Chuyển check Accpect = 0
 
             booking.StartDate = updateBookingTimeRequest.NewDateTime;
-
+            booking.CheckAccept = CheckAccpectStatus.NotChecked;
             var updatedBooking = await bookingRepository.UpdateAsync(bookingId, booking);
             if (updatedBooking == null)
             {
