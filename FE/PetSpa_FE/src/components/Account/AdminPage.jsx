@@ -239,6 +239,7 @@ const AdminPage = () => {
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  const [form] = Form.useForm();
 
   const validateForm = () => {
     const duplicateEmail = accounts.some(
@@ -273,47 +274,54 @@ const AdminPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      return;
-    }
-
-    const submitData = { ...formData, password: "Pet123@@" };
-
-    try {
-      if (isEditing) {
-        // Remove fullName and gender for update
-        const { fullName, gender, ...updateData } = submitData;
-        await axios.put(
-          `https://localhost:7150/api/Account/update-user/${editId}`,
-          updateData
-        );
-        setIsEditing(false);
-        setEditId(null);
-      } else {
-        await axios.post(
-          "https://localhost:7150/api/Account/register",
-          submitData
-        );
+    form.validateFields().then(async (values) => {
+      if (!validateForm()) {
+        return;
       }
-      message.success(
-        isEditing
-          ? "Account updated successfully"
-          : "Account added successfully"
-      );
-      setFormData({
-        userName: "",
-        email: "",
-        phoneNumber: "",
-        role: "",
-        fullName: "",
-        gender: "",
-      });
-      setShowForm(false);
-      fetchAccounts();
-    } catch (error) {
-      message.error("An error occurred. Please try again.");
-      console.error(error);
-    }
+
+      try {
+        if (isEditing) {
+          // Chỉ giữ các trường cần thiết cho việc update
+          const updateData = {
+            id: editId,
+            userName: formData.userName,
+            email: formData.email,
+            phoneNumber: formData.phoneNumber,
+            role: formData.role,
+          };
+          await axios.put(
+            "https://localhost:7150/api/Account/update-user", // Cập nhật URL để không có ID trong URL
+            updateData
+          );
+          setIsEditing(false);
+          setEditId(null);
+        } else {
+          const submitData = { ...formData, password: "Pet123@@" };
+          await axios.post(
+            "https://localhost:7150/api/Account/register",
+            submitData
+          );
+        }
+        message.success(
+          isEditing
+            ? "Account updated successfully"
+            : "Account added successfully"
+        );
+        setFormData({
+          userName: "",
+          email: "",
+          phoneNumber: "",
+          role: "",
+          fullName: "",
+          gender: "",
+        });
+        setShowForm(false);
+        fetchAccounts();
+      } catch (error) {
+        message.error("An error occurred. Please try again.");
+        console.error(error);
+      }
+    });
   };
 
   const handleEdit = (account) => {
@@ -324,6 +332,16 @@ const AdminPage = () => {
       email: account.email,
       phoneNumber: account.phoneNumber,
       role: account.roles.join(", "),
+      fullName: account.fullName,
+      gender: account.gender,
+    });
+    form.setFieldsValue({
+      userName: account.userName,
+      email: account.email,
+      phoneNumber: account.phoneNumber,
+      role: account.roles.join(", "),
+      fullName: account.fullName,
+      gender: account.gender,
     });
     setShowForm(true);
   };
@@ -352,6 +370,7 @@ const AdminPage = () => {
       fullName: "",
       gender: "",
     });
+    form.resetFields();
     setShowForm(true);
   };
 
@@ -456,7 +475,12 @@ const AdminPage = () => {
       ),
     },
   ];
-
+  const emailValidator = (_, value) => {
+    if (!value || value.endsWith("@gmail.com")) {
+      return Promise.resolve();
+    }
+    return Promise.reject(new Error("Email must end with @gmail.com"));
+  };
   const data = Object.keys(rolePercentages).map((role, index) => ({
     name: role,
     value: parseFloat(rolePercentages[role]),
@@ -498,12 +522,17 @@ const AdminPage = () => {
               >
                 Cancel
               </Button>,
-              <Button key="submit" type="primary" onClick={handleSubmit}>
+              <Button key="submit" type="primary" onClick={form.submit}>
                 {isEditing ? "Update" : "Add"}
               </Button>,
             ]}
           >
-            <Form layout="vertical" initialValues={formData}>
+            <Form
+              layout="vertical"
+              initialValues={formData}
+              form={form}
+              onFinish={handleSubmit}
+            >
               <Form.Item
                 label="Username"
                 name="userName"
@@ -521,6 +550,7 @@ const AdminPage = () => {
                 rules={[
                   { required: true, message: "Please enter email" },
                   { type: "email", message: "Please enter a valid email" },
+                  { validator: emailValidator },
                 ]}
               >
                 <Input
@@ -622,7 +652,6 @@ const AdminPage = () => {
                 </div>
               </Col>
               <Col span={12}>
-                
                 <Row gutter={16}>
                   <Col span={12}>
                     <Card
