@@ -29,10 +29,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faWallet,
   faUsers,
-  faUserPlus,
-  faServer,
   faTasks,
   faExclamationTriangle,
+  faServer,
 } from "@fortawesome/free-solid-svg-icons";
 import moment from "moment";
 
@@ -52,7 +51,7 @@ const AdminPage = () => {
     phoneNumber: "",
     role: "",
     fullName: "",
-    gender: "",
+    gender: "Male",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -139,7 +138,6 @@ const AdminPage = () => {
   };
 
   useEffect(() => {
-    // Fetch initial data on component mount
     fetchAccounts();
     fetchBookingData();
     fetchDashboardData();
@@ -148,20 +146,17 @@ const AdminPage = () => {
     fetchCompletedBookings();
     fetchDeniedBookings();
 
-    // Set interval to continuously fetch data every 10 seconds
     const interval = setInterval(() => {
       fetchTotalRevenue();
       fetchInactiveUsers();
       fetchCompletedBookings();
       fetchDeniedBookings();
-    }, 10000); // Fetch every 10 seconds
+    }, 10000);
 
-    // Cleanup interval on component unmount
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    // Fetch dashboard data and inactive users when dateRange changes
     fetchDashboardData();
     fetchInactiveUsers();
   }, [dateRange]);
@@ -171,7 +166,6 @@ const AdminPage = () => {
       const response = await axios.get("https://localhost:7150/api/Account");
       const accountsData = response.data;
 
-      // Filter out accounts with the role "admin"
       const filteredAccounts = accountsData.filter(
         (account) =>
           !account.roles.some((role) => role.toLowerCase() === "admin")
@@ -180,7 +174,6 @@ const AdminPage = () => {
       setOriginalAccounts(filteredAccounts);
       calculateStatistics(filteredAccounts);
 
-      // Set total accounts including admin
       setTotalAccounts(accountsData.length);
     } catch (error) {
       console.error(error);
@@ -281,7 +274,6 @@ const AdminPage = () => {
 
       try {
         if (isEditing) {
-          // Chỉ giữ các trường cần thiết cho việc update
           const updateData = {
             id: editId,
             userName: formData.userName,
@@ -290,7 +282,7 @@ const AdminPage = () => {
             role: formData.role,
           };
           await axios.put(
-            "https://localhost:7150/api/Account/update-user", // Cập nhật URL để không có ID trong URL
+            "https://localhost:7150/api/Account/update-user",
             updateData
           );
           setIsEditing(false);
@@ -313,7 +305,7 @@ const AdminPage = () => {
           phoneNumber: "",
           role: "",
           fullName: "",
-          gender: "",
+          gender: "Male",
         });
         setShowForm(false);
         fetchAccounts();
@@ -368,7 +360,7 @@ const AdminPage = () => {
       phoneNumber: "",
       role: "",
       fullName: "",
-      gender: "",
+      gender: "Male",
     });
     form.resetFields();
     setShowForm(true);
@@ -475,12 +467,14 @@ const AdminPage = () => {
       ),
     },
   ];
+
   const emailValidator = (_, value) => {
     if (!value || value.endsWith("@gmail.com")) {
       return Promise.resolve();
     }
     return Promise.reject(new Error("Email must end with @gmail.com"));
   };
+
   const data = Object.keys(rolePercentages).map((role, index) => ({
     name: role,
     value: parseFloat(rolePercentages[role]),
@@ -588,6 +582,7 @@ const AdminPage = () => {
                   <Option value="staff">Staff</Option>
                 </Select>
               </Form.Item>
+
               {!isEditing && (
                 <>
                   <Form.Item
@@ -608,15 +603,21 @@ const AdminPage = () => {
                     name="gender"
                     rules={[{ required: true, message: "Please enter gender" }]}
                   >
-                    <Input
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleInputChange}
-                    />
+                    <Select
+                      defaultValue={formData.gender}
+                      onChange={(value) =>
+                        handleInputChange({ target: { name: "gender", value } })
+                      }
+                    >
+                      <Option value="Male">Male</Option>
+                      <Option value="Female">Female</Option>
+                      <Option value="Other">Other</Option>
+                    </Select>
                   </Form.Item>
                 </>
               )}
             </Form>
+            {error && <p style={{ color: "red" }}>{error}</p>}
           </Modal>
         )}
         {showDashboard && (
@@ -673,7 +674,6 @@ const AdminPage = () => {
                           currency: "VND",
                         })}
                       </div>
-
                       <div>Total Revenue</div>
                     </Card>
                   </Col>
