@@ -135,9 +135,9 @@ const LoginPage = () => {
         if (!response.ok) {
           const errorResponse = await response.json();
           if (errorResponse && errorResponse.message) {
-            setError(errorResponse.message);
+            setError(errorResponse.msg);
           } else {
-            setError("Login failed. Please check your credentials.");
+            setError(errorResponse.msg);
           }
           setIsLoading(false);
           return false;
@@ -145,7 +145,7 @@ const LoginPage = () => {
           let result = await response.json();
           localStorage.setItem("user-info", JSON.stringify(result));
           setError("Login successfully");
-
+          message.success("Login successfully");
           const role = result.data.user.role;
           if (role === "Customer") {
             navigate("/");

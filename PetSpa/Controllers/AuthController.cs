@@ -61,12 +61,13 @@ namespace PetSpa.Controllers
                 }
 
                 var user = await _userManager.FindByEmailAsync(email.Email);
-                if (!user.Status)
-                {
-                    return BadRequest(_apiResponse.CreateErrorResponse("Your Account is banned"));
-                }
+                
                 if (user != null)
                 {
+                    if (!user.Status)
+                    {
+                        return BadRequest(_apiResponse.CreateErrorResponse("Account was banned"));
+                    }
                     var customer = await petSpaContext.Customers.FirstOrDefaultAsync(x => x.Id == user.Id);
                     if (customer == null)
                     {
@@ -275,7 +276,7 @@ namespace PetSpa.Controllers
                
                 if (!user.Status)
                 {
-                    return BadRequest(_apiResponse.CreateErrorResponse("Your Account is banned"));
+                    return BadRequest(_apiResponse.CreateErrorResponse("Account was banned"));
                 }
 
 
@@ -353,7 +354,7 @@ namespace PetSpa.Controllers
                 }
             }
 
-            return BadRequest("Tên người dùng hoặc mật khẩu không đúng");
+            return  BadRequest(_apiResponse.CreateErrorResponse("Login failed. Please check your credentials."));
         }
 
         [HttpPost]
@@ -398,6 +399,10 @@ namespace PetSpa.Controllers
             if (user == null)
             {
                 return BadRequest("User not found");
+            }
+            if (!user.Status)
+            {
+                return BadRequest(_apiResponse.CreateErrorResponse("Account was banned"));
             }
 
             var roles = await _userManager.GetRolesAsync(user);
