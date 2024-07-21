@@ -67,6 +67,26 @@ namespace PetSpa.Controllers
             var bookingDomainModels = mapper.Map<Booking>(addBookingRequestDTO);
             bookingDomainModels.ManaId = managerWithLeastBookings.ManaId;
             bookingDomainModels.StartDate = addBookingRequestDTO.BookingSchedule;
+            foreach (var detail in bookingDomainModels.BookingDetails)
+            {
+                detail.BookingDetailId = Guid.NewGuid();
+                detail.BookingId = bookingDomainModels.BookingId;
+                if (detail.StaffId == Guid.Empty) detail.StaffId = null;
+                if (detail.ComboId == Guid.Empty) detail.ComboId = null;
+                if (detail.ServiceId == Guid.Empty) detail.ServiceId = null; if (detail.Duration == TimeSpan.Zero)
+                {
+                    if (detail.ComboId.HasValue)
+                    {
+                        var combo = await petSpaContext.Combos.FindAsync(detail.ComboId.Value);
+                        detail.Duration = combo != null ? combo.Duration : TimeSpan.Zero;
+                    }
+                    else if (detail.ServiceId.HasValue)
+                    {
+                        var service = await petSpaContext.Services.FindAsync(detail.ServiceId.Value);
+                        detail.Duration = service != null ? service.Duration : TimeSpan.Zero;
+                    }
+                }
+            }
             var totalDuration = bookingDomainModels.BookingDetails.Sum(bd => bd.Duration.Ticks);
             var totalDurationTimeSpan = new TimeSpan(totalDuration) + TimeSpan.FromMinutes(20);
             bookingDomainModels.EndDate = bookingDomainModels.StartDate + totalDurationTimeSpan;
@@ -110,17 +130,6 @@ namespace PetSpa.Controllers
             var services = await petSpaContext.Services
                 .Where(s => serviceIds.Contains(s.ServiceId))
                 .ToDictionaryAsync(s => s.ServiceId, s => s.Price);
-
-
-            foreach (var detail in bookingDomainModels.BookingDetails)
-            {
-                detail.BookingDetailId = Guid.NewGuid();
-                detail.BookingId = bookingDomainModels.BookingId;
-                if (detail.StaffId == Guid.Empty) detail.StaffId = null;
-                if (detail.ComboId == Guid.Empty) detail.ComboId = null;
-                if (detail.ServiceId == Guid.Empty) detail.ServiceId = null;
-            }
-            bookingDomainModels.BookingSchedule = DateTime.Now;
 
             await bookingRepository.CreateAsync(bookingDomainModels);
 
