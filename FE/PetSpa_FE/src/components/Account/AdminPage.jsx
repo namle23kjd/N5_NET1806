@@ -29,10 +29,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faWallet,
   faUsers,
-  faUserPlus,
-  faServer,
   faTasks,
   faExclamationTriangle,
+  faServer,
 } from "@fortawesome/free-solid-svg-icons";
 import moment from "moment";
 
@@ -52,7 +51,7 @@ const AdminPage = () => {
     phoneNumber: "",
     role: "",
     fullName: "",
-    gender: "",
+    gender: "Male",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -139,7 +138,6 @@ const AdminPage = () => {
   };
 
   useEffect(() => {
-    // Fetch initial data on component mount
     fetchAccounts();
     fetchBookingData();
     fetchDashboardData();
@@ -148,20 +146,17 @@ const AdminPage = () => {
     fetchCompletedBookings();
     fetchDeniedBookings();
 
-    // Set interval to continuously fetch data every 10 seconds
     const interval = setInterval(() => {
       fetchTotalRevenue();
       fetchInactiveUsers();
       fetchCompletedBookings();
       fetchDeniedBookings();
-    }, 10000); // Fetch every 10 seconds
+    }, 10000);
 
-    // Cleanup interval on component unmount
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    // Fetch dashboard data and inactive users when dateRange changes
     fetchDashboardData();
     fetchInactiveUsers();
   }, [dateRange]);
@@ -171,7 +166,6 @@ const AdminPage = () => {
       const response = await axios.get("https://localhost:7150/api/Account");
       const accountsData = response.data;
 
-      // Filter out accounts with the role "admin"
       const filteredAccounts = accountsData.filter(
         (account) =>
           !account.roles.some((role) => role.toLowerCase() === "admin")
@@ -180,7 +174,6 @@ const AdminPage = () => {
       setOriginalAccounts(filteredAccounts);
       calculateStatistics(filteredAccounts);
 
-      // Set total accounts including admin
       setTotalAccounts(accountsData.length);
     } catch (error) {
       console.error(error);
@@ -239,6 +232,7 @@ const AdminPage = () => {
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  const [form] = Form.useForm();
 
   const validateForm = () => {
     const duplicateEmail = accounts.some(
@@ -273,47 +267,53 @@ const AdminPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      return;
-    }
-
-    const submitData = { ...formData, password: "Pet123@@" };
-
-    try {
-      if (isEditing) {
-        // Remove fullName and gender for update
-        const { fullName, gender, ...updateData } = submitData;
-        await axios.put(
-          `https://localhost:7150/api/Account/update-user/${editId}`,
-          updateData
-        );
-        setIsEditing(false);
-        setEditId(null);
-      } else {
-        await axios.post(
-          "https://localhost:7150/api/Account/register",
-          submitData
-        );
+    form.validateFields().then(async (values) => {
+      if (!validateForm()) {
+        return;
       }
-      message.success(
-        isEditing
-          ? "Account updated successfully"
-          : "Account added successfully"
-      );
-      setFormData({
-        userName: "",
-        email: "",
-        phoneNumber: "",
-        role: "",
-        fullName: "",
-        gender: "",
-      });
-      setShowForm(false);
-      fetchAccounts();
-    } catch (error) {
-      message.error("An error occurred. Please try again.");
-      console.error(error);
-    }
+
+      try {
+        if (isEditing) {
+          const updateData = {
+            id: editId,
+            userName: formData.userName,
+            email: formData.email,
+            phoneNumber: formData.phoneNumber,
+            role: formData.role,
+          };
+          await axios.put(
+            "https://localhost:7150/api/Account/update-user",
+            updateData
+          );
+          setIsEditing(false);
+          setEditId(null);
+        } else {
+          const submitData = { ...formData, password: "Pet123@@" };
+          await axios.post(
+            "https://localhost:7150/api/Account/register",
+            submitData
+          );
+        }
+        message.success(
+          isEditing
+            ? "Account updated successfully"
+            : "Account added successfully"
+        );
+        setFormData({
+          userName: "",
+          email: "",
+          phoneNumber: "",
+          role: "",
+          fullName: "",
+          gender: "Male",
+        });
+        setShowForm(false);
+        fetchAccounts();
+      } catch (error) {
+        message.error("An error occurred. Please try again.");
+        console.error(error);
+      }
+    });
   };
 
   const handleEdit = (account) => {
@@ -324,6 +324,16 @@ const AdminPage = () => {
       email: account.email,
       phoneNumber: account.phoneNumber,
       role: account.roles.join(", "),
+      fullName: account.fullName,
+      gender: account.gender,
+    });
+    form.setFieldsValue({
+      userName: account.userName,
+      email: account.email,
+      phoneNumber: account.phoneNumber,
+      role: account.roles.join(", "),
+      fullName: account.fullName,
+      gender: account.gender,
     });
     setShowForm(true);
   };
@@ -350,8 +360,9 @@ const AdminPage = () => {
       phoneNumber: "",
       role: "",
       fullName: "",
-      gender: "",
+      gender: "Male",
     });
+    form.resetFields();
     setShowForm(true);
   };
 
@@ -457,6 +468,13 @@ const AdminPage = () => {
     },
   ];
 
+  const emailValidator = (_, value) => {
+    if (!value || value.endsWith("@gmail.com")) {
+      return Promise.resolve();
+    }
+    return Promise.reject(new Error("Email must end with @gmail.com"));
+  };
+
   const data = Object.keys(rolePercentages).map((role, index) => ({
     name: role,
     value: parseFloat(rolePercentages[role]),
@@ -498,12 +516,17 @@ const AdminPage = () => {
               >
                 Cancel
               </Button>,
-              <Button key="submit" type="primary" onClick={handleSubmit}>
+              <Button key="submit" type="primary" onClick={form.submit}>
                 {isEditing ? "Update" : "Add"}
               </Button>,
             ]}
           >
-            <Form layout="vertical" initialValues={formData}>
+            <Form
+              layout="vertical"
+              initialValues={formData}
+              form={form}
+              onFinish={handleSubmit}
+            >
               <Form.Item
                 label="Username"
                 name="userName"
@@ -521,6 +544,7 @@ const AdminPage = () => {
                 rules={[
                   { required: true, message: "Please enter email" },
                   { type: "email", message: "Please enter a valid email" },
+                  { validator: emailValidator },
                 ]}
               >
                 <Input
@@ -558,6 +582,7 @@ const AdminPage = () => {
                   <Option value="staff">Staff</Option>
                 </Select>
               </Form.Item>
+
               {!isEditing && (
                 <>
                   <Form.Item
@@ -578,15 +603,21 @@ const AdminPage = () => {
                     name="gender"
                     rules={[{ required: true, message: "Please enter gender" }]}
                   >
-                    <Input
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleInputChange}
-                    />
+                    <Select
+                      defaultValue={formData.gender}
+                      onChange={(value) =>
+                        handleInputChange({ target: { name: "gender", value } })
+                      }
+                    >
+                      <Option value="Male">Male</Option>
+                      <Option value="Female">Female</Option>
+                      <Option value="Other">Other</Option>
+                    </Select>
                   </Form.Item>
                 </>
               )}
             </Form>
+            {error && <p style={{ color: "red" }}>{error}</p>}
           </Modal>
         )}
         {showDashboard && (
@@ -622,7 +653,6 @@ const AdminPage = () => {
                 </div>
               </Col>
               <Col span={12}>
-                
                 <Row gutter={16}>
                   <Col span={12}>
                     <Card
@@ -644,7 +674,6 @@ const AdminPage = () => {
                           currency: "VND",
                         })}
                       </div>
-
                       <div>Total Revenue</div>
                     </Card>
                   </Col>

@@ -10,8 +10,6 @@ function ForgotPassword() {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log(email);
-    console.log("ccccccc");
     var item = { email };
     try {
       let response = await fetch(
@@ -26,10 +24,12 @@ function ForgotPassword() {
         }
       );
 
+      let responseData = await response.json();
+
       if (response.ok) {
-        setMessage("Kiểm tra email để nhận hướng dẫn đặt lại mật khẩu");
+        setMessage("Check your email for password reset instructions");
       } else {
-        setMessage("Email không tồn tại hoặc có lỗi xảy ra");
+        setMessage(responseData.msg);
       }
     } catch (error) {
       setMessage("Có lỗi xảy ra");

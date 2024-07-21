@@ -70,8 +70,9 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
   }, [dataSource]);
   const [priceCurrent, setPriceCurrent] = useState();
   const [period, setPeriod] = useState(1);
-
+  const [selectPeriod, setSelectPeriod] = useState();
   const handlePrice = (value) => {
+    setSelectPeriod(value);
     let newPriceCombo = priceCurrent;
     switch (value) {
       case 3:
@@ -209,29 +210,129 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
     const userInfoString = localStorage.getItem("user-info");
     const userInfo = JSON.parse(userInfoString);
     const token = userInfo?.data?.token;
-
-    const isServiceAlreadyInCart = cart.some((service) =>
-      cart.some(
-        (item) =>
-          item.petId === selectedPetId &&
-          item.comboId === service.serviceId &&
-          item.date === date.format("YYYY-MM-DDTHH:mm:ss")
-      )
-    );
+  
+    const formattedDate = date.format("YYYY-MM-DDTHH:mm:ss");
+    const selectedStartTime = moment(formattedDate);
+    const selectedEndTime = selectedStartTime.clone().add(30, 'minutes'); // Assuming a fixed duration of 30 minutes
+  
     const now = moment();
     if (date.diff(now, "hours") < 1) {
       message.warning("The booking time must be at least one hour from now.");
       return;
     }
-
-    if (isServiceAlreadyInCart) {
-      message.warning(
-        "This pet has already used this combo at the selected time."
+  
+    // Define validation functions for each condition
+    const isOverlap = (item) => {
+      const itemStartTime = moment(item.date);
+      const itemEndTime = itemStartTime.clone().add(30, 'minutes'); // Assuming a fixed duration of 30 minutes
+      return (
+        selectedStartTime.isBetween(itemStartTime, itemEndTime, null, '[)') ||
+        selectedEndTime.isBetween(itemStartTime, itemEndTime, null, '(]') ||
+        itemStartTime.isBetween(selectedStartTime, selectedEndTime, null, '[)') ||
+        itemEndTime.isBetween(selectedStartTime, selectedEndTime, null, '(]')
       );
-      setLoading(false);
+    };
+  
+    const isOverlap1 = (itemStartTime, itemEndTime, startTime, endTime) => {
+      return (
+        startTime.isBetween(itemStartTime, itemEndTime, null, '[)') ||
+        endTime.isBetween(itemStartTime, itemEndTime, null, '(]') ||
+        itemStartTime.isBetween(startTime, endTime, null, '[)') ||
+        itemEndTime.isBetween(startTime, endTime, null, '(]')
+      );
+    };
+    const isCondition1 = cart.some(
+      (item) =>
+        item.staffId === selectStaffId &&
+        item.serviceId === selectedComboId &&
+        item.petId === selectedPetId &&
+        isOverlap(item)
+    );
+  
+    const isCondition2 = cart.some(
+      (item) =>
+        item.staffId === selectStaffId &&
+        item.serviceId === selectedComboId &&
+        isOverlap(item)
+    );
+  
+    const isCondition3 = cart.some(
+      (item) =>
+        item.petId === selectedPetId &&
+        item.serviceId === selectedComboId &&
+        isOverlap(item)
+    );
+  
+  
+    const isCondition5 = cart.some(
+      (item) =>
+        item.petId === selectedPetId &&
+        isOverlap(item)
+    );
+  
+    const isCondition6 = cart.some(
+      (item) =>
+        item.staffId === selectStaffId &&
+        isOverlap(item)
+    );
+    
+    const isBookingConflict = cart.some((item) => {
+      if (item.petId !== selectedPetId) return false;
+      const itemPeriod = item.period || 1;
+      const selectedPeriod = period || 1;
+      for (let i = 1; i <= itemPeriod; i++) {
+        const itemMonth = moment(item.date).add(i-1, 'months');
+        const itemStartTime = itemMonth.clone();
+        const itemEndTime = itemStartTime.clone().add(90, 'minutes');
+  
+        for (let j = 1; j <= selectedPeriod; j++) {
+          const selectedMonth = selectedStartTime.clone().add(j-1, 'months');
+          const selectedStartTimeRecurring = selectedMonth.clone();
+          const selectedEndTimeRecurring = selectedStartTimeRecurring.clone().add(90, 'minutes');
+  
+          // Check for overlapping times
+          if (isOverlap1(itemStartTime, itemEndTime, selectedStartTimeRecurring, selectedEndTimeRecurring)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+  
+    if (isBookingConflict) {
+      message.warning("The selected period conflicts with an existing booking or recurring booking time.");
+      return;
+    }
+    
+    
+    
+    if (isCondition1) {
+      message.warning("The same staff, service, pet, and time are already booked within the duration.");
+      return;
+    }
+  
+    if (isCondition2) {
+      message.warning("The same staff and service are already booked at the same time within the duration.");
+      return;
+    }
+  
+    if (isCondition3) {
+      message.warning("The same pet and service are already booked at the same time within the duration.");
       return;
     }
 
+  
+    if (isCondition5) {
+      message.warning("The same pet is already booked at the same time within the duration.");
+      return;
+    }
+  
+    if (isCondition6) {
+      message.warning("The same staff is already booked at the same time within the duration.");
+      return;
+    }
+
+  
     setLoading(true); // Start loading
 
     try {
