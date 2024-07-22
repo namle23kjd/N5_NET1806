@@ -302,5 +302,42 @@ namespace PetSpa.Controllers
 
             return Ok(paymentHistory);
         }
+
+        [HttpGet("get-all-payments")]
+        public async Task<IActionResult> GetAllPayments()
+        {
+            var payments = await _context.Payments
+                .Include(p => p.Customer)
+                .Include(p => p.Bookings)
+                    .ThenInclude(b => b.BookingDetails)
+                        .ThenInclude(bd => bd.Service)
+                .Include(p => p.Bookings)
+                    .ThenInclude(b => b.BookingDetails)
+                        .ThenInclude(bd => bd.Combo)
+                .Select(p => new
+                {
+                    CustomerName = p.Customer.FullName,
+                    PaymentId = p.PaymentId,
+                    CreatedDate = p.CreatedDate,
+                    Bookings = p.Bookings.Select(b => new
+                    {
+                        BookingId = b.BookingId,
+                        CheckAccept = b.CheckAccept,
+                        Status = b.Status,
+                        BookingDetails = b.BookingDetails.Select(bd => new
+                        {
+                            ServiceOrComboName = bd.ServiceId != null ? bd.Service.ServiceName : bd.Combo.ComboType
+                        })
+                    })
+                })
+                .ToListAsync();
+
+            if (payments == null || payments.Count == 0)
+            {
+                return NotFound("No payments found.");
+            }
+
+            return Ok(payments);
+        }
     }
 }
