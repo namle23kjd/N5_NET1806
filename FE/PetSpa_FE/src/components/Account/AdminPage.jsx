@@ -145,24 +145,34 @@ const AdminPage = () => {
         "https://localhost:7150/api/Payments/get-all-payments"
       );
       const payments = response.data;
+    
       const formattedPayments = payments.map((payment) => {
-        const status = payment.bookings.some((booking) => booking.status === 2)
-          ? "Refund"
-          : payment.bookings.some((booking) => booking.checkAccept === -1)
-          ? "Canceled"
-          : "Paid";
-
-        const serviceName = payment.bookings
-          .map((booking) =>
-            booking.bookingDetails.map((detail) =>
-              detail.comboName
-                ? `${detail.comboName} - ${status}`
-                : `${detail.serviceName} - ${status}`
-            )
-          )
-          .flat()
-          .join(", ");
-
+        // Duyệt qua từng booking để thiết lập trạng thái phù hợp
+        const bookingsWithStatus = payment.bookings.map((booking) => {
+          const status =
+            booking.status === 2
+              ? "Refund"
+              : booking.checkAccept === -1
+              ? "Canceled"
+              : booking.checkAccept === 1 && booking.status !== 2
+              ? "Paid"
+              : "Unknown"; // Default case if no conditions match
+    
+          const serviceNames = booking.bookingDetails.map((detail) =>
+            detail.comboName
+              ? `${detail.comboName} - ${status}`
+              : `${detail.serviceName} - ${status}`
+          );
+    
+          return {
+            ...booking,
+            serviceNames: serviceNames.join(", "),
+            status: status,
+          };
+        });
+    
+        const serviceName = bookingsWithStatus.map((booking) => booking.serviceNames).join(", ");
+    
         return {
           client: payment.customerName,
           amount: payment.totalPayment,
@@ -170,11 +180,13 @@ const AdminPage = () => {
           due: payment.createdDate,
         };
       });
+    
       setInvoiceData(formattedPayments);
       setOriginalInvoiceData(formattedPayments);
     } catch (error) {
       console.error("Error fetching invoice data:", error);
     }
+    
   };
 
   useEffect(() => {
