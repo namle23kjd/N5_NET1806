@@ -267,9 +267,9 @@ namespace PetSpa.Repositories.BookingRepository
                     payment => payment.PaymentId,
                     booking => booking.PaymentId,
                     (payment, booking) => booking.TotalAmount ?? 0)
-                .SumAsync();
-
-            return totalAmount;
+                .ToListAsync();
+            var uniqueTotalPaymnet = totalAmount.Distinct().Sum();
+            return uniqueTotalPaymnet;
         }
 
         public async Task<decimal> GetAllToTalAsync()
