@@ -319,6 +319,7 @@ namespace PetSpa.Controllers
                     CustomerName = p.Customer.FullName,
                     PaymentId = p.PaymentId,
                     CreatedDate = p.CreatedDate,
+                    TotalPayment = p.TotalPayment,
                     Bookings = p.Bookings.Select(b => new
                     {
                         BookingId = b.BookingId,
@@ -326,7 +327,8 @@ namespace PetSpa.Controllers
                         Status = b.Status,
                         BookingDetails = b.BookingDetails.Select(bd => new
                         {
-                            ServiceOrComboName = bd.ServiceId != null ? bd.Service.ServiceName : bd.Combo.ComboType
+                            ServiceName = bd.ServiceId != null ? bd.Service.ServiceName : null,
+                            ComboName = bd.ComboId != null ? bd.Combo.ComboType : null
                         })
                     })
                 })
