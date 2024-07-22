@@ -281,7 +281,16 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
       for (let i = 1; i <= itemPeriod; i++) {
         const itemMonth = moment(item.date).add(i - 1, "months");
         const itemStartTime = itemMonth.clone();
-        const itemEndTime = itemStartTime.clone().add(91, "minutes");
+        let itemEndTime = "";
+        
+
+        if (item.comboDetails && item.comboDetails.length > 0) {
+          // Nếu là combo thì cộng 91 phút
+          itemEndTime = itemStartTime.clone().add(91, "minutes");
+      } else {
+           itemEndTime = itemStartTime.clone().add(31, "minutes");
+        }
+       
 
         for (let j = 1; j <= selectedPeriod; j++) {
           const selectedMonth = selectedStartTime.clone().add(j - 1, "months");
