@@ -194,8 +194,8 @@ namespace PetSpa.Controllers
                 if (combo != null)
                 {
                     // Tính tổng thời gian từ các dịch vụ trong combo
-                    var totalDurationTicks = combo.Services.Sum(service => service.Duration.Ticks);
-                    totalDurationTimeSpan = new TimeSpan(totalDurationTicks) + TimeSpan.FromMinutes(20);
+                    
+                    totalDurationTimeSpan = combo.Duration ;
                 }
                 else
                 {
@@ -207,7 +207,7 @@ namespace PetSpa.Controllers
                     }
 
                     // Initialize total duration with the fetched service duration
-                    totalDurationTimeSpan = service.Duration + TimeSpan.FromMinutes(20);
+                    totalDurationTimeSpan = service.Duration ;
                 }
 
                 // Compute the end time based on the start time and total duration
@@ -254,6 +254,39 @@ namespace PetSpa.Controllers
                 return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
             }
         }
+
+        [HttpGet("availableCombo")]
+        public async Task<IActionResult> GetAvailableBooking([FromQuery] DateTime startTime, [FromQuery] DateTime endTime, [FromQuery] Guid? staffId, [FromQuery] int? period)
+        {
+            try
+            {
+                var (availableStaffs, errorMessage) = bookingRepository.GetAvailableStaffs(startTime, endTime, period, staffId);
+
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    return BadRequest(errorMessage);
+                }
+
+                if (availableStaffs == null || !availableStaffs.Any())
+                {
+                    return NotFound("No available staff found for the given time slot.");
+                }
+                
+
+                return Ok(apiResponseService.CreateSuccessResponse(availableStaffs));
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Handle specific invalid operation exception
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Handle general exceptions
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
+
         [HttpGet("availableForPeriod")]
         //[Authorize]
         public async Task<IActionResult> GetAvailableStaffsForPeriod([FromQuery] DateTime startTime, [FromQuery] Guid serviceCode, [FromQuery] Guid? staffId, [FromQuery] int? periodMonths)
@@ -275,8 +308,8 @@ namespace PetSpa.Controllers
                 if (combo != null)
                 {
                     // Tính tổng thời gian từ các dịch vụ trong combo
-                    var totalDurationTicks = combo.Services.Sum(service => service.Duration.Ticks);
-                    totalDurationTimeSpan = new TimeSpan(totalDurationTicks) + TimeSpan.FromMinutes(20);
+                  
+                    totalDurationTimeSpan =combo.Duration;
                 }
                 else
                 {
@@ -288,7 +321,7 @@ namespace PetSpa.Controllers
                     }
 
                     // Initialize total duration with the fetched service duration
-                    totalDurationTimeSpan = service.Duration + TimeSpan.FromMinutes(20);
+                    totalDurationTimeSpan = service.Duration;
                 }
 
                 // Compute the end time based on the start time and total duration

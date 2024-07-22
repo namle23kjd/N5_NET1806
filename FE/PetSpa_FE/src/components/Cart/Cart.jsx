@@ -23,6 +23,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useForm } from "antd/es/form/Form";
 
 import { Option } from "antd/es/mentions";
+import moment from "moment";
 dayjs.extend(customParseFormat);
 
 function Cart() {
@@ -50,7 +51,27 @@ function Cart() {
       message.error("Failed to fetch staff members");
     }
   };
+  async function getServiceById(id) {
+    try {
+      const url = `https://localhost:7150/api/Service/${id}`;
+      //console.log(`Fetching service with URL: ${url}`);
 
+      const response = await axios.get(url);
+
+      if (!response.data || !response.data.data) {
+        throw new Error(`Service with ID ${id} not found.`);
+      }
+
+      console.log(response.data.data.duration);
+      return response.data.data;
+    } catch (error) {
+      console.error(
+        "Failed to fetch service:",
+        error.response ? error.response.data : error.message
+      );
+      throw new Error("Failed to fetch service");
+    }
+  }
   const handleDeleteBooking = async (index) => {
     const cartString = localStorage.getItem("cart");
     let cart = JSON.parse(cartString);
@@ -368,6 +389,44 @@ function Cart() {
     return null;
   };
 
+  async function checkAvailability(item, token) {
+    // Ensure item.date is a moment object
+    const date = moment(item.date);
+    if (!date.isValid()) {
+      throw new Error("Invalid date");
+    }
+
+    let url = `https://localhost:7150/api/Booking/availableForPeriod?startTime=${date.format(
+      "YYYY-MM-DDTHH:mm:ss"
+    )}&serviceCode=${item.serviceId}`;
+
+    if (item.staffId) {
+      url += `&staffId=${item.staffId}`;
+    }
+    if (item.period != 1) {
+      url += `&periodMonths=${item.period}`;
+    }
+
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log(response.data);
+      return response.data ? true : false; // Return the availability data
+    } catch (error) {
+      if (error.response) {
+        console.log(error.response.data);
+      } else {
+        console.error("Error:", error);
+        message.error("An unexpected error occurred.");
+
+        return;
+      }
+    }
+  }
+
   async function handleBooking() {
     let userInfo;
     try {
@@ -406,9 +465,27 @@ function Cart() {
 
     for (let item of cart) {
       if (item.selected) {
+        try {
+          const availability = await checkAvailability(item, token);
+          if (!availability) {
+            //const serviceName = await getServiceById(item.serviceId).duration;
+            //const serviceName = await getServiceById(item.serviceId);
+            const selectedTime = moment(item.date).format(
+              "YYYY-MM-DD HH:mm:ss"
+            );
+            //${serviceName.serviceName}
+            message.warning(
+              ` is not available at ${selectedTime}. Please choose another time.`
+            );
+            return;
+          }
+        } catch (error) {
+          message.error(`${error}`);
+          return;
+        }
         const result = await checkServiceStatus(item.serviceId);
         if (result != null) {
-          message.error(
+          message.warning(
             `Service-${result} is not available,Please choice others`
           );
           return;
