@@ -274,12 +274,17 @@ namespace PetSpa.Repositories.BookingRepository
 
         public async Task<decimal> GetAllToTalAsync()
         {
-            return await dbContext.Payments
-            .Join(dbContext.Bookings,
-                payment => payment.PaymentId,
-                booking => booking.PaymentId,
-                (payment, booking) => payment.TotalPayment ?? 0)
-            .SumAsync();
+            var totalPayments = await dbContext.Payments
+        .Join(dbContext.Bookings,
+            payment => payment.PaymentId,
+            booking => booking.PaymentId,
+            (payment, booking) => payment.TotalPayment ?? 0)
+        .ToListAsync();
+
+            // Loại bỏ các bản ghi trùng lặp nếu có
+            var uniqueTotalPayments = totalPayments.Distinct().Sum();
+
+            return uniqueTotalPayments;
         }
 
         public async Task<List<DailyRevenueDTO>> GetDailyRevenueForCurrentMonthAsync(DateTime? startDate)
