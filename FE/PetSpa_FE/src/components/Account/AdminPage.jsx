@@ -309,7 +309,7 @@ const AdminPage = () => {
   };
 
   const handleSubmit = async () => {
-    form.validateFields().then(async (values) => {
+    form.validateFields().then(async () => {
       if (!validateForm()) {
         return;
       }

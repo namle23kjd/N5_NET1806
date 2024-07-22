@@ -211,7 +211,7 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
 
     const formattedDate = date.format("YYYY-MM-DDTHH:mm:ss");
     const selectedStartTime = moment(formattedDate);
-    const selectedEndTime = selectedStartTime.clone().add(30, "minutes"); // Assuming a fixed duration of 30 minutes
+    const selectedEndTime = selectedStartTime.clone().add(91, "minutes"); // Assuming a fixed duration of 30 minutes
 
     const now = moment();
     if (date.diff(now, "hours") < 1) {
@@ -222,7 +222,7 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
     // Define validation functions for each condition
     const isOverlap = (item) => {
       const itemStartTime = moment(item.date);
-      const itemEndTime = itemStartTime.clone().add(30, "minutes"); // Assuming a fixed duration of 30 minutes
+      const itemEndTime = itemStartTime.clone().add(91, "minutes"); // Assuming a fixed duration of 30 minutes
       return (
         selectedStartTime.isBetween(itemStartTime, itemEndTime, null, "[)") ||
         selectedEndTime.isBetween(itemStartTime, itemEndTime, null, "(]") ||
@@ -281,14 +281,14 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
       for (let i = 1; i <= itemPeriod; i++) {
         const itemMonth = moment(item.date).add(i - 1, "months");
         const itemStartTime = itemMonth.clone();
-        const itemEndTime = itemStartTime.clone().add(90, "minutes");
+        const itemEndTime = itemStartTime.clone().add(91, "minutes");
 
         for (let j = 1; j <= selectedPeriod; j++) {
           const selectedMonth = selectedStartTime.clone().add(j - 1, "months");
           const selectedStartTimeRecurring = selectedMonth.clone();
           const selectedEndTimeRecurring = selectedStartTimeRecurring
             .clone()
-            .add(90, "minutes");
+            .add(91, "minutes");
 
           // Check for overlapping times
           if (

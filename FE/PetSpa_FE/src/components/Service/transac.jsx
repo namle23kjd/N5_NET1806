@@ -528,7 +528,9 @@ const Transac = () => {
             },
           }
         );
-
+        setBankName("");
+        setCardNumber("");
+        form.setFieldValue();
         if (response.status === 200) {
           message.success(
             "Refund request submitted successfully. 70% of the amount will be refunded within 24 hours."
@@ -1014,14 +1016,10 @@ const Transac = () => {
           onCancel={() => setIsRefundModalOpen(false)}
           onOk={handleRefund}
         >
-          <Form
-            layout="vertical"
-            onFinish={handleRefund}
-            initialValues={{ bankName, cardNumber }}
-          >
+          <Form layout="vertical" onFinish={handleRefund}>
             <Form.Item
               label="Bank Name"
-              name="bankName"
+              name="bankeName"
               rules={[{ required: true, message: "Please enter bank name" }]}
             >
               <Input
@@ -1031,7 +1029,7 @@ const Transac = () => {
             </Form.Item>
             <Form.Item
               label="Card Number"
-              name="cardNumber"
+              name="cardeNumber"
               rules={[{ required: true, message: "Please enter card number" }]}
             >
               <Input

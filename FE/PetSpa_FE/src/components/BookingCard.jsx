@@ -3,11 +3,11 @@ import {
   Button,
   DatePicker,
   Form,
+  message,
   Modal,
   Select,
   Space,
   Table,
-  message,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
 import axios from "axios";
@@ -243,7 +243,7 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
     // Format the date for comparison
     const formattedDate = date.format("YYYY-MM-DDTHH:mm:ss");
     const selectedStartTime = moment(formattedDate);
-    const selectedEndTime = selectedStartTime.clone().add(30, "minutes"); // Assuming a fixed duration of 30 minutes
+    const selectedEndTime = selectedStartTime.clone().add(31, "minutes"); // Assuming a fixed duration of 30 minutes
 
     // Check if the booking time is at least one hour from now
     const now = moment();
@@ -314,14 +314,14 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
       for (let i = 1; i <= itemPeriod; i++) {
         const itemMonth = moment(item.date).add(i - 1, "months");
         const itemStartTime = itemMonth.clone();
-        const itemEndTime = itemStartTime.clone().add(30, "minutes");
+        const itemEndTime = itemStartTime.clone().add(31, "minutes");
 
         for (let j = 1; j <= selectedPeriod; j++) {
           const selectedMonth = selectedStartTime.clone().add(j - 1, "months");
           const selectedStartTimeRecurring = selectedMonth.clone();
           const selectedEndTimeRecurring = selectedStartTimeRecurring
             .clone()
-            .add(30, "minutes");
+            .add(31, "minutes");
 
           // Check for overlapping times
           if (
@@ -454,6 +454,7 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
     } catch (error) {
       if (error.response) {
         console.log(error.response.data);
+        message.error(error.response.data);
         if (error.response.status === 401) {
           console.log("Token expired. Please log in again.");
           message.warning("Please log in again.");

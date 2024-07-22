@@ -153,7 +153,7 @@ namespace PetSpa.Repositories.BookingRepository
                             .Include(s => s.BookingDetails)
                             .ThenInclude(bd => bd.Booking)
                             .Where(s => s.StaffId == staffId.Value && !s.BookingDetails.Any(bd =>
-                                (currentStartTime < bd.Booking.EndDate && currentEndTime > bd.Booking.StartDate) ||
+                                (currentStartTime < bd.Booking.EndDate && currentEndTime > bd.Booking.StartDate && (bd.Booking.Status != BookingStatus.Canceled || bd.Booking.CheckAccept != CheckAccpectStatus.Deny)) ||
                                 (currentStartTime == bd.Booking.EndDate) || (currentEndTime == bd.Booking.StartDate)
                             ))
                             .ToList();
@@ -171,7 +171,7 @@ namespace PetSpa.Repositories.BookingRepository
                             .Include(s => s.BookingDetails)
                             .ThenInclude(bd => bd.Booking)
                             .Where(s => !s.BookingDetails.Any(bd =>
-                                (currentStartTime < bd.Booking.EndDate && currentEndTime > bd.Booking.StartDate) ||
+                                (currentStartTime < bd.Booking.EndDate && currentEndTime > bd.Booking.StartDate && (bd.Booking.Status != BookingStatus.Canceled || bd.Booking.CheckAccept != CheckAccpectStatus.Deny)) ||
                                 (currentStartTime == bd.Booking.EndDate) || (currentEndTime == bd.Booking.StartDate)
                             ))
                             .ToList();
@@ -201,7 +201,7 @@ namespace PetSpa.Repositories.BookingRepository
                         .Include(s => s.BookingDetails)
                         .ThenInclude(bd => bd.Booking)
                         .Where(s => s.StaffId == staffId.Value && !s.BookingDetails.Any(bd =>
-                            (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate) ||
+                            (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate && (bd.Booking.Status != BookingStatus.Canceled || bd.Booking.CheckAccept != CheckAccpectStatus.Deny)) ||
                             (startTime == bd.Booking.EndDate) || (endTime == bd.Booking.StartDate)
                         ))
                         .ToList();
@@ -214,8 +214,8 @@ namespace PetSpa.Repositories.BookingRepository
                     .Include(s => s.BookingDetails)
                     .ThenInclude(bd => bd.Booking)
                     .Where(s => !s.BookingDetails.Any(bd =>
-                        (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate) ||
-                        (startTime == bd.Booking.EndDate)  || (endTime == bd.Booking.StartDate)
+                        (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate && (bd.Booking.Status != BookingStatus.Canceled || bd.Booking.CheckAccept != CheckAccpectStatus.Deny)) ||
+                        (startTime == bd.Booking.EndDate) || (endTime == bd.Booking.StartDate)
                     ))
                     .ToList();
 
@@ -225,7 +225,8 @@ namespace PetSpa.Repositories.BookingRepository
                     var bookingsCount = dbContext.BookingDetails
                         .Include(bd => bd.Booking)
                         .Count(bd => (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate) ||
-                                     (startTime == bd.Booking.StartDate && endTime == bd.Booking.EndDate));
+                                     (startTime == bd.Booking.StartDate && endTime == bd.Booking.EndDate) ||
+                                     (endTime == bd.Booking.StartDate));
 
                     if (bookingsCount >= totalStaffCount)
                     {
@@ -236,6 +237,7 @@ namespace PetSpa.Repositories.BookingRepository
                 return (availableStaff, null);
             }
         }
+
 
 
 
