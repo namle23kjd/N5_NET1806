@@ -88,7 +88,7 @@ namespace PetSpa.Controllers
                 }
             }
             var totalDuration = bookingDomainModels.BookingDetails.Sum(bd => bd.Duration.Ticks);
-            var totalDurationTimeSpan = new TimeSpan(totalDuration) + TimeSpan.FromMinutes(20);
+            var totalDurationTimeSpan = new TimeSpan(totalDuration);
             bookingDomainModels.EndDate = bookingDomainModels.StartDate + totalDurationTimeSpan;
             bookingDomainModels.TotalAmount = bookingDomainModels.BookingDetails.Sum(bd =>
             {
