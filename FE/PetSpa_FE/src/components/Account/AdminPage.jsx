@@ -61,9 +61,12 @@ const AdminPage = () => {
   const [sortedInfo, setSortedInfo] = useState({});
   const [searchPhone, setSearchPhone] = useState("");
   const [searchRole, setSearchRole] = useState("");
+  const [searchMonth, setSearchMonth] = useState("");
+  const [invoiceSearchMonth, setInvoiceSearchMonth] = useState("");
   const [totalAccounts, setTotalAccounts] = useState(0);
   const [rolePercentages, setRolePercentages] = useState({});
   const [showDashboard, setShowDashboard] = useState(false);
+  const [showInvoiceScreen, setShowInvoiceScreen] = useState(false);
   const [dashboardData, setDashboardData] = useState({
     totalRevenue: 0,
     totalUsers: 0,
@@ -76,6 +79,45 @@ const AdminPage = () => {
     moment().subtract(7, "days"),
     moment(),
   ]);
+
+  const [invoiceData, setInvoiceData] = useState([
+    {
+      key: "1",
+      client: "Weston P. Thomas",
+      amount: "$254",
+      status: "Paid",
+      due: "February 16, 2021",
+    },
+    {
+      key: "2",
+      client: "William D. Gibson",
+      amount: "$254",
+      status: "Paid",
+      due: "December 21, 2021",
+    },
+    {
+      key: "3",
+      client: "John C. Adams",
+      amount: "$254",
+      status: "Paid",
+      due: "March 21, 2021",
+    },
+    {
+      key: "4",
+      client: "John L. Foster",
+      amount: "$254",
+      status: "Due",
+      due: "April 29, 2021",
+    },
+    {
+      key: "5",
+      client: "Terry P. Camacho",
+      amount: "$254",
+      status: "Cancel",
+      due: "November 26, 2021",
+    },
+  ]);
+  const [originalInvoiceData, setOriginalInvoiceData] = useState([...invoiceData]);
 
   const fetchDeniedBookings = async () => {
     try {
@@ -267,7 +309,7 @@ const AdminPage = () => {
   };
 
   const handleSubmit = async () => {
-    form.validateFields().then(async (values) => {
+    form.validateFields().then(async () => {
       if (!validateForm()) {
         return;
       }
@@ -388,22 +430,18 @@ const AdminPage = () => {
     }
   };
 
-  const handleSearchRole = (value) => {
-    setSearchRole(value);
-    if (value === "") {
-      setAccounts(originalAccounts);
-    } else {
-      const filteredData = originalAccounts.filter((account) =>
-        account.roles.some((role) =>
-          role.toLowerCase().includes(value.toLowerCase())
-        )
-      );
-      setAccounts(filteredData);
-    }
-  };
 
-  const onDateChange = (dates) => {
-    setDateRange(dates);
+  const handleInvoiceSearchMonth = (value) => {
+    setInvoiceSearchMonth(value);
+    if (value === "") {
+      setInvoiceData(originalInvoiceData);
+    } else {
+      const filteredData = originalInvoiceData.filter((invoice) => {
+        const dueDate = moment(invoice.due, "MMMM DD, YYYY");
+        return dueDate.isValid() && dueDate.format("MM-YYYY") === value;
+      });
+      setInvoiceData(filteredData);
+    }
   };
 
   const columns = [
@@ -499,8 +537,16 @@ const AdminPage = () => {
             type="primary"
             icon={<PieChartOutlined />}
             onClick={() => setShowDashboard(!showDashboard)}
+            style={{ marginRight: "10px" }}
           >
             {showDashboard ? "Hide Dashboard" : "Show Dashboard"}
+          </Button>
+          <Button
+            type="primary"
+            icon={<PieChartOutlined />}
+            onClick={() => setShowInvoiceScreen(!showInvoiceScreen)}
+          >
+            {showInvoiceScreen ? "Hide Invoice Screen" : "Show Invoice Screen"}
           </Button>
         </Row>
         {showForm && (
@@ -786,6 +832,106 @@ const AdminPage = () => {
             </Row>
           </div>
         )}
+        {showInvoiceScreen && (
+          <div style={{ marginBottom: "20px" }}>
+            <Title level={4}>Invoice Screen</Title>
+            <Row gutter={16}>
+              <Col span={24}>
+                <Space style={{ marginBottom: 16 }}>
+                  <DatePicker
+                    picker="month"
+                    placeholder="Search by Due Month"
+                    onChange={(date, dateString) => handleInvoiceSearchMonth(dateString)}
+                    style={{ width: 200, marginRight: 16 }}
+                  />
+                  <Button
+                    onClick={() => {
+                      setInvoiceSearchMonth("");
+                      setInvoiceData(originalInvoiceData);
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                </Space>
+                <Card bordered={false}>
+                  <div className="invoice-screen">
+                    <div className="invoice-summary">
+                      <div className="invoice-summary-item">
+                        <span>Total Invoices</span>
+                        <span>483</span>
+                      </div>
+                      <div className="invoice-summary-item">
+                        <span>Paid Invoices</span>
+                        <span>273</span>
+                      </div>
+                      <div className="invoice-summary-item">
+                        <span>Unpaid Invoices</span>
+                        <span>121</span>
+                      </div>
+                      <div className="invoice-summary-item">
+                        <span>Canceled Invoices</span>
+                        <span>89</span>
+                      </div>
+                    </div>
+                    <Table
+                      dataSource={invoiceData}
+                      columns={[
+                        {
+                          title: "Client",
+                          dataIndex: "client",
+                          key: "client",
+                        },
+                        {
+                          title: "Amount",
+                          dataIndex: "amount",
+                          key: "amount",
+                        },
+                        {
+                          title: "Status",
+                          dataIndex: "status",
+                          key: "status",
+                          render: (status) => {
+                            let color;
+                            switch (status) {
+                              case "Paid":
+                                color = "green";
+                                break;
+                              case "Due":
+                                color = "yellow";
+                                break;
+                              case "Cancel":
+                                color = "red";
+                                break;
+                              default:
+                                color = "blue";
+                            }
+                            return (
+                              <span
+                                style={{
+                                  color,
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                {status}
+                              </span>
+                            );
+                          },
+                        },
+                        {
+                          title: "Due",
+                          dataIndex: "due",
+                          key: "due",
+                          sorter: (a, b) => moment(a.due, "MMMM DD, YYYY").unix() - moment(b.due, "MMMM DD, YYYY").unix(),
+                          sortOrder: sortedInfo.columnKey === "due" ? sortedInfo.order : null,
+                        },
+                      ]}
+                    />
+                  </div>
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        )}
         <Space style={{ marginBottom: 16 }}>
           <Input
             placeholder="Search by Phone Number"
@@ -800,6 +946,7 @@ const AdminPage = () => {
               setAccounts(originalAccounts);
               setSearchPhone("");
               setSearchRole("");
+              setSearchMonth("");
             }}
           >
             Clear filters and sorters

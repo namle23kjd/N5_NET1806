@@ -153,7 +153,8 @@ namespace PetSpa.Repositories.BookingRepository
                             .Include(s => s.BookingDetails)
                             .ThenInclude(bd => bd.Booking)
                             .Where(s => s.StaffId == staffId.Value && !s.BookingDetails.Any(bd =>
-                                (currentStartTime < bd.Booking.EndDate && currentEndTime > bd.Booking.StartDate)
+                                (currentStartTime < bd.Booking.EndDate && currentEndTime > bd.Booking.StartDate && (bd.Booking.Status != BookingStatus.Canceled || bd.Booking.CheckAccept != CheckAccpectStatus.Deny)) ||
+                                (currentStartTime == bd.Booking.EndDate) || (currentEndTime == bd.Booking.StartDate)
                             ))
                             .ToList();
 
@@ -170,13 +171,14 @@ namespace PetSpa.Repositories.BookingRepository
                             .Include(s => s.BookingDetails)
                             .ThenInclude(bd => bd.Booking)
                             .Where(s => !s.BookingDetails.Any(bd =>
-                                (currentStartTime < bd.Booking.EndDate && currentEndTime > bd.Booking.StartDate)
+                                (currentStartTime < bd.Booking.EndDate && currentEndTime > bd.Booking.StartDate && (bd.Booking.Status != BookingStatus.Canceled || bd.Booking.CheckAccept != CheckAccpectStatus.Deny)) ||
+                                (currentStartTime == bd.Booking.EndDate) || (currentEndTime == bd.Booking.StartDate)
                             ))
                             .ToList();
 
                         if (!staffList.Any())
                         {
-                            return (null, $"Thời gian bị trùng cho tháng bắt đầu từ {currentStartTime:dd/MM/yyyy HH:mm}");
+                            return (null, $"Time conflict for the month starting from {currentStartTime:dd/MM/yyyy HH:mm}");
                         }
 
                         availableStaffs.AddRange(staffList);
@@ -189,30 +191,56 @@ namespace PetSpa.Repositories.BookingRepository
             }
             else
             {
+                // Get the total number of staff
+                var totalStaffCount = dbContext.Staff.Count();
+
+                // Check for specific staff availability
                 if (staffId.HasValue)
                 {
                     var staff = dbContext.Staff
                         .Include(s => s.BookingDetails)
                         .ThenInclude(bd => bd.Booking)
                         .Where(s => s.StaffId == staffId.Value && !s.BookingDetails.Any(bd =>
-                            (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate)
+                            (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate && (bd.Booking.Status != BookingStatus.Canceled || bd.Booking.CheckAccept != CheckAccpectStatus.Deny)) ||
+                            (startTime == bd.Booking.EndDate) || (endTime == bd.Booking.StartDate)
                         ))
                         .ToList();
 
                     return (staff, null);
                 }
 
-                var allStaff = dbContext.Staff
+                // Check general staff availability
+                var availableStaff = dbContext.Staff
                     .Include(s => s.BookingDetails)
                     .ThenInclude(bd => bd.Booking)
                     .Where(s => !s.BookingDetails.Any(bd =>
-                        (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate)
+                        (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate && (bd.Booking.Status != BookingStatus.Canceled || bd.Booking.CheckAccept != CheckAccpectStatus.Deny)) ||
+                        (startTime == bd.Booking.EndDate) || (endTime == bd.Booking.StartDate)
                     ))
                     .ToList();
 
-                return (allStaff, null);
+                // If there are not enough staff available for the requested time slot
+                if (availableStaff.Count < totalStaffCount)
+                {
+                    var bookingsCount = dbContext.BookingDetails
+                        .Include(bd => bd.Booking)
+                        .Count(bd => (startTime < bd.Booking.EndDate && endTime > bd.Booking.StartDate) ||
+                                     (startTime == bd.Booking.StartDate && endTime == bd.Booking.EndDate) ||
+                                     (endTime == bd.Booking.StartDate));
+
+                    if (bookingsCount >= totalStaffCount)
+                    {
+                        return (null, $"Not enough staff available for the time slot {startTime:HH:mm} to {endTime:HH:mm}");
+                    }
+                }
+
+                return (availableStaff, null);
             }
         }
+
+
+
+
 
         public async Task<List<Booking>> GetBookingsByStatusAsync(BookingStatus status)
         {

@@ -132,7 +132,8 @@ function Account() {
         localStorage.removeItem("user-info"); // Clear expired token
         window.location.href = "/login"; // Redirect to login page
       } else {
-        message.error(error.response.msg);
+        console.log(error.response);
+        message.error(error.response.data.msg);
       }
     } finally {
       setLoading(false);

@@ -29,6 +29,7 @@ function ForgotPassword() {
       if (response.ok) {
         setMessage("Check your email for password reset instructions");
       } else {
+        console.log(responseData);
         setMessage(responseData.msg);
       }
     } catch (error) {
