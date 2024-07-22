@@ -75,49 +75,9 @@ const AdminPage = () => {
     toDoList: 0,
     issues: 0,
   });
-  const [dateRange, setDateRange] = useState([
-    moment().subtract(7, "days"),
-    moment(),
-  ]);
 
-  const [invoiceData, setInvoiceData] = useState([
-    {
-      key: "1",
-      client: "Weston P. Thomas",
-      amount: "$254",
-      status: "Paid",
-      due: "February 16, 2021",
-    },
-    {
-      key: "2",
-      client: "William D. Gibson",
-      amount: "$254",
-      status: "Paid",
-      due: "December 21, 2021",
-    },
-    {
-      key: "3",
-      client: "John C. Adams",
-      amount: "$254",
-      status: "Paid",
-      due: "March 21, 2021",
-    },
-    {
-      key: "4",
-      client: "John L. Foster",
-      amount: "$254",
-      status: "Due",
-      due: "April 29, 2021",
-    },
-    {
-      key: "5",
-      client: "Terry P. Camacho",
-      amount: "$254",
-      status: "Cancel",
-      due: "November 26, 2021",
-    },
-  ]);
-  const [originalInvoiceData, setOriginalInvoiceData] = useState([...invoiceData]);
+  const [invoiceData, setInvoiceData] = useState([]);
+  const [originalInvoiceData, setOriginalInvoiceData] = useState([]);
 
   const fetchDeniedBookings = async () => {
     try {
@@ -179,6 +139,44 @@ const AdminPage = () => {
     }
   };
 
+  const fetchInvoiceData = async () => {
+    try {
+      const response = await axios.get(
+        "https://localhost:7150/api/Payments/get-all-payments"
+      );
+      const payments = response.data;
+      const formattedPayments = payments.map((payment) => {
+        const status = payment.bookings.some((booking) => booking.status === 2)
+          ? "Refund"
+          : payment.bookings.some((booking) => booking.checkAccept === -1)
+          ? "Canceled"
+          : "Paid";
+
+        const serviceName = payment.bookings
+          .map((booking) =>
+            booking.bookingDetails.map((detail) =>
+              detail.comboName
+                ? `${detail.comboName} - ${status}`
+                : `${detail.serviceName} - ${status}`
+            )
+          )
+          .flat()
+          .join(", ");
+
+        return {
+          client: payment.customerName,
+          amount: payment.totalPayment,
+          status: serviceName,
+          due: payment.createdDate,
+        };
+      });
+      setInvoiceData(formattedPayments);
+      setOriginalInvoiceData(formattedPayments);
+    } catch (error) {
+      console.error("Error fetching invoice data:", error);
+    }
+  };
+
   useEffect(() => {
     fetchAccounts();
     fetchBookingData();
@@ -187,21 +185,13 @@ const AdminPage = () => {
     fetchTotalRevenue();
     fetchCompletedBookings();
     fetchDeniedBookings();
-
-    const interval = setInterval(() => {
-      fetchTotalRevenue();
-      fetchInactiveUsers();
-      fetchCompletedBookings();
-      fetchDeniedBookings();
-    }, 10000);
-
-    return () => clearInterval(interval);
+    fetchInvoiceData();
   }, []);
 
   useEffect(() => {
     fetchDashboardData();
     fetchInactiveUsers();
-  }, [dateRange]);
+  }, []);
 
   const fetchAccounts = async () => {
     try {
@@ -437,7 +427,7 @@ const AdminPage = () => {
       setInvoiceData(originalInvoiceData);
     } else {
       const filteredData = originalInvoiceData.filter((invoice) => {
-        const dueDate = moment(invoice.due, "MMMM DD, YYYY");
+        const dueDate = moment(invoice.due, "YYYY-MM-DD HH:mm:ss");
         return dueDate.isValid() && dueDate.format("MM-YYYY") === value;
       });
       setInvoiceData(filteredData);
@@ -841,7 +831,9 @@ const AdminPage = () => {
                   <DatePicker
                     picker="month"
                     placeholder="Search by Due Month"
-                    onChange={(date, dateString) => handleInvoiceSearchMonth(dateString)}
+                    onChange={(date, dateString) =>
+                      handleInvoiceSearchMonth(dateString)
+                    }
                     style={{ width: 200, marginRight: 16 }}
                   />
                   <Button
@@ -885,44 +877,28 @@ const AdminPage = () => {
                           title: "Amount",
                           dataIndex: "amount",
                           key: "amount",
+                          render: (amount) =>
+                            amount.toLocaleString("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            }),
                         },
                         {
                           title: "Status",
                           dataIndex: "status",
                           key: "status",
-                          render: (status) => {
-                            let color;
-                            switch (status) {
-                              case "Paid":
-                                color = "green";
-                                break;
-                              case "Due":
-                                color = "yellow";
-                                break;
-                              case "Cancel":
-                                color = "red";
-                                break;
-                              default:
-                                color = "blue";
-                            }
-                            return (
-                              <span
-                                style={{
-                                  color,
-                                  fontWeight: "bold",
-                                }}
-                              >
-                                {status}
-                              </span>
-                            );
-                          },
                         },
                         {
                           title: "Due",
                           dataIndex: "due",
                           key: "due",
-                          sorter: (a, b) => moment(a.due, "MMMM DD, YYYY").unix() - moment(b.due, "MMMM DD, YYYY").unix(),
-                          sortOrder: sortedInfo.columnKey === "due" ? sortedInfo.order : null,
+                          sorter: (a, b) =>
+                            moment(a.due, "YYYY-MM-DD HH:mm:ss").unix() -
+                            moment(b.due, "YYYY-MM-DD HH:mm:ss").unix(),
+                          sortOrder:
+                            sortedInfo.columnKey === "due"
+                              ? sortedInfo.order
+                              : null,
                         },
                       ]}
                     />
