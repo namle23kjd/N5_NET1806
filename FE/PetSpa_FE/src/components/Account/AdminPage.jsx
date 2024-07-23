@@ -154,9 +154,7 @@ const AdminPage = () => {
               ? "Refund"
               : booking.checkAccept === -1
               ? "Canceled"
-              : booking.checkAccept === 1 && booking.status !== 2
-              ? "Paid"
-              : "Unknown"; // Default case if no conditions match
+              : "Paid";
     
           const serviceNames = booking.bookingDetails.map((detail) =>
             detail.comboName
