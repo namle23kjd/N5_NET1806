@@ -395,10 +395,10 @@ function Cart() {
     if (!date.isValid()) {
       throw new Error("Invalid date");
     }
-
+    const id = item.comboId ? item.comboId : item.serviceId;
     let url = `https://localhost:7150/api/Booking/availableForPeriod?startTime=${date.format(
       "YYYY-MM-DDTHH:mm:ss"
-    )}&serviceCode=${item.serviceId}`;
+    )}&serviceCode=${id}`;
 
     if (item.staffId) {
       url += `&staffId=${item.staffId}`;

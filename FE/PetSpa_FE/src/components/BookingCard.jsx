@@ -315,13 +315,12 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
         const itemMonth = moment(item.date).add(i - 1, "months");
         const itemStartTime = itemMonth.clone();
         let itemEndTime = "";
-        
 
         if (item.comboDetails && item.comboDetails.length > 0) {
           // Nếu là combo thì cộng 91 phút
           itemEndTime = itemStartTime.clone().add(91, "minutes");
-      } else {
-           itemEndTime = itemStartTime.clone().add(31, "minutes");
+        } else {
+          itemEndTime = itemStartTime.clone().add(31, "minutes");
         }
         for (let j = 1; j <= selectedPeriod; j++) {
           const selectedMonth = selectedStartTime.clone().add(j - 1, "months");
@@ -461,7 +460,7 @@ const BookingCard = ({ isOpen, handleHideModal, serviceId }) => {
     } catch (error) {
       if (error.response) {
         console.log(error.response.data);
-        message.error(error.response.data);
+        // message.error(error.response.data);
         if (error.response.status === 401) {
           console.log("Token expired. Please log in again.");
           message.warning("Please log in again.");

@@ -282,15 +282,13 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
         const itemMonth = moment(item.date).add(i - 1, "months");
         const itemStartTime = itemMonth.clone();
         let itemEndTime = "";
-        
 
         if (item.comboDetails && item.comboDetails.length > 0) {
           // Nếu là combo thì cộng 91 phút
           itemEndTime = itemStartTime.clone().add(91, "minutes");
-      } else {
-           itemEndTime = itemStartTime.clone().add(31, "minutes");
+        } else {
+          itemEndTime = itemStartTime.clone().add(31, "minutes");
         }
-       
 
         for (let j = 1; j <= selectedPeriod; j++) {
           const selectedMonth = selectedStartTime.clone().add(j - 1, "months");
@@ -389,6 +387,7 @@ const BookingCombo = ({ isOpen, handleHideModal, comboId }) => {
         date: date.format("YYYY-MM-DDTHH:mm:ss"),
         serviceName: selectedService.comboType,
         servicePrice: priceCombo,
+        comboId: selectedComboId,
         petId: selectedPet.petId,
         petName: selectedPet.petName,
         comboDetails: selectedService.services,
