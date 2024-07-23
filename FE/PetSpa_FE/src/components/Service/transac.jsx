@@ -104,6 +104,7 @@ const Transac = () => {
                 const staffName = detail.staffId
                   ? await fetchStaffName(detail.staffId)
                   : null;
+                  console.log(staffName);
                 const serviceName = await fetchServiceName(detail.serviceId);
                 let comboName = null;
                 if (detail.comboId) {
@@ -280,14 +281,17 @@ const Transac = () => {
 
     // Check if the booking is less than 24 hours from now
     const now = moment();
-    const originalBookingTime = moment(
+    const bookingSchedule = moment(
       selectedProduct.bookingSchedule,
-      "YYYY-MM-DD HH:mm:ss"
+      "YYYY-MM-DDTHH:mm:ss"
     );
-    console.log(originalBookingTime);
-    if (originalBookingTime.diff(now, "hours") > 24) {
+
+    console.log("Booking Schedule:", bookingSchedule.format());
+    console.log("Current Time:", now.format());
+
+    if (now.diff(bookingSchedule, "hours") > 5) {
       message.error(
-        "Booking time is less than 24 hours from now, therefore it cannot be changed."
+        "Booking time is more than 5 hours from booking time, therefore it cannot be changed."
       );
       return;
     }
@@ -296,10 +300,11 @@ const Transac = () => {
 
     // Reset form and set new values
     form.resetFields();
-    setNewDate(originalBookingTime); // Set the newDate with the original booking time
+    const date = moment(selectedProduct.scheduleDate, "YYYY-MM-DD HH:mm:ss");
+    setNewDate(date); // Set the newDate with the original booking time
     form.setFieldsValue({
       staff: selectedProduct.staffId || null,
-      date: originalBookingTime,
+      date: date,
     });
 
     setIsOpen(true);
@@ -330,7 +335,15 @@ const Transac = () => {
     }
 
     try {
-      let url = `https://localhost:7150/api/Booking/available?startTime=${newDate.format(
+
+
+     
+      
+
+
+
+
+      let url = `https://localhost:7150/api/Booking/availableForPeriod?startTime=${newDate.format(
         "YYYY-MM-DDTHH:mm:ss"
       )}&serviceCode=${selectedProduct.serviceId}`;
 
