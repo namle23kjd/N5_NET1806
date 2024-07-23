@@ -78,6 +78,7 @@ const AdminPage = () => {
 
   const [invoiceData, setInvoiceData] = useState([]);
   const [originalInvoiceData, setOriginalInvoiceData] = useState([]);
+  const [totalInvoiceAmount, setTotalInvoiceAmount] = useState(0);
 
   const fetchDeniedBookings = async () => {
     try {
@@ -145,9 +146,8 @@ const AdminPage = () => {
         "https://localhost:7150/api/Payments/get-all-payments"
       );
       const payments = response.data;
-    
+
       const formattedPayments = payments.map((payment) => {
-        // Duyệt qua từng booking để thiết lập trạng thái phù hợp
         const bookingsWithStatus = payment.bookings.map((booking) => {
           const status =
             booking.status === 2
@@ -155,22 +155,22 @@ const AdminPage = () => {
               : booking.checkAccept === -1
               ? "Canceled"
               : "Paid";
-    
+
           const serviceNames = booking.bookingDetails.map((detail) =>
             detail.comboName
               ? `${detail.comboName} - ${status}`
               : `${detail.serviceName} - ${status}`
           );
-    
+
           return {
             ...booking,
-            serviceNames: serviceNames.join(", "),
+            serviceNames: serviceNames.join("\n"),
             status: status,
           };
         });
-    
-        const serviceName = bookingsWithStatus.map((booking) => booking.serviceNames).join(", ");
-    
+
+        const serviceName = bookingsWithStatus.map((booking) => booking.serviceNames).join("\n");
+
         return {
           client: payment.customerName,
           amount: payment.totalPayment,
@@ -178,13 +178,14 @@ const AdminPage = () => {
           due: payment.createdDate,
         };
       });
-    
+
       setInvoiceData(formattedPayments);
       setOriginalInvoiceData(formattedPayments);
+      calculateTotalAmount(formattedPayments); // Calculate total amount
     } catch (error) {
       console.error("Error fetching invoice data:", error);
     }
-    
+
   };
 
   useEffect(() => {
@@ -269,6 +270,11 @@ const AdminPage = () => {
     }, {});
 
     setRolePercentages(percentages);
+  };
+
+  const calculateTotalAmount = (invoices) => {
+    const total = invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+    setTotalInvoiceAmount(total);
   };
 
   const handleInputChange = (e) => {
@@ -430,19 +436,20 @@ const AdminPage = () => {
     }
   };
 
-
   const handleInvoiceSearchMonth = (value) => {
     setInvoiceSearchMonth(value);
-    if (value === "") {
+    if (!value) {
       setInvoiceData(originalInvoiceData);
     } else {
       const filteredData = originalInvoiceData.filter((invoice) => {
-        const dueDate = moment(invoice.due, "YYYY-MM-DD HH:mm:ss");
-        return dueDate.isValid() && dueDate.format("MM-YYYY") === value;
+        const dueDate = moment(invoice.due);
+        return dueDate.isValid() && dueDate.format("MM-YYYY") === moment(value).format("MM-YYYY");
       });
       setInvoiceData(filteredData);
+      calculateTotalAmount(filteredData); // Recalculate total amount
     }
   };
+  
 
   const columns = [
     {
@@ -857,29 +864,11 @@ const AdminPage = () => {
                 </Space>
                 <Card bordered={false}>
                   <div className="invoice-screen">
-                    <div className="invoice-summary">
-                      <div className="invoice-summary-item">
-                        <span>Total Invoices</span>
-                        <span>483</span>
-                      </div>
-                      <div className="invoice-summary-item">
-                        <span>Paid Invoices</span>
-                        <span>273</span>
-                      </div>
-                      <div className="invoice-summary-item">
-                        <span>Unpaid Invoices</span>
-                        <span>121</span>
-                      </div>
-                      <div className="invoice-summary-item">
-                        <span>Canceled Invoices</span>
-                        <span>89</span>
-                      </div>
-                    </div>
                     <Table
                       dataSource={invoiceData}
                       columns={[
                         {
-                          title: "Client",
+                          title: "Customer Name",
                           dataIndex: "client",
                           key: "client",
                         },
@@ -897,6 +886,22 @@ const AdminPage = () => {
                           title: "Status",
                           dataIndex: "status",
                           key: "status",
+                          render: (status) =>
+                            status.split("\n").map((line, index) => {
+                              let color;
+                              if (line.includes("Paid")) {
+                                color = "green";
+                              } else if (line.includes("Refund")) {
+                                color = "red";
+                              } else if (line.includes("Canceled")) {
+                                color = "yellow";
+                              }
+                              return (
+                                <div key={index} style={{ color }}>
+                                  {line}
+                                </div>
+                              );
+                            }),
                         },
                         {
                           title: "Due",
@@ -912,6 +917,18 @@ const AdminPage = () => {
                         },
                       ]}
                     />
+                    <div
+                      style={{
+                        textAlign: "right",
+                        marginTop: "20px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Total Amount: {totalInvoiceAmount.toLocaleString("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                      })}
+                    </div>
                   </div>
                 </Card>
               </Col>
