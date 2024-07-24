@@ -770,12 +770,7 @@ const Transac = () => {
                     className="media-1 mb-3"
                     style={styles.media}
                   >
-                    <input
-                      type="checkbox"
-                      value={`product-${productIndex}`}
-                      onChange={handleSelectProduct}
-                      className="mr-2 d-print-none"
-                    />
+                    
                     <div
                       className="avatar avatar-xl mr-3"
                       style={styles.avatar}
@@ -901,15 +896,6 @@ const Transac = () => {
                     </div>
                   </div>
                 ))}
-
-                <Button
-                  className="btn mt-3"
-                  onClick={handlePrint}
-                  style={styles.buttonPrint}
-                  size="small"
-                >
-                  Print Selected Products
-                </Button>
                 <hr />
               </div>
             </div>

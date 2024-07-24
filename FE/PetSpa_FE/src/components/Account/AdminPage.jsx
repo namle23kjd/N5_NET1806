@@ -633,6 +633,7 @@ const AdminPage = () => {
                   <Option value="customer">Customer</Option>
                   <Option value="manager">Manager</Option>
                   <Option value="staff">Staff</Option>
+                  {/* <Option value="admin">Admin</Option> */}
                 </Select>
               </Form.Item>
 
