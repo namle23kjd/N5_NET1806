@@ -44,13 +44,14 @@ namespace PetSpa.Controllers
                     {
                         return NotFound($"Customer with ID {model.CusId} not found");
                     }
-
+                    TimeZoneInfo vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                    DateTime vietnamTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vietnamTimeZone);
                     // Tạo Payment entity
                     var payment = new Payment
                     {
                         TransactionId = transactionId, // Sử dụng tick làm TransactionId
-                        CreatedDate = DateTime.UtcNow,
-                        ExpirationTime = DateTime.UtcNow.AddMinutes(10),
+                        CreatedDate = vietnamTime,
+                        ExpirationTime = vietnamTime.AddMinutes(10),
                         PaymentMethod = "VNPay",
                         CusId = model.CusId, // Gán CusId vào Payment
                         TotalPayment = Convert.ToDecimal(model.Amount) // Khởi tạo TotalPayment bằng 0
