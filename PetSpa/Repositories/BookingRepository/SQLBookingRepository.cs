@@ -160,7 +160,8 @@ namespace PetSpa.Repositories.BookingRepository
 
                         if (!staff.Any())
                         {
-                            return (null, $"Time conflict for the month starting from {currentStartTime:dd/MM/yyyy HH:mm}");
+                           
+                            return (null, $"Time has already been scheduled in the system for {currentStartTime:dd/MM/yyyy HH:mm}");
                         }
 
                         availableStaffs.AddRange(staff);
@@ -178,7 +179,7 @@ namespace PetSpa.Repositories.BookingRepository
 
                         if (!staffList.Any())
                         {
-                            return (null, $"Time conflict for the month starting from {currentStartTime:dd/MM/yyyy HH:mm}");
+                            return (null, $"Time has already been scheduled in the system for {currentStartTime:dd/MM/yyyy HH:mm}");
                         }
 
                         availableStaffs.AddRange(staffList);

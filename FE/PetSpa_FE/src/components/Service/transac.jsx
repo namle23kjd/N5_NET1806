@@ -104,6 +104,7 @@ const Transac = () => {
                 const staffName = detail.staffId
                   ? await fetchStaffName(detail.staffId)
                   : null;
+                console.log(staffName);
                 const serviceName = await fetchServiceName(detail.serviceId);
                 let comboName = null;
                 if (detail.comboId) {
@@ -130,7 +131,6 @@ const Transac = () => {
         );
 
         setDataSource(extractedData);
-        console.log(extractedData);
       } catch (error) {
         if (error.response && error.response.status === 401) {
           localStorage.removeItem("user-info");
@@ -280,14 +280,14 @@ const Transac = () => {
 
     // Check if the booking is less than 24 hours from now
     const now = moment();
-    const originalBookingTime = moment(
-      selectedProduct.bookingSchedule,
-      "YYYY-MM-DD HH:mm:ss"
+    const bookingSchedule = moment(
+      selectedProduct.scheduleDate,
+      "YYYY-MM-DDTHH:mm:ss"
     );
-    console.log(originalBookingTime);
-    if (originalBookingTime.diff(now, "hours") > 24) {
+    // console.log(bookingSchedule);
+    if (bookingSchedule.diff(now, "hours") <= 5) {
       message.error(
-        "Booking time is less than 24 hours from now, therefore it cannot be changed."
+        "Booking time must be more than 5 hours from the current time, therefore it cannot be changed."
       );
       return;
     }
@@ -296,10 +296,11 @@ const Transac = () => {
 
     // Reset form and set new values
     form.resetFields();
-    setNewDate(originalBookingTime); // Set the newDate with the original booking time
+    const date = moment(selectedProduct.scheduleDate, "YYYY-MM-DD HH:mm:ss");
+    setNewDate(date); // Set the newDate with the original booking time
     form.setFieldsValue({
       staff: selectedProduct.staffId || null,
-      date: originalBookingTime,
+      date: date,
     });
 
     setIsOpen(true);
@@ -330,7 +331,7 @@ const Transac = () => {
     }
 
     try {
-      let url = `https://localhost:7150/api/Booking/available?startTime=${newDate.format(
+      let url = `https://localhost:7150/api/Booking/availableForPeriod?startTime=${newDate.format(
         "YYYY-MM-DDTHH:mm:ss"
       )}&serviceCode=${selectedProduct.serviceId}`;
 
@@ -345,7 +346,6 @@ const Transac = () => {
       });
 
       if (response.status === 401) {
-        console.log("Token expired. Please log in again.");
         setError("Token expired. Please log in again.");
         localStorage.removeItem("user-info");
         setIsLoading(false);
@@ -376,6 +376,13 @@ const Transac = () => {
               ? await fetchStaffName(selectedStaffId)
               : null;
             // Update the booking time in dataSource
+            if (selectedStaffId != null) {
+              // Chạy thêm API để gán staff
+              await axios.put(
+                `https://localhost:7150/api/Booking/accept-booking-havestaff`,
+                { bookingId }
+              );
+            }
             const updatedDataSource = dataSource.map((transaction) => {
               return {
                 ...transaction,
@@ -385,7 +392,9 @@ const Transac = () => {
                         ...item,
                         scheduleDate: newDate.format("YYYY-MM-DD HH:mm:ss"),
                         staffName: staffName,
-                        staffId: selectedStaffId || item.staffId, // Ensure staffId is updated or added
+                        staffId: selectedStaffId || item.staffId,
+                        checkAccept:
+                          selectedStaffId != null ? 1 : item.CheckAccpet, // Ensure staffId is updated or added
                       }
                     : item
                 ),
@@ -487,12 +496,11 @@ const Transac = () => {
         `https://localhost:7150/api/Customer/${userInfo.data.user.id}`
       );
       const customerData = response.data.data;
-      console.log(customerData);
+      //console.log(customerData);
       if (customerData.banking) {
         const [bankName, cardNumber] = customerData.banking.split(" ");
         setBankName(bankName);
         setCardNumber(cardNumber);
-        console.log(bankName + cardNumber);
       }
     } catch (error) {
       console.error("Error fetching customer data:", error);
@@ -762,12 +770,7 @@ const Transac = () => {
                     className="media-1 mb-3"
                     style={styles.media}
                   >
-                    <input
-                      type="checkbox"
-                      value={`product-${productIndex}`}
-                      onChange={handleSelectProduct}
-                      className="mr-2 d-print-none"
-                    />
+                    
                     <div
                       className="avatar avatar-xl mr-3"
                       style={styles.avatar}
@@ -893,15 +896,6 @@ const Transac = () => {
                     </div>
                   </div>
                 ))}
-
-                <Button
-                  className="btn mt-3"
-                  onClick={handlePrint}
-                  style={styles.buttonPrint}
-                  size="small"
-                >
-                  Print Selected Products
-                </Button>
                 <hr />
               </div>
             </div>

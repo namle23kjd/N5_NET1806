@@ -75,49 +75,10 @@ const AdminPage = () => {
     toDoList: 0,
     issues: 0,
   });
-  const [dateRange, setDateRange] = useState([
-    moment().subtract(7, "days"),
-    moment(),
-  ]);
 
-  const [invoiceData, setInvoiceData] = useState([
-    {
-      key: "1",
-      client: "Weston P. Thomas",
-      amount: "$254",
-      status: "Paid",
-      due: "February 16, 2021",
-    },
-    {
-      key: "2",
-      client: "William D. Gibson",
-      amount: "$254",
-      status: "Paid",
-      due: "December 21, 2021",
-    },
-    {
-      key: "3",
-      client: "John C. Adams",
-      amount: "$254",
-      status: "Paid",
-      due: "March 21, 2021",
-    },
-    {
-      key: "4",
-      client: "John L. Foster",
-      amount: "$254",
-      status: "Due",
-      due: "April 29, 2021",
-    },
-    {
-      key: "5",
-      client: "Terry P. Camacho",
-      amount: "$254",
-      status: "Cancel",
-      due: "November 26, 2021",
-    },
-  ]);
-  const [originalInvoiceData, setOriginalInvoiceData] = useState([...invoiceData]);
+  const [invoiceData, setInvoiceData] = useState([]);
+  const [originalInvoiceData, setOriginalInvoiceData] = useState([]);
+  const [totalInvoiceAmount, setTotalInvoiceAmount] = useState(0);
 
   const fetchDeniedBookings = async () => {
     try {
@@ -179,6 +140,54 @@ const AdminPage = () => {
     }
   };
 
+  const fetchInvoiceData = async () => {
+    try {
+      const response = await axios.get(
+        "https://localhost:7150/api/Payments/get-all-payments"
+      );
+      const payments = response.data;
+
+      const formattedPayments = payments.map((payment) => {
+        const bookingsWithStatus = payment.bookings.map((booking) => {
+          const status =
+            booking.status === 2
+              ? "Refund"
+              : booking.checkAccept === -1
+              ? "Canceled"
+              : "Paid";
+
+          const serviceNames = booking.bookingDetails.map((detail) =>
+            detail.comboName
+              ? `${detail.comboName} - ${status}`
+              : `${detail.serviceName} - ${status}`
+          );
+
+          return {
+            ...booking,
+            serviceNames: serviceNames.join("\n"),
+            status: status,
+          };
+        });
+
+        const serviceName = bookingsWithStatus.map((booking) => booking.serviceNames).join("\n");
+
+        return {
+          client: payment.customerName,
+          amount: payment.totalPayment,
+          status: serviceName,
+          due: payment.createdDate,
+        };
+      });
+
+      setInvoiceData(formattedPayments);
+      setOriginalInvoiceData(formattedPayments);
+      calculateTotalAmount(formattedPayments); // Calculate total amount
+    } catch (error) {
+      console.error("Error fetching invoice data:", error);
+    }
+
+  };
+
   useEffect(() => {
     fetchAccounts();
     fetchBookingData();
@@ -187,21 +196,13 @@ const AdminPage = () => {
     fetchTotalRevenue();
     fetchCompletedBookings();
     fetchDeniedBookings();
-
-    const interval = setInterval(() => {
-      fetchTotalRevenue();
-      fetchInactiveUsers();
-      fetchCompletedBookings();
-      fetchDeniedBookings();
-    }, 10000);
-
-    return () => clearInterval(interval);
+    fetchInvoiceData();
   }, []);
 
   useEffect(() => {
     fetchDashboardData();
     fetchInactiveUsers();
-  }, [dateRange]);
+  }, []);
 
   const fetchAccounts = async () => {
     try {
@@ -269,6 +270,11 @@ const AdminPage = () => {
     }, {});
 
     setRolePercentages(percentages);
+  };
+
+  const calculateTotalAmount = (invoices) => {
+    const total = invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+    setTotalInvoiceAmount(total);
   };
 
   const handleInputChange = (e) => {
@@ -430,19 +436,20 @@ const AdminPage = () => {
     }
   };
 
-
   const handleInvoiceSearchMonth = (value) => {
     setInvoiceSearchMonth(value);
-    if (value === "") {
+    if (!value) {
       setInvoiceData(originalInvoiceData);
     } else {
       const filteredData = originalInvoiceData.filter((invoice) => {
-        const dueDate = moment(invoice.due, "MMMM DD, YYYY");
-        return dueDate.isValid() && dueDate.format("MM-YYYY") === value;
+        const dueDate = moment(invoice.due);
+        return dueDate.isValid() && dueDate.format("MM-YYYY") === moment(value).format("MM-YYYY");
       });
       setInvoiceData(filteredData);
+      calculateTotalAmount(filteredData); // Recalculate total amount
     }
   };
+  
 
   const columns = [
     {
@@ -626,6 +633,7 @@ const AdminPage = () => {
                   <Option value="customer">Customer</Option>
                   <Option value="manager">Manager</Option>
                   <Option value="staff">Staff</Option>
+                  {/* <Option value="admin">Admin</Option> */}
                 </Select>
               </Form.Item>
 
@@ -841,7 +849,9 @@ const AdminPage = () => {
                   <DatePicker
                     picker="month"
                     placeholder="Search by Due Month"
-                    onChange={(date, dateString) => handleInvoiceSearchMonth(dateString)}
+                    onChange={(date, dateString) =>
+                      handleInvoiceSearchMonth(dateString)
+                    }
                     style={{ width: 200, marginRight: 16 }}
                   />
                   <Button
@@ -855,29 +865,11 @@ const AdminPage = () => {
                 </Space>
                 <Card bordered={false}>
                   <div className="invoice-screen">
-                    <div className="invoice-summary">
-                      <div className="invoice-summary-item">
-                        <span>Total Invoices</span>
-                        <span>483</span>
-                      </div>
-                      <div className="invoice-summary-item">
-                        <span>Paid Invoices</span>
-                        <span>273</span>
-                      </div>
-                      <div className="invoice-summary-item">
-                        <span>Unpaid Invoices</span>
-                        <span>121</span>
-                      </div>
-                      <div className="invoice-summary-item">
-                        <span>Canceled Invoices</span>
-                        <span>89</span>
-                      </div>
-                    </div>
                     <Table
                       dataSource={invoiceData}
                       columns={[
                         {
-                          title: "Client",
+                          title: "Customer Name",
                           dataIndex: "client",
                           key: "client",
                         },
@@ -885,47 +877,59 @@ const AdminPage = () => {
                           title: "Amount",
                           dataIndex: "amount",
                           key: "amount",
+                          render: (amount) =>
+                            amount.toLocaleString("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            }),
                         },
                         {
                           title: "Status",
                           dataIndex: "status",
                           key: "status",
-                          render: (status) => {
-                            let color;
-                            switch (status) {
-                              case "Paid":
+                          render: (status) =>
+                            status.split("\n").map((line, index) => {
+                              let color;
+                              if (line.includes("Paid")) {
                                 color = "green";
-                                break;
-                              case "Due":
-                                color = "yellow";
-                                break;
-                              case "Cancel":
+                              } else if (line.includes("Refund")) {
                                 color = "red";
-                                break;
-                              default:
-                                color = "blue";
-                            }
-                            return (
-                              <span
-                                style={{
-                                  color,
-                                  fontWeight: "bold",
-                                }}
-                              >
-                                {status}
-                              </span>
-                            );
-                          },
+                              } else if (line.includes("Canceled")) {
+                                color = "yellow";
+                              }
+                              return (
+                                <div key={index} style={{ color }}>
+                                  {line}
+                                </div>
+                              );
+                            }),
                         },
                         {
                           title: "Due",
                           dataIndex: "due",
                           key: "due",
-                          sorter: (a, b) => moment(a.due, "MMMM DD, YYYY").unix() - moment(b.due, "MMMM DD, YYYY").unix(),
-                          sortOrder: sortedInfo.columnKey === "due" ? sortedInfo.order : null,
+                          sorter: (a, b) =>
+                            moment(a.due, "YYYY-MM-DD HH:mm:ss").unix() -
+                            moment(b.due, "YYYY-MM-DD HH:mm:ss").unix(),
+                          sortOrder:
+                            sortedInfo.columnKey === "due"
+                              ? sortedInfo.order
+                              : null,
                         },
                       ]}
                     />
+                    <div
+                      style={{
+                        textAlign: "right",
+                        marginTop: "20px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Total Amount: {totalInvoiceAmount.toLocaleString("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                      })}
+                    </div>
                   </div>
                 </Card>
               </Col>
