@@ -12,6 +12,7 @@ namespace PetSpa.Repositories.CustomerRepository
         Task<Customer?> UpdateAsync(Guid CusId, Customer customer);
         Task<Customer?> GetByIdBookingAsync(Guid CusId);
         Task<bool> IsUniquePhoneNumberAsync(Guid id, string newPhoneNumber);
+
         Task<bool> DeleteAsync(Guid CusId);
        
     }

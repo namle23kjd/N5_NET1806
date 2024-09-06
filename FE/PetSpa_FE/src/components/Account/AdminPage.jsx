@@ -708,7 +708,7 @@ const AdminPage = () => {
               </Col>
               <Col span={12}>
                 <Row gutter={16}>
-                  <Col span={12}>
+                  {/* <Col span={12}>
                     <Card
                       bordered={false}
                       style={{
@@ -730,7 +730,7 @@ const AdminPage = () => {
                       </div>
                       <div>Total Revenue</div>
                     </Card>
-                  </Col>
+                  </Col> */}
                   <Col span={12}>
                     <Card
                       bordered={false}

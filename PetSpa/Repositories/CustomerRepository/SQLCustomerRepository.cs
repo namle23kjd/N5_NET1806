@@ -24,6 +24,7 @@ namespace PetSpa.Repositories.CustomerRepository
             await _dbContext.SaveChangesAsync();
             return true;
         }
+
         public async Task<bool> IsUniquePhoneNumberAsync(Guid id, string newPhoneNumber)
         {
             // Retrieve the customer with the specified id
@@ -50,6 +51,7 @@ namespace PetSpa.Repositories.CustomerRepository
 
             return customerCount == 0;
         }
+        
 
         public async Task<List<Customer>> GetAllAsync()
         {

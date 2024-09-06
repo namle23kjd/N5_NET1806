@@ -17,8 +17,7 @@ namespace PetSpa.Repositories.PaymentRepository
 
         public string CreatePaymentUrl(PaymentInformationModel model, HttpContext context, string transactionId)
         {
-            var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(_configuration["TimeZoneId"]);
-            var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
+            var timeNow = DateTime.Now;
             var pay = new VnPayLibrary();
             var urlCallBack = _configuration["PaymentCallBack:ReturnUrl"];
 
